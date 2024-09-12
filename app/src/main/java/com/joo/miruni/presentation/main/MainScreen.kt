@@ -34,14 +34,18 @@ fun MainScreen(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { "" },
+                    title = { Text(text = "") },
                     navigationIcon = {
-                        IconButton(onClick = {
-                            // 메뉴 열기
-                        }) {
+                        IconButton(
+                            onClick = {
+                                // 메뉴 열기
+                            },
+                            modifier = Modifier
+                                .padding(4.dp)
+                        ) {
                             Icon(
-                                painterResource(id = R.drawable.ic_menu),
-                                contentDescription = "menu"
+                                painter = painterResource(id = R.drawable.ic_menu),
+                                contentDescription = "menu",
                             )
                         }
                     },
@@ -100,13 +104,13 @@ fun BottomNavigationBar(
 @Composable
 fun NavigationHost(navController: NavHostController) {
     NavHost(navController, startDestination = Screen.Home.route) {
-        composable(Screen.Home.route) { HomeScreen() }
+        composable(Screen.Home.route) { HomeScreen(navController) }
         composable(Screen.PutOff.route) { PutOffScreen() }
         composable(Screen.Calendar.route) { CalendarScreen() }
     }
 }
 
-// 프리뷰 컴포저블
+
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
@@ -115,5 +119,6 @@ fun MainScreenPreview() {
 
     MainScreen(navController, previewViewModel)
 }
+
 
 
