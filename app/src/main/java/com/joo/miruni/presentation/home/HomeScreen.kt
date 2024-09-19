@@ -1,5 +1,6 @@
 package com.joo.miruni.presentation.home
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -127,12 +128,12 @@ fun HomeScreen(
             ) {
                 // 일정 리스트
                 items(scheduleItems.size) { index ->
-                    ScheduleItem(scheduleItems[index])
+                    ScheduleItem(context, scheduleItems[index])
                 }
 
                 // 할 일 리스트
                 items(thingsToDoItems.size) { index ->
-                    ThingsToDoItem(thingsToDoItems[index])
+                    ThingsToDoItem(context, thingsToDoItems[index])
                 }
 
                 // 로딩 인디케이터
@@ -156,13 +157,14 @@ fun HomeScreen(
                     .padding(16.dp)
                     .align(Alignment.BottomEnd),
                 shape = CircleShape,
-                containerColor = Color.White,
+                containerColor = Color.Gray,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp)
             ) {
                 Icon(
                     modifier = Modifier.size(68.dp),
                     painter = painterResource(id = R.drawable.ic_add_circle),
                     contentDescription = "Add Item",
+                    tint = Color.White,
                 )
             }
 
@@ -232,7 +234,7 @@ fun HomeScreen(
 
 
 @Composable
-fun ScheduleItem(schedule: Schedule) {
+fun ScheduleItem(context: Context, schedule: Schedule) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -241,7 +243,10 @@ fun ScheduleItem(schedule: Schedule) {
                 vertical = 4.dp,
             ),
         shape = RoundedCornerShape(4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(ContextCompat.getColor(context, R.color.gray_menu))
+        )
     ) {
         Box(
             modifier = Modifier
@@ -259,7 +264,7 @@ fun ScheduleItem(schedule: Schedule) {
 
 
 @Composable
-fun ThingsToDoItem(thingsToDo: ThingsToDo) {
+fun ThingsToDoItem(context: Context, thingsToDo: ThingsToDo) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -274,7 +279,10 @@ fun ThingsToDoItem(thingsToDo: ThingsToDo) {
                     top = 2.dp,
                 ),
             shape = RoundedCornerShape(8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(ContextCompat.getColor(context, R.color.gray_menu))
+            )
         ) {
             Row(
                 modifier = Modifier

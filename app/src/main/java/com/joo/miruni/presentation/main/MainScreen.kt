@@ -40,8 +40,7 @@ fun MainScreen(
                             onClick = {
                                 // 메뉴 열기
                             },
-                            modifier = Modifier
-                                .padding(4.dp)
+                            modifier = Modifier.padding(4.dp)
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_menu),
@@ -49,25 +48,25 @@ fun MainScreen(
                             )
                         }
                     },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White
+                    )
                 )
-                HorizontalDivider(color = Color.Gray, thickness = 1.dp)
+                HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
             }
         },
         bottomBar = {
-            Column {
-                HorizontalDivider(color = Color.Gray, thickness = 1.dp)
-                BottomNavigationBar(
-                    navController,
-                    mainViewModel.bottomNavItems
-                )
-            }
-        }
+            BottomNavigationBar(
+                navController,
+                mainViewModel.bottomNavItems
+            )
+        },
+        containerColor = Color.White
     ) { contentPadding ->
         Box(
-            modifier = Modifier
-                .padding(contentPadding)
+            modifier = Modifier.padding(contentPadding)
         ) {
-            NavigationHost(navController) // 네비게이션 호스트
+            NavigationHost(navController)
         }
     }
 }
@@ -77,7 +76,9 @@ fun BottomNavigationBar(
     navController: NavHostController,
     items: List<BottomNavItem>,
 ) {
-    NavigationBar {
+    NavigationBar(
+        containerColor = Color.White
+    ) {
         items.forEach { item ->
             NavigationBarItem(
                 icon = {
@@ -85,7 +86,7 @@ fun BottomNavigationBar(
                         painterResource(item.iconResId),
                         contentDescription = item.label
                     )
-                }, // 아이콘 리소스 ID를 사용
+                },
                 label = { },
                 selected = false,
                 onClick = {
