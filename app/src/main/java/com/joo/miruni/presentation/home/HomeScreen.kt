@@ -1,10 +1,12 @@
 package com.joo.miruni.presentation.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,25 +18,35 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -47,17 +59,23 @@ fun HomeScreen(
     navController: NavHostController,
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+
     val thingsToDoItems by homeViewModel.thingsToDoItems.observeAsState(emptyList())
     val scheduleItems by homeViewModel.scheduleItems.observeAsState(emptyList())
 
+    // 무한 스크롤
     val lazyListState = rememberLazyListState()
     val isLoading = false
 
+    // FAB 메뉴
+    var isAddMenuExpanded by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
+
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-
             // 헤더
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -126,21 +144,75 @@ fun HomeScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { /* Handle FAB click */ },
+
+        Box(
             modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.BottomEnd),
-            shape = CircleShape,
-            containerColor = Color.White,
-            elevation = FloatingActionButtonDefaults.elevation(0.dp)
+                .fillMaxSize()
         ) {
-            Icon(
-                modifier = Modifier.size(68.dp),
-                painter = painterResource(id = R.drawable.ic_add_circle),
-                contentDescription = "Add Item",
-            )
+            // FAB
+            FloatingActionButton(
+                onClick = { isAddMenuExpanded = !isAddMenuExpanded },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.BottomEnd),
+                shape = CircleShape,
+                containerColor = Color.White,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp)
+            ) {
+                Icon(
+                    modifier = Modifier.size(68.dp),
+                    painter = painterResource(id = R.drawable.ic_add_circle),
+                    contentDescription = "Add Item",
+                )
+            }
+
+            // 메뉴
+            DropdownMenu(
+                expanded = isAddMenuExpanded,
+                onDismissRequest = { isAddMenuExpanded = false },
+                offset = DpOffset(x = (-48).dp, y = (0).dp),
+                containerColor = Color.Transparent,
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(ContextCompat.getColor(context, R.color.gray_menu)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    tonalElevation = 12.dp,
+                    shadowElevation = 12.dp,
+                ) {
+                    Column {
+                        Text(
+                            text = "할 일",
+                            modifier = Modifier
+                                .clickable {
+                                    isAddMenuExpanded = false
+                                }
+                                .padding(16.dp)
+                                .defaultMinSize(60.dp)
+                        )
+                        HorizontalDivider(
+                            thickness = 0.5.dp,
+                            color = Color.Black.copy(alpha = 0.2f)
+                        )
+                        Text(
+                            text = "일정",
+                            modifier = Modifier
+                                .clickable {
+                                    isAddMenuExpanded = false
+                                }
+                                .padding(16.dp)
+                                .defaultMinSize(60.dp)
+                        )
+                    }
+                }
+            }
         }
+
+
     }
 
     // 스크롤 이벤트를 통해 데이터 로드
