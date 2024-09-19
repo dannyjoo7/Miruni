@@ -39,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,8 +51,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.joo.miruni.R
-import com.joo.miruni.presentation.home.model.Schedule
-import com.joo.miruni.presentation.home.model.ThingsToDo
 
 @Composable
 fun HomeScreen(
@@ -128,12 +125,12 @@ fun HomeScreen(
             ) {
                 // 일정 리스트
                 items(scheduleItems.size) { index ->
-                    ScheduleItem(context, scheduleItems[index])
+                    ScheduleItem(context, homeViewModel, scheduleItems[index])
                 }
 
                 // 할 일 리스트
                 items(thingsToDoItems.size) { index ->
-                    ThingsToDoItem(context, thingsToDoItems[index])
+                    ThingsToDoItem(context, homeViewModel, thingsToDoItems[index])
                 }
 
                 // 로딩 인디케이터
@@ -234,7 +231,7 @@ fun HomeScreen(
 
 
 @Composable
-fun ScheduleItem(context: Context, schedule: Schedule) {
+fun ScheduleItem(context: Context, homeViewModel: HomeViewModel, schedule: Schedule) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -253,18 +250,29 @@ fun ScheduleItem(context: Context, schedule: Schedule) {
                 .fillMaxWidth()
                 .padding(2.dp)
         ) {
-            Text(
-                text = schedule.title,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                // D-Day
+                Text(
+                    text = "D-${schedule.reminderDaysBefore}",
+                    fontWeight = FontWeight.Bold,
+                )
+
+                // 일정 제목
+                Text(
+                    text = schedule.title,
+                )
+            }
         }
     }
 }
 
 
 @Composable
-fun ThingsToDoItem(context: Context, thingsToDo: ThingsToDo) {
+fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: ThingsToDo) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -309,7 +317,7 @@ fun ThingsToDoItem(context: Context, thingsToDo: ThingsToDo) {
                         )
                         // 마감일
                         Text(
-                            text = thingsToDo.deadline,
+                            text = homeViewModel.formatTimeRemaining(thingsToDo.deadline),
                             fontSize = 12.sp,
                             color = Color.Gray,
                             modifier = Modifier.padding(start = 4.dp) // 간격 조정
