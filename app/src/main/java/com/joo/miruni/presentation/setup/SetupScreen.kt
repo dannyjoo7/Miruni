@@ -28,22 +28,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.setValue
 import com.google.android.material.timepicker.TimeFormat
-import com.ozcanalasalvar.datepicker.compose.timepicker.WheelTimePicker
-import com.ozcanalasalvar.datepicker.model.Time
+import com.joo.miruni.presentation.widget.Time
+import com.joo.miruni.presentation.widget.WheelTimePicker
+import java.time.LocalTime
 
 
 @Composable
 fun SetupScreen(setupViewModel: SetupViewModel) {
+
     /*
-    * 뷰모델 인스턴스 가져오기
+    * Live Data
     * */
+    val selectedTime by setupViewModel.selectedTime.observeAsState() // 선택된 시간
+    val showTimePicker by setupViewModel.showTimePicker.observeAsState() // TimePicker 표시 여부
 
-    val selectedTime by setupViewModel.selectedTime.observeAsState("09 : 00 AM") // 선택된 시간
-    var showTimePicker by remember { mutableStateOf(false) } // TimePicker 표시 여부
     var isSelect by remember { mutableStateOf(false) } // 기상 시간 선택 여부
-
-    // 기본 선택 시간을 오전 9시로 설정
-    val startTime = Time(hour = 9, minute = 0, format = "AM") // 오전 9시 설정
 
     // 전체 화면을 차지하도록 Box 사용
     Box(
@@ -99,7 +98,7 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
         ) {
             Button(
                 onClick = {
-                    showTimePicker = !showTimePicker // TimePicker 표시/숨기기
+                    setupViewModel.toggleTimePickerBtn()
                     isSelect = false // 기상 시간 선택
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -112,7 +111,9 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
                     .padding(top = 16.dp) // 필요에 따라 여백 설정
             ) {
                 Text(
-                    text = selectedTime.ifEmpty { "AM 9 : 00" },
+                    text = setupViewModel.formatLocalTimeToString(
+                        selectedTime ?: LocalTime.now()
+                    ),
                     textAlign = TextAlign.Center,
                     fontSize = 32.sp,
                     color = Color.Gray
@@ -120,7 +121,7 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
             }
 
             // WheelTimePicker 위젯 표시
-            AnimatedVisibility(visible = showTimePicker) {
+            AnimatedVisibility(visible = showTimePicker ?: false) {
                 Column(
                     modifier = Modifier
                         .animateContentSize() // 크기 변화에 따른 애니메이션 적용
@@ -130,27 +131,19 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
                     WheelTimePicker(
                         offset = 2, // 표시할 항목 수
                         timeFormat = TimeFormat.CLOCK_12H, // 12시간 형식
-                        startTime = startTime, // 기본 선택 시간 (오전 9시)
+                        startTime = setupViewModel.convertLocalTimeToTime(selectedTime ?: LocalTime.now()), // 기본 선택 시간 (오전 9시)
                         textSize = 19, // 텍스트 크기
                         selectorEffectEnabled = true, // 선택 효과 사용
                         darkModeEnabled = false, // 다크 모드 비활성화
                         onTimeChanged = { hour, minute, format ->
-                            // 시간 변경 시 처리
-                            setupViewModel.updateSelectedTime(
-                                String.format(
-                                    "%s %d : %02d",
-                                    format,
-                                    hour,
-                                    minute,
-                                )
-                            )
+                            setupViewModel.updateSelectedTime(hour, minute, format ?: "오전")
                         }
                     )
 
                     // 시간 선택 완료 버튼
                     Button(
                         onClick = {
-                            showTimePicker = false // TimePicker 숨기기
+                            setupViewModel.toggleTimePickerBtn()
                             isSelect = true // 기상 시간 선택 완료
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -212,7 +205,9 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
 //@Composable
 //fun SetupScreenPreview() {
 //    // 미리보기용으로 ViewModel을 직접 생성
-//    val previewViewModel = SetupViewModel()
+//    val previewViewModel = SetupViewModel(
+//
+//    )
 //
 //    SetupScreen(previewViewModel)
 //}

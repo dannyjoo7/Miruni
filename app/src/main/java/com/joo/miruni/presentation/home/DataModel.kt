@@ -10,7 +10,7 @@ data class Schedule(
     val reminderDaysBefore: Int,
 )
 
-data class ThingsToDo(
+data class ThingsTodo(
     val title: String,
     val deadline: LocalDateTime,
     val description: String?= null,
