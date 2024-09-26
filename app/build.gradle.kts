@@ -96,9 +96,4 @@ dependencies {
 
     // LiveData
     implementation("androidx.compose.runtime:runtime-livedata:1.7.0")
-
-    // custom widget
-    implementation("com.github.ozcanalasalvar.picker:datepicker:2.0.7")
-    implementation("com.github.ozcanalasalvar.picker:wheelview:2.0.7")
-
 }

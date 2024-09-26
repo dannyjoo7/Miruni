@@ -5,4 +5,19 @@
 
     <!-- 메뉴 색상 -->
     <color name="gray_menu">#FFF5F5F5</color>
+
+    <!-- 아이폰 파란 색상 -->
+    <color name="ios_blue">#FF007AFF</color>
+    <!-- 아이폰 옅은 파란 색상 -->
+    <color name="ios_light_blue">#FFD9E8F8</color>
+
+    <!-- 아이폰 회색 색상 -->
+    <color name="ios_gray">#FFC4C4C7</color>
+    <!-- 아이폰 회색 색상 2 -->
+    <color name="ios_light_gray">#FFF7F7F7</color>
+    <!-- 아이폰 회색 색상 2 -->
+    <color name="ios_gray_calander_font">#FFBFBFC1</color>
+
+    <!-- 버튼 회색 색상 -->
+    <color name="button_gray">#FFEEEEEF</color>
 </resources>
