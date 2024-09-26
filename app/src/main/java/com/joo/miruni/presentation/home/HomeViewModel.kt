@@ -18,8 +18,8 @@ class HomeViewModel @Inject constructor() : ViewModel() {
         private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     }
 
-    private val _thingsToDoItems = MutableLiveData<List<ThingsToDo>>(emptyList())
-    val thingsToDoItems: LiveData<List<ThingsToDo>> get() = _thingsToDoItems
+    private val _thingsTodoItems = MutableLiveData<List<ThingsTodo>>(emptyList())
+    val thingsTodoItems: LiveData<List<ThingsTodo>> get() = _thingsTodoItems
 
     private val _scheduleItems = MutableLiveData<List<Schedule>>(emptyList())
     val scheduleItems: LiveData<List<Schedule>> get() = _scheduleItems
@@ -30,10 +30,10 @@ class HomeViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun loadInitialData(count: Int = 20) {
-        _thingsToDoItems.value = List(count) { index ->
+        _thingsTodoItems.value = List(count) { index ->
             val day = 20 + index
             val validDay = if (day > 30) 30 else day
-            ThingsToDo(
+            ThingsTodo(
                 title = "할 일 ${index + 1}",
                 deadline = LocalDateTime.parse("2024-09-$validDay 10:00", dateTimeFormatter),
                 description = "할 일 ${index + 1}의 설명",
@@ -54,9 +54,9 @@ class HomeViewModel @Inject constructor() : ViewModel() {
 
     fun loadMoreData() {
         viewModelScope.launch {
-            val currentList = _thingsToDoItems.value ?: emptyList()
+            val currentList = _thingsTodoItems.value ?: emptyList()
             val newList = currentList + listOf(
-                ThingsToDo(
+                ThingsTodo(
                     title = "추가된 할 일",
                     deadline = LocalDateTime.parse("2024-09-26 15:00", dateTimeFormatter),
                     description = "추가된 할 일",
@@ -64,7 +64,7 @@ class HomeViewModel @Inject constructor() : ViewModel() {
                     isCompleted = false
                 )
             )
-            _thingsToDoItems.value = newList
+            _thingsTodoItems.value = newList
         }
     }
 

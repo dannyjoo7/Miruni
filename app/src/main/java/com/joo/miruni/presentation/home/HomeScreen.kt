@@ -1,6 +1,7 @@
 package com.joo.miruni.presentation.home
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.joo.miruni.R
+import com.joo.miruni.presentation.addTodo.AddTodoActivity
 
 @Composable
 fun HomeScreen(
@@ -59,7 +61,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
-    val thingsToDoItems by homeViewModel.thingsToDoItems.observeAsState(emptyList())
+    val thingsToDoItems by homeViewModel.thingsTodoItems.observeAsState(emptyList())
     val scheduleItems by homeViewModel.scheduleItems.observeAsState(emptyList())
 
     // 무한 스크롤
@@ -189,6 +191,8 @@ fun HomeScreen(
                             modifier = Modifier
                                 .clickable {
                                     isAddMenuExpanded = false
+                                    val intent = Intent(context, AddTodoActivity::class.java)
+                                    context.startActivity(intent)
                                 }
                                 .padding(16.dp)
                                 .defaultMinSize(60.dp)
@@ -272,7 +276,7 @@ fun ScheduleItem(context: Context, homeViewModel: HomeViewModel, schedule: Sched
 
 
 @Composable
-fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: ThingsToDo) {
+fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: ThingsTodo) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
