@@ -46,7 +46,6 @@ import com.ozcanalasalvar.datepicker.ui.theme.colorLightOnBackground
 import com.ozcanalasalvar.datepicker.ui.theme.colorLightPrimary
 import com.ozcanalasalvar.datepicker.ui.theme.colorLightTextPrimary
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 @Composable
 fun WheelTimePicker(
@@ -96,7 +95,7 @@ fun WheelTimePicker(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 100.dp, end = 100.dp)
+                .padding(horizontal = 16.dp)
         ) {
 
             WheelView(

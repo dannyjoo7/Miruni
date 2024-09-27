@@ -23,6 +23,7 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
 
     }
 
+
     // 할 일 텍스트
     private val _todoText = MutableLiveData("")
     val todoText: LiveData<String> get() = _todoText
@@ -30,6 +31,7 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
     // 세부사항 텍스트
     private val _descriptionText = MutableLiveData("")
     val descriptionText: LiveData<String> get() = _descriptionText
+
 
     // 선택된 날짜
     private val _selectedDate = MutableLiveData<LocalDate?>(LocalDate.now())
@@ -39,6 +41,12 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
     private val _selectedTime = MutableLiveData<LocalTime>(LocalTime.now())
     val selectedTime: LiveData<LocalTime> get() = _selectedTime
 
+    // 선택된 알람 표시 시간
+    private val _selectedAlarmDisplayDate = MutableLiveData<AlarmDisplayDuration>(
+        AlarmDisplayDuration(7, "일")
+    )
+    val selectedAlarmDisplayDate: LiveData<AlarmDisplayDuration> get() = _selectedAlarmDisplayDate
+
     // Bool 날짜 선택 진행 유뮤
     private val _showDatePicker = MutableLiveData(false)
     val showDatePicker: LiveData<Boolean> get() = _showDatePicker
@@ -46,6 +54,10 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
     // Bool 시간 선택 진행 유뮤
     private val _showTimePicker = MutableLiveData(false)
     val showTimePicker: LiveData<Boolean> get() = _showTimePicker
+
+    // Bool 알람 표시 시작일 선택 진행 유뮤
+    private val _showAlarmDisplayStartDatePicker = MutableLiveData(false)
+    val showAlarmDisplayStartDatePicker: LiveData<Boolean> get() = _showAlarmDisplayStartDatePicker
 
 
     // 할 일 텍스트 업데이트
@@ -62,18 +74,27 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
     fun clickedDatePickerBtn() {
         _showDatePicker.value = _showDatePicker.value?.not()
         _showTimePicker.value = false
+        _showAlarmDisplayStartDatePicker.value = false
     }
 
     // TimePicker 가시성 on/off
     fun clickedTimePickerBtn() {
         _showTimePicker.value = _showTimePicker.value?.not()
         _showDatePicker.value = false
+        _showAlarmDisplayStartDatePicker.value = false
+    }
+
+    //  AlarmDisplayDatePicker 가시성 on/off
+    fun clickedAlarmDisplayStartDateText() {
+        _showAlarmDisplayStartDatePicker.value = _showAlarmDisplayStartDatePicker.value?.not()
+        _showDatePicker.value = false
+        _showTimePicker.value = false
     }
 
     // 날짜 선택 메소드
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date
-        _showDatePicker.value = false // 날짜 선택 후 닫기
+        _showDatePicker.value = false
     }
 
     // 선택된 날짜 업데이트 메소드
@@ -91,6 +112,17 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
         val newTime = LocalTime.of(adjustedHour, minute)
         _selectedTime.value = newTime
     }
+
+    // 선택된 알람 표시일 업데이트 메서드
+    fun updateSelectedAlarmDisplayDate(amount: Int? = null, durationUnit: String? = null) {
+        val currentValue = _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(7, "일")
+
+        _selectedAlarmDisplayDate.value = AlarmDisplayDuration(
+            amount = amount ?: currentValue.amount,
+            unit = durationUnit ?: currentValue.unit
+        )
+    }
+
 
     /*
     * TimePicker

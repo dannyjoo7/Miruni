@@ -1,7 +1,8 @@
 package com.joo.miruni.presentation.addTodo
 
+import android.app.Activity
 import android.content.Context
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.android.material.timepicker.TimeFormat
+import com.joo.miruni.presentation.widget.AlarmDisplayDatePicker
 import com.joo.miruni.presentation.widget.Time
 import com.joo.miruni.presentation.widget.WheelTimePicker
 import java.time.LocalDate
@@ -69,12 +70,18 @@ fun AddTodoScreen(
     /*
     * Live Data */
     val todoText by addTodoViewModel.todoText.observeAsState("")
+    val descriptionText by addTodoViewModel.descriptionText.observeAsState("")
 
     val showDatePicker by addTodoViewModel.showDatePicker.observeAsState(false)
     val showTimePicker by addTodoViewModel.showTimePicker.observeAsState(false)
+    val showAlarmDisplayStartDatePicker by addTodoViewModel.showAlarmDisplayStartDatePicker.observeAsState(
+        true
+    )
 
     val selectDate by addTodoViewModel.selectedDate.observeAsState()
     val selectTime by addTodoViewModel.selectedTime.observeAsState()
+    val selectedAlarmDisplayDate by addTodoViewModel.selectedAlarmDisplayDate.observeAsState()
+
 
     Scaffold(
         topBar = {
@@ -102,7 +109,7 @@ fun AddTodoScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            // 메뉴 열기
+                            (context as? Activity)?.finish()
                         },
                         modifier = Modifier.padding(4.dp)
                     ) {
@@ -127,212 +134,324 @@ fun AddTodoScreen(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-
                 // 할 일 입력창
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 60.dp)
-                ) {
-                    Text(
-                        text = "할 일",
-                        modifier = Modifier
-                            .padding(end = 34.dp),
-                        fontSize = 16.sp,
-                    )
-                    TextField(
-                        value = todoText,
-                        onValueChange = {
-                            addTodoViewModel.updateTodoText(it)
-                        },
-                        singleLine = true,
-                        placeholder = {
-                            Text(
-                                text = "할 일",
-                                fontSize = 16.sp,
-                                color = colorResource(id = R.color.ios_gray)
-                            )
-                        },
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                        ),
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                    )
+                            .heightIn(min = 60.dp)
+                    ) {
+                        Text(
+                            text = "할 일",
+                            modifier = Modifier
+                                .padding(end = 34.dp),
+                            fontSize = 16.sp,
+                        )
+                        TextField(
+                            value = todoText,
+                            onValueChange = {
+                                addTodoViewModel.updateTodoText(it)
+                            },
+                            singleLine = true,
+                            placeholder = {
+                                Text(
+                                    text = "할 일",
+                                    fontSize = 16.sp,
+                                    color = colorResource(id = R.color.ios_gray)
+                                )
+                            },
+                            colors = TextFieldDefaults.colors(
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                        )
+                    }
+                    HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
                 }
-                HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
 
                 // 세부사항 입력창
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 60.dp)
-                ) {
-                    Text(
-                        text = "세부사항",
-                        modifier = Modifier
-                            .padding(end = 8.dp),
-                        fontSize = 16.sp,
-                    )
-                    TextField(
-                        value = todoText,
-                        onValueChange = {
-                            addTodoViewModel.updateDescriptionText(it)
-                        },
-                        singleLine = true,
-                        placeholder = {
-                            Text(
-                                text = "세부사항",
-                                fontSize = 16.sp,
-                                color = colorResource(id = R.color.ios_gray)
-                            )
-                        },
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                        ),
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                    )
+                            .heightIn(min = 60.dp)
+                    ) {
+                        Text(
+                            text = "세부사항",
+                            modifier = Modifier
+                                .padding(end = 8.dp),
+                            fontSize = 16.sp,
+                        )
+                        TextField(
+                            value = descriptionText,
+                            onValueChange = {
+                                addTodoViewModel.updateDescriptionText(it)
+                            },
+                            singleLine = true,
+                            placeholder = {
+                                Text(
+                                    text = "세부사항",
+                                    fontSize = 16.sp,
+                                    color = colorResource(id = R.color.ios_gray)
+                                )
+                            },
+                            colors = TextFieldDefaults.colors(
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                        )
+                    }
+                    HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
                 }
-                HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
 
                 // 마감일
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 60.dp)
+                        .animateContentSize(),
                 ) {
-                    Text(
-                        text = "마감일",
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .padding(end = 38.dp),
-                        fontSize = 16.sp,
-                    )
-
-                    // 날짜 선택 버튼
-                    Button(
-                        onClick = {
-                            addTodoViewModel.clickedDatePickerBtn()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(id = R.color.button_gray)
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(
-                            vertical = 2.dp,
-                            horizontal = 8.dp
-                        ),
+                            .fillMaxWidth()
+                            .heightIn(min = 60.dp)
                     ) {
                         Text(
-                            text = addTodoViewModel.formatSelectedDate(
-                                selectDate ?: LocalDate.now()
-                            ),
-                            color = colorResource(id = R.color.ios_blue),
+                            text = "마감일",
+                            modifier = Modifier
+                                .padding(end = 38.dp),
                             fontSize = 16.sp,
                         )
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Button(
-                        onClick = {
-                            addTodoViewModel.clickedTimePickerBtn()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(id = R.color.button_gray)
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(
-                            vertical = 2.dp,
-                            horizontal = 8.dp
-                        ),
-                    ) {
-                        Text(
-                            text = addTodoViewModel.formatLocalTimeToString(
-                                selectTime ?: LocalTime.now()
-                            ),
-                            color = colorResource(id = R.color.ios_blue),
-                            fontSize = 16.sp,
-                        )
-                    }
-                }
-                HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
 
-                AnimatedVisibility(
-                    visible = showDatePicker,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    DatePicker(
-                        context = context,
-                        addTodoViewModel = addTodoViewModel,
-                        onDateSelected = { date -> addTodoViewModel.selectDate(date) },
-                        onMonthChanged = { month -> addTodoViewModel.changeMonth(month) },
-                    )
-                }
-
-                // TimePicker
-                AnimatedVisibility(
-                    visible = showTimePicker,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        WheelTimePicker(
-                            offset = 4,
-                            selectorEffectEnabled = true,
-                            timeFormat = TimeFormat.CLOCK_12H,
-                            startTime = addTodoViewModel.selectedTime.value?.let {
-                                addTodoViewModel.convertLocalTimeToTime(it)
-                            } ?: Time(12, 0, "오전"),
-                            textSize = 16,
-                            onTimeChanged = { hour, minute, format ->
-                                addTodoViewModel.updateSelectedTime(hour, minute, format ?: "오전")
+                        // 날짜 선택 버튼
+                        Button(
+                            onClick = {
+                                addTodoViewModel.clickedDatePickerBtn()
                             },
-                            darkModeEnabled = false
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(id = R.color.button_gray)
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(
+                                vertical = 2.dp,
+                                horizontal = 8.dp
+                            ),
+                        ) {
+                            Text(
+                                text = addTodoViewModel.formatSelectedDate(
+                                    selectDate ?: LocalDate.now()
+                                ),
+                                color = colorResource(id = R.color.ios_blue),
+                                fontSize = 16.sp,
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
                         Button(
                             onClick = {
                                 addTodoViewModel.clickedTimePickerBtn()
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF007AFF),
-                                contentColor = Color.White,
+                                containerColor = colorResource(id = R.color.button_gray)
                             ),
                             shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier
-                                .padding(horizontal = 24.dp)
-                                .fillMaxWidth() // 버튼을 전체 너비로 설정
+                            contentPadding = PaddingValues(
+                                vertical = 2.dp,
+                                horizontal = 8.dp
+                            ),
                         ) {
                             Text(
-                                text = "완료",
-                                textAlign = TextAlign.Center,
+                                text = addTodoViewModel.formatLocalTimeToString(
+                                    selectTime ?: LocalTime.now()
+                                ),
+                                color = colorResource(id = R.color.ios_blue),
                                 fontSize = 16.sp,
-                                color = Color.White
                             )
                         }
                     }
+                    HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
 
+                    /*
+                    * 날짜 선택기 & 시간 선택기
+                    * */
+                    Box {
+                        // 날짜 선택기
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = showDatePicker,
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                            modifier = Modifier
+                        ) {
+                            DatePicker(
+                                context = context,
+                                addTodoViewModel = addTodoViewModel,
+                                onDateSelected = { date -> addTodoViewModel.selectDate(date) },
+                                onMonthChanged = { month -> addTodoViewModel.changeMonth(month) },
+                            )
+                        }
+
+                        // 시간 선택기
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = showTimePicker,
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                            ) {
+                                WheelTimePicker(
+                                    offset = 4,
+                                    selectorEffectEnabled = true,
+                                    timeFormat = TimeFormat.CLOCK_12H,
+                                    startTime = addTodoViewModel.selectedTime.value?.let {
+                                        addTodoViewModel.convertLocalTimeToTime(it)
+                                    } ?: Time(12, 0, "오전"),
+                                    textSize = 16,
+                                    onTimeChanged = { hour, minute, format ->
+                                        addTodoViewModel.updateSelectedTime(
+                                            hour,
+                                            minute,
+                                            format ?: "오전"
+                                        )
+                                    },
+                                    darkModeEnabled = false
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Button(
+                                    onClick = {
+                                        addTodoViewModel.clickedTimePickerBtn()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF007AFF),
+                                        contentColor = Color.White,
+                                    ),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier
+                                        .padding(horizontal = 24.dp)
+                                        .fillMaxWidth() // 버튼을 전체 너비로 설정
+                                ) {
+                                    Text(
+                                        text = "완료",
+                                        textAlign = TextAlign.Center,
+                                        fontSize = 16.sp,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
+
+                // 알림 표시일 입력창
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 60.dp)
+                    ) {
+                        Text(
+                            text = "알람 표시 시작일",
+                            modifier = Modifier
+                                .padding(end = 16.dp),
+                            fontSize = 16.sp,
+                        )
+
+                        Text(
+                            text = "${selectedAlarmDisplayDate?.amount ?: 1}${selectedAlarmDisplayDate?.unit ?: "일"} 전",
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .clickable(
+                                    onClick = {
+                                        addTodoViewModel.clickedAlarmDisplayStartDateText()
+                                    }),
+                            fontSize = 16.sp,
+                            color = colorResource(R.color.ios_blue),
+
+                            )
+                    }
+                    HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
+
+                    /*
+                    * 알림 표시 시작일
+                    * */
+                    Box(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // 알림 표시 시작일 선택기
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = showAlarmDisplayStartDatePicker,
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                            modifier = Modifier
+                                .align(Alignment.Center),
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                AlarmDisplayDatePicker(
+                                    selectedNumber = 7,
+                                    selectedText = "일",
+                                    onDurationAmountChanged = { newAmount ->
+                                        addTodoViewModel.updateSelectedAlarmDisplayDate(
+                                            newAmount,
+                                            null
+                                        )
+                                    },
+                                    onDurationUnitChanged = { newUnit ->
+                                        addTodoViewModel.updateSelectedAlarmDisplayDate(
+                                            null,
+                                            newUnit
+                                        )
+                                    }
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Button(
+                                    onClick = {
+                                        addTodoViewModel.clickedAlarmDisplayStartDateText()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF007AFF),
+                                        contentColor = Color.White,
+                                    ),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier
+                                        .padding(horizontal = 24.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "완료",
+                                        textAlign = TextAlign.Center,
+                                        fontSize = 16.sp,
+                                        color = Color.White
+                                    )
+                                }
+
+                            }
+                        }
+                    }
+                }
+
             }
         }
     }
@@ -491,7 +610,7 @@ fun DatePicker(
 @Composable
 fun AddTodoScreenPreview() {
     val previewViewModel = AddTodoViewModel().apply {
-
+//        clickedAlarmDisplayStartDateText()
     }
 
     // 날짜 미리 설정
