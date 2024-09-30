@@ -43,9 +43,10 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
 
     // 선택된 알람 표시 시간
     private val _selectedAlarmDisplayDate = MutableLiveData<AlarmDisplayDuration>(
-        AlarmDisplayDuration(7, "일")
+        AlarmDisplayDuration(1, "주")
     )
     val selectedAlarmDisplayDate: LiveData<AlarmDisplayDuration> get() = _selectedAlarmDisplayDate
+
 
     // Bool 날짜 선택 진행 유뮤
     private val _showDatePicker = MutableLiveData(false)
@@ -115,7 +116,7 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
 
     // 선택된 알람 표시일 업데이트 메서드
     fun updateSelectedAlarmDisplayDate(amount: Int? = null, durationUnit: String? = null) {
-        val currentValue = _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(7, "일")
+        val currentValue = _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
 
         _selectedAlarmDisplayDate.value = AlarmDisplayDuration(
             amount = amount ?: currentValue.amount,

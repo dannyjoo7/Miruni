@@ -39,10 +39,19 @@ fun AlarmDisplayDatePicker(
     onDurationUnitChanged: (String) -> Unit,
     darkModeEnabled: Boolean = true,
 ) {
-    var amounts by remember { mutableStateOf((1..100).toList()) }
+    var amounts by remember {
+        mutableStateOf(
+            when (selectedText) {
+                "주" -> (1..52).toList()
+                "개월" -> (1..12).toList()
+                "년" -> (1..10).toList()
+                else -> (1..100).toList()
+            }
+        )
+    }
     val durationUnit: List<String> = listOf("일", "주", "개월", "년")
 
-    val selectedDurationAmounts by remember { mutableIntStateOf(selectedNumber) }
+    var selectedDurationAmounts by remember { mutableIntStateOf(selectedNumber) }
     var selectedDurationUnit by remember { mutableStateOf(selectedText) }
 
     val height = 30.dp
@@ -52,8 +61,11 @@ fun AlarmDisplayDatePicker(
             "주" -> (1..52).toList()
             "개월" -> (1..12).toList()
             "년" -> (1..10).toList()
-            else -> (1..100).toList() 
+            else -> (1..100).toList()
         }
+
+        selectedDurationAmounts = amounts.first()
+        onDurationAmountChanged(selectedDurationAmounts)
     }
 
     LaunchedEffect(selectedDurationAmounts) {
@@ -87,6 +99,7 @@ fun AlarmDisplayDatePicker(
                 rowOffset = offset,
                 isEndless = true,
                 onFocusItem = {
+                    selectedDurationAmounts = amounts[it]
                     onDurationAmountChanged(amounts[it])
                 },
                 content = {
@@ -107,8 +120,8 @@ fun AlarmDisplayDatePicker(
                 selection = durationUnit.indexOf(selectedDurationUnit),
                 itemCount = durationUnit.size,
                 onFocusItem = {
+                    selectedDurationUnit = durationUnit[it]
                     onDurationUnitChanged(durationUnit[it])
-                    selectedDurationUnit = durationUnit[it] // 선택된 텍스트 업데이트
                 },
                 isEndless = false,
                 content = {

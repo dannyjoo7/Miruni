@@ -68,7 +68,8 @@ fun AddTodoScreen(
     val context = LocalContext.current
 
     /*
-    * Live Data */
+    * Live Data
+    *  */
     val todoText by addTodoViewModel.todoText.observeAsState("")
     val descriptionText by addTodoViewModel.descriptionText.observeAsState("")
 
@@ -407,9 +408,13 @@ fun AddTodoScreen(
                                     .fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+
+                                /*
+                                * 알람 표시 시작일 위젯
+                                * */
                                 AlarmDisplayDatePicker(
-                                    selectedNumber = 7,
-                                    selectedText = "일",
+                                    selectedNumber = selectedAlarmDisplayDate?.amount ?: 1,
+                                    selectedText = selectedAlarmDisplayDate?.unit ?: "주",
                                     onDurationAmountChanged = { newAmount ->
                                         addTodoViewModel.updateSelectedAlarmDisplayDate(
                                             newAmount,
