@@ -45,7 +45,12 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
     }
-
+    kapt {
+        // Room schema export 설정
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
 }
 
 dependencies {
@@ -96,4 +101,12 @@ dependencies {
 
     // LiveData
     implementation("androidx.compose.runtime:runtime-livedata:1.7.0")
+
+
+    // ROOM
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
 }
