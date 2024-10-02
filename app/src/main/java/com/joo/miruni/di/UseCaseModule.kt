@@ -1,5 +1,7 @@
 package com.joo.miruni.di
 
+import com.joo.miruni.domain.usecase.AddTodoItemUseCase
+import com.joo.miruni.domain.usecase.AddTodoItemUseCaseImpl
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCaseImpl
 import com.joo.miruni.domain.usecase.SaveAlarmTimeUseCase
@@ -13,16 +15,30 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class UseCaseModule {
+
+    /*
+    * SetUpActivity
+    * */
     @Binds
     @Singleton
     abstract fun bindSaveAlarmTimeUseCase(
-        saveAlarmTimeUseCaseImpl: SaveAlarmTimeUseCaseImpl
+        saveAlarmTimeUseCaseImpl: SaveAlarmTimeUseCaseImpl,
     ): SaveAlarmTimeUseCase
 
     @Binds
     @Singleton
     abstract fun bindGetAlarmTimeUseCase(
-        getAlarmTimeUseCaseImpl: GetAlarmTimeUseCaseImpl
+        getAlarmTimeUseCaseImpl: GetAlarmTimeUseCaseImpl,
     ): GetAlarmTimeUseCase
+
+
+    /*
+    * Add TodoItem
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindAddTodoItemUseCase(
+        addTodoItemUseCaseImpl: AddTodoItemUseCaseImpl,
+    ): AddTodoItemUseCase
 }
 
