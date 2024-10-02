@@ -3,6 +3,11 @@ package com.joo.miruni.presentation.addTodo
 import android.app.Activity
 import android.content.Context
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.repeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -17,6 +22,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,19 +42,20 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.joo.miruni.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -83,6 +90,32 @@ fun AddTodoScreen(
     val selectTime by addTodoViewModel.selectedTime.observeAsState()
     val selectedAlarmDisplayDate by addTodoViewModel.selectedAlarmDisplayDate.observeAsState()
 
+    val isTodoTextEmpty by addTodoViewModel.isTodoTextEmpty.observeAsState(false)
+    val isTodoAddedSuccess by addTodoViewModel.isTodoAdded.observeAsState(false)
+
+    /*
+    * 애니매이션
+    * */
+    val shakeAnimation by animateFloatAsState(
+        targetValue = if (isTodoTextEmpty) 30f else 0f,
+        animationSpec = repeatable(
+            iterations = 6,
+            animation = tween(
+                durationMillis = 100,
+                easing = FastOutSlowInEasing
+            ),
+            repeatMode = RepeatMode.Reverse
+        ), label = "Shaking Animation"
+    )
+    val shakeOffset = if (isTodoTextEmpty) shakeAnimation else 0f
+
+
+    // Todo추가 성공 시 해당 액티비티 종료
+    LaunchedEffect(isTodoAddedSuccess) {
+        if (isTodoAddedSuccess) {
+            (context as? Activity)?.finish()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -98,11 +131,16 @@ fun AddTodoScreen(
                         Text(
                             text = "할 일",
                             modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
                         )
                         Text(
                             text = "추가",
-                            modifier = Modifier.padding(start = 16.dp),
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                                .clickable {
+                                    addTodoViewModel.addTodoItem()
+                                },
                             color = colorResource(id = R.color.ios_blue)
                         )
                     }
@@ -130,7 +168,7 @@ fun AddTodoScreen(
         Box(
             modifier = Modifier
                 .padding(contentPadding)
-                .padding(16.dp) // 추가 패딩
+                .padding(16.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -142,12 +180,14 @@ fun AddTodoScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 60.dp)
+                            .offset(x = with(LocalDensity.current) { shakeOffset.toDp() })
                     ) {
                         Text(
                             text = "할 일",
                             modifier = Modifier
                                 .padding(end = 34.dp),
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
                         )
                         TextField(
                             value = todoText,
@@ -159,8 +199,13 @@ fun AddTodoScreen(
                                 Text(
                                     text = "할 일",
                                     fontSize = 16.sp,
-                                    color = colorResource(id = R.color.ios_gray)
+                                    color = if (isTodoTextEmpty) {
+                                        Color.Red
+                                    } else {
+                                        colorResource(id = R.color.ios_gray)
+                                    }
                                 )
+
                             },
                             colors = TextFieldDefaults.colors(
                                 unfocusedContainerColor = Color.Transparent,
@@ -189,6 +234,7 @@ fun AddTodoScreen(
                             modifier = Modifier
                                 .padding(end = 8.dp),
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
                         )
                         TextField(
                             value = descriptionText,
@@ -233,6 +279,7 @@ fun AddTodoScreen(
                             modifier = Modifier
                                 .padding(end = 38.dp),
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
                         )
 
                         // 날짜 선택 버튼
@@ -241,7 +288,7 @@ fun AddTodoScreen(
                                 addTodoViewModel.clickedDatePickerBtn()
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(id = R.color.button_gray)
+                                containerColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(
@@ -263,7 +310,7 @@ fun AddTodoScreen(
                                 addTodoViewModel.clickedTimePickerBtn()
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(id = R.color.button_gray)
+                                containerColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(
@@ -372,6 +419,7 @@ fun AddTodoScreen(
                             modifier = Modifier
                                 .padding(end = 16.dp),
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
                         )
 
                         Text(
@@ -611,15 +659,13 @@ fun DatePicker(
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun AddTodoScreenPreview() {
-    val previewViewModel = AddTodoViewModel().apply {
-//        clickedAlarmDisplayStartDateText()
-    }
-
-    // 날짜 미리 설정
-    previewViewModel.updateSelectedDate(LocalDate.now())
-
-    AddTodoScreen(previewViewModel)
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun AddTodoScreenPreview() {
+//    val previewViewModel = AddTodoViewModel()
+//
+//    // 날짜 미리 설정
+//    previewViewModel.updateSelectedDate(LocalDate.now())
+//
+//    AddTodoScreen(previewViewModel)
+//}

@@ -1,28 +1,38 @@
 package com.joo.miruni.presentation.addTodo
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.joo.miruni.domain.usecase.AddTodoItemUseCase
 import com.joo.miruni.presentation.widget.Time
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
-class AddTodoViewModel @Inject constructor() : ViewModel() {
+class AddTodoViewModel @Inject constructor(
+    private val addTodoItemUseCase: AddTodoItemUseCase,
+) : ViewModel() {
     companion object {
         const val TAG = "AddTodoViewModel"
 
-        const val MAX_TODO_LENGTH = 10
-        const val MAX_DESCRIPTION_LENGTH = 20
+        const val MAX_TODO_LENGTH = 20
+        const val MAX_DESCRIPTION_LENGTH = 40
     }
 
     init {
 
     }
 
+    /*
+    * 변수
+    * */
 
     // 할 일 텍스트
     private val _todoText = MutableLiveData("")
@@ -34,7 +44,7 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
 
 
     // 선택된 날짜
-    private val _selectedDate = MutableLiveData<LocalDate?>(LocalDate.now())
+    private val _selectedDate = MutableLiveData<LocalDate?>(LocalDate.now().plusDays(1))
     val selectedDate: LiveData<LocalDate?> get() = _selectedDate
 
     // 선택된 시간
@@ -60,6 +70,19 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
     private val _showAlarmDisplayStartDatePicker = MutableLiveData(false)
     val showAlarmDisplayStartDatePicker: LiveData<Boolean> get() = _showAlarmDisplayStartDatePicker
 
+
+    // TodoTextEmpty 애니매이션
+    private val _isTodoTextEmpty = MutableLiveData(false)
+    val isTodoTextEmpty: LiveData<Boolean> get() = _isTodoTextEmpty
+
+
+    // AddTodo 성공 여부
+    private val _isTodoAdded = MutableLiveData<Boolean>(false)
+    val isTodoAdded: LiveData<Boolean> get() = _isTodoAdded
+
+    /*
+    * 메소드
+    * */
 
     // 할 일 텍스트 업데이트
     fun updateTodoText(newValue: String) {
@@ -208,6 +231,60 @@ class AddTodoViewModel @Inject constructor() : ViewModel() {
         _selectedDate.value = _selectedDate.value?.withYear(year)
     }
 
+
+    /*
+    * Top Bar
+    * */
+
+    // 추가 버튼 클릭 시
+    fun addTodoItem() {
+        viewModelScope.launch {
+            if (_todoText.value.isNullOrEmpty()) {
+                _isTodoTextEmpty.value = true
+                delay(600)
+                _isTodoTextEmpty.value = false
+                return@launch
+            }
+
+            val todoItem = TodoItem(
+                todoText = _todoText.value ?: "",
+                descriptionText = _descriptionText.value ?: "",
+                selectedDate = _selectedDate.value ?: LocalDate.now(),
+                selectedTime = _selectedTime.value ?: LocalTime.now(),
+                adjustedDate = calculateAdjustedDate(
+                    _selectedDate.value ?: LocalDate.now(),
+                    _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
+                )
+            )
+
+            runCatching {
+                addTodoItemUseCase(todoItem)
+            }.onSuccess {
+                _isTodoAdded.value = true
+            }.onFailure { exception ->
+                _isTodoAdded.value = false
+                Log.e(TAG, exception.message.toString())
+            }
+        }
+    }
+
+
+    // 알람 표시 시작일 계산 메소드
+    private fun calculateAdjustedDate(
+        currentDate: LocalDate,
+        duration: AlarmDisplayDuration,
+    ): LocalDate {
+        if (duration.amount == null) {
+            return currentDate.minusWeeks(1)
+        }
+        return when (duration.unit) {
+            "일" -> currentDate.minusDays(duration.amount.toLong())
+            "주" -> currentDate.minusWeeks(duration.amount.toLong())
+            "개월" -> currentDate.minusMonths(duration.amount.toLong())
+            "년" -> currentDate.minusYears(duration.amount.toLong())
+            else -> currentDate
+        }
+    }
 }
 
 
