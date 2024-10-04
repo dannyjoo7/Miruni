@@ -64,19 +64,23 @@ dependencies {
 
     // Compose
     implementation("androidx.activity:activity-compose:1.9.2")
-    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
-    implementation("androidx.compose.ui:ui:1.7.1")
-    implementation("androidx.compose.ui:ui-tooling:1.7.1")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.1")
-    implementation("androidx.compose.ui:ui-graphics:1.7.1")
-    implementation("androidx.compose.material3:material3:1.3.0")
-    implementation("androidx.compose.material:material-icons-extended:1.7.0")
+    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    implementation("androidx.compose.ui:ui:1.7.3")
+    implementation("androidx.compose.ui:ui-tooling:1.7.3")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.3")
+    implementation("androidx.compose.ui:ui-graphics:1.7.3")
+    implementation("androidx.compose.material:material-icons-extended:1.7.3")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.23.1")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
     implementation("com.google.accompanist:accompanist-pager:0.27.1")
 
+    // material3
+    implementation("androidx.compose.material3:material3:1.3.0")
+    implementation("androidx.compose.material3:material3-window-size-class:1.3.0")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.3.0")
+
     // Compose Navigation
-    implementation("androidx.navigation:navigation-compose:2.8.0")
+    implementation("androidx.navigation:navigation-compose:2.8.2")
 
     // GSON
     implementation("com.google.code.gson:gson:2.10.1")
@@ -89,7 +93,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
 
     // ViewModel
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
 
     // Dagger Hilt dependencies
     implementation("com.google.dagger:hilt-android:2.49")
@@ -100,7 +104,7 @@ dependencies {
     kapt("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0")
 
     // LiveData
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.0")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.3")
 
 
     // ROOM
