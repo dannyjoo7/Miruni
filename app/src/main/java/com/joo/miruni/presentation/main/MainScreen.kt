@@ -1,10 +1,6 @@
 package com.joo.miruni.presentation.main
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable // import 추가
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.BottomNavItem
@@ -76,8 +72,11 @@ fun BottomNavigationBar(
     navController: NavHostController,
     items: List<BottomNavItem>,
 ) {
+    val currentDestination = navController.currentDestination?.route
+
     NavigationBar(
-        containerColor = Color.White
+        containerColor = Color.White,
+        contentColor = Color.White
     ) {
         items.forEach { item ->
             NavigationBarItem(
@@ -88,7 +87,7 @@ fun BottomNavigationBar(
                     )
                 },
                 label = { },
-                selected = false,
+                selected = currentDestination == item.screen.route,
                 onClick = {
                     navController.navigate(item.screen.route) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
@@ -111,15 +110,15 @@ fun NavigationHost(navController: NavHostController) {
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    val navController = rememberNavController()
-    val previewViewModel = MainViewModel()
+    MaterialTheme {
+        val navController = rememberNavController()
+        val previewViewModel = MainViewModel()
 
-    MainScreen(navController, previewViewModel)
+        MainScreen(navController, previewViewModel)
+    }
 }
-
 
 
