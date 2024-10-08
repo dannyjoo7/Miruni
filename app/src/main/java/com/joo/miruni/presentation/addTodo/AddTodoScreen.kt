@@ -56,6 +56,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -72,7 +73,12 @@ import java.time.LocalTime
 fun AddTodoScreen(
     addTodoViewModel: AddTodoViewModel = hiltViewModel(),
 ) {
+    // 현재 컨택스트
     val context = LocalContext.current
+
+    // 키보드 컨트롤러
+    val keyboardController = LocalSoftwareKeyboardController.current
+
 
     /*
     * Live Data
@@ -286,6 +292,7 @@ fun AddTodoScreen(
                         Button(
                             onClick = {
                                 addTodoViewModel.clickedDatePickerBtn()
+                                keyboardController?.hide()
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent
@@ -305,9 +312,12 @@ fun AddTodoScreen(
                             )
                         }
                         Spacer(modifier = Modifier.width(4.dp))
+
+                        // 시간 선택 버튼
                         Button(
                             onClick = {
                                 addTodoViewModel.clickedTimePickerBtn()
+                                keyboardController?.hide()
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent
@@ -429,6 +439,7 @@ fun AddTodoScreen(
                                 .clickable(
                                     onClick = {
                                         addTodoViewModel.clickedAlarmDisplayStartDateText()
+                                        keyboardController?.hide()
                                     }),
                             fontSize = 16.sp,
                             color = colorResource(R.color.ios_blue),
