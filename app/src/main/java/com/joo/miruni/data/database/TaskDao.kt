@@ -6,7 +6,10 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.joo.miruni.data.entities.TaskEntity
+import com.joo.miruni.data.entities.TaskType
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Dao
 interface TaskDao {
@@ -21,5 +24,23 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks")
     suspend fun getAllTasks(): List<TaskEntity>
+
+    @Query(
+        """
+    SELECT * FROM tasks 
+    WHERE type = :taskType 
+    AND deadLine >= :selectDate 
+    AND alarmDisplayDate <= :selectDate
+    AND (deadLine > :lastDeadLine OR :lastDeadLine IS NULL)
+    ORDER BY deadLine ASC
+    LIMIT :limit
+    """
+    )
+    fun getTodoTasksPaginated(
+        selectDate: LocalDateTime,
+        lastDeadLine: LocalDateTime? = null,
+        limit: Int = 20,
+        taskType: TaskType = TaskType.TODO,
+    ): Flow<List<TaskEntity>>
 
 }
