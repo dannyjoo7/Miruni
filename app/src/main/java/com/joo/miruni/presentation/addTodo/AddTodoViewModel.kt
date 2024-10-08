@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -249,8 +250,10 @@ class AddTodoViewModel @Inject constructor(
             val todoItem = TodoItem(
                 todoText = _todoText.value ?: "",
                 descriptionText = _descriptionText.value ?: "",
-                selectedDate = _selectedDate.value ?: LocalDate.now(),
-                selectedTime = _selectedTime.value ?: LocalTime.now(),
+                selectedDate = combineDateAndTime(
+                    _selectedDate.value ?: LocalDate.now().plusDays(1),
+                    _selectedTime.value ?: LocalTime.now()
+                ),
                 adjustedDate = calculateAdjustedDate(
                     _selectedDate.value ?: LocalDate.now(),
                     _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
@@ -285,6 +288,12 @@ class AddTodoViewModel @Inject constructor(
             else -> currentDate
         }
     }
+
+    // 시간과 날짜 합치는 메소드
+    fun combineDateAndTime(date: LocalDate, time: LocalTime): LocalDateTime {
+        return date.atTime(time)
+    }
+
 }
 
 
