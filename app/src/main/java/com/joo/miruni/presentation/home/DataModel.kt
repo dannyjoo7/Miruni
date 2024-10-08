@@ -11,9 +11,9 @@ data class Schedule(
 )
 
 data class ThingsTodo(
+    val id: Long,
     val title: String,
     val deadline: LocalDateTime,
     val description: String?= null,
-    val reminderDaysBefore: Int,
     val isCompleted: Boolean = false,
 )
