@@ -2,6 +2,7 @@ package com.joo.miruni.data.database
 
 import androidx.room.TypeConverter
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 class Converters {
@@ -26,4 +27,16 @@ class Converters {
     fun toLocalTime(timeString: String?): LocalTime? {
         return timeString?.let { LocalTime.parse(it) }
     }
+
+    // LocalDateTime 변환기
+    @TypeConverter
+    fun fromLocalDateTime(dateTime: LocalDateTime?): String? {
+        return dateTime?.toString()
+    }
+
+    @TypeConverter
+    fun toLocalDateTime(dateTimeString: String?): LocalDateTime? {
+        return dateTimeString?.let { LocalDateTime.parse(it) }
+    }
 }
+
