@@ -18,12 +18,11 @@ fun TaskEntity.toTodoEntity() = TodoEntity(
     id = id,
     title = title,
     details = details,
-    startDate = startDate,
-    endDate = endDate,
     deadLine = deadLine,
-    deadLineTime = deadLineTime,
     alarmDisplayDate = alarmDisplayDate,
-    type = type
+    isComplete = isComplete,
+    completeDate = completeDate,
+    type = type,
 )
 
 /*
@@ -35,11 +34,12 @@ fun TodoEntity.toTaskEntity() = TaskEntity(
     id = id,
     title = title,
     details = details,
-    startDate = startDate,
-    endDate = endDate,
+    startDate = null,
+    endDate = null,
     deadLine = deadLine,
-    deadLineTime = deadLineTime,
     alarmDisplayDate = alarmDisplayDate,
+    isComplete = isComplete,
+    completeDate = completeDate,
     type = type
 )
 
@@ -51,10 +51,9 @@ fun TodoItem.toTodoEntity() = TodoEntity(
     id = 0,
     title = todoText,
     details = descriptionText,
-    startDate = null,
-    endDate = null,
     deadLine = selectedDate,
-    deadLineTime = selectedTime,
     alarmDisplayDate = adjustedDate,
+    isComplete = false,
+    completeDate = null,
     type = TaskType.TODO,
 )
