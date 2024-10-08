@@ -2,17 +2,20 @@ package com.joo.miruni.presentation.home
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -30,12 +33,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,14 +46,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTodo.AddTodoActivity
 
@@ -60,13 +61,25 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val buffer = 3 // 스크롤이 마지막 n개 항목에 도달하면 더 로드(n >= 1)
 
+    /*
+    * Live Data
+    * */
     val thingsToDoItems by homeViewModel.thingsTodoItems.observeAsState(emptyList())
     val scheduleItems by homeViewModel.scheduleItems.observeAsState(emptyList())
+    val isLoading by homeViewModel.isLoading.observeAsState(false)
+
+    var initialLoad by remember { mutableStateOf(true) }
 
     // 무한 스크롤
     val lazyListState = rememberLazyListState()
-    val isLoading = false
+    val reachesBottom: Boolean by remember {
+        derivedStateOf {
+            val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem != null && lastVisibleItem.index >= lazyListState.layoutInfo.totalItemsCount - buffer
+        }
+    }
 
     // FAB 메뉴
     var isAddMenuExpanded by remember { mutableStateOf(false) }
@@ -138,7 +151,13 @@ fun HomeScreen(
                 // 로딩 인디케이터
                 if (isLoading) {
                     item {
-                        CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .wrapContentSize(Alignment.Center)
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                        }
                     }
                 }
             }
@@ -219,18 +238,19 @@ fun HomeScreen(
     }
 
     // 스크롤 이벤트를 통해 데이터 로드
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.layoutInfo }
-            .collect { layoutInfo ->
-                val totalItems = layoutInfo.totalItemsCount
-                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-
-                // 마지막 아이템에 도달했을 때 loadMoreData() 호출
-                if (lastVisibleItemIndex == totalItems - 1 && !isLoading) {
-                    homeViewModel.loadMoreData()
-                }
-            }
+    LaunchedEffect(reachesBottom) {
+        if (reachesBottom && !isLoading && !initialLoad) {
+            homeViewModel.loadMoreTodoItemsForAlarm()
+        }
     }
+
+    // 초기 로드 상태 업데이트
+    LaunchedEffect(thingsToDoItems) {
+        if (thingsToDoItems.isNotEmpty()) {
+            initialLoad = false
+        }
+    }
+
 }
 
 
@@ -282,7 +302,6 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 4.dp)
     ) {
-        // 카드
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -303,12 +322,21 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                 Column(
                     modifier = Modifier
                         .padding(
-                            start = 8.dp,
-                            end = 8.dp,
-                            top = 0.dp,
-                            bottom = 8.dp,
+                            if (thingsToDo.description.isNullOrEmpty()) {
+                                PaddingValues(
+                                    horizontal = 8.dp,
+                                )
+                            } else {
+                                PaddingValues(
+                                    start = 8.dp,
+                                    end = 8.dp,
+                                    top = 0.dp,
+                                    bottom = 8.dp
+                                )
+                            }
                         ),
-                ) {
+                )
+                {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -338,14 +366,17 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                         }
                     }
 
-                    // 설명은 한 줄로 제한하고 넘어가면 ... 표시
-                    Text(
-                        text = thingsToDo.description ?: "",
-                        fontSize = 12.sp,
-                        color = Color.DarkGray,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis // 넘칠 때 ...으로 표시
-                    )
+                    // 설명칸 비었으면 무시
+                    if (!thingsToDo.description.isNullOrEmpty()) {
+                        Text(
+                            text = thingsToDo.description,
+                            fontSize = 12.sp,
+                            color = Color.DarkGray,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
                 }
             }
         }
@@ -361,12 +392,3 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    val navController = rememberNavController()
-    val previewViewModel = HomeViewModel()
-
-    HomeScreen(navController, previewViewModel)
-}

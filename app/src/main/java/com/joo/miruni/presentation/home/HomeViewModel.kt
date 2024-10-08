@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -12,85 +13,150 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor() : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val getTodoItemsForAlarmUseCase: GetTodoItemsForAlarmUseCase,
+) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
         private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     }
 
+    /*
+    * Live Date
+    * */
+
+    // 할 일 Item list
     private val _thingsTodoItems = MutableLiveData<List<ThingsTodo>>(emptyList())
     val thingsTodoItems: LiveData<List<ThingsTodo>> get() = _thingsTodoItems
 
+    // 일정 Item list
     private val _scheduleItems = MutableLiveData<List<Schedule>>(emptyList())
     val scheduleItems: LiveData<List<Schedule>> get() = _scheduleItems
 
+    // 로딩 중인지 판단하는 변수
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
+
+    // 페이징을 위한 마지막 데이터의 deadLine
+    private var lastDataDeadLine: LocalDateTime? = null
+
+
     init {
-        loadInitialData()
+        loadTodoItemsForAlarm()
         loadInitialScheduleData()
     }
 
-    private fun loadInitialData(count: Int = 20) {
-        _thingsTodoItems.value = List(count) { index ->
-            val day = 20 + index
-            val validDay = if (day > 30) 30 else day
-            ThingsTodo(
-                title = "할 일 ${index + 1}",
-                deadline = LocalDateTime.parse("2024-09-$validDay 10:00", dateTimeFormatter),
-                description = "할 일 ${index + 1}의 설명",
-                reminderDaysBefore = index + 1,
-                isCompleted = false // 기본값 설정
-            )
+
+    // 할 일 load 메소드
+    private fun loadTodoItemsForAlarm() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            runCatching {
+                getTodoItemsForAlarmUseCase.invoke(
+                    LocalDateTime.now(),
+                    null
+                )
+            }.onSuccess { flow ->
+                flow.collect { todoItems ->
+                    _thingsTodoItems.value = todoItems.todoEntities.map {
+                        ThingsTodo(
+                            id = it.id,
+                            title = it.title,
+                            deadline = it.deadLine ?: LocalDateTime.now(),
+                            description = it.details ?: "",
+                            isCompleted = it.isComplete
+                        )
+                    }
+                    lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
+                    _isLoading.value = false
+                }
+
+            }.onFailure { exception ->
+                exception.printStackTrace()
+                _isLoading.value = false
+            }
         }
     }
 
 
+    // 할 일 추가 load 메소드
+    fun loadMoreTodoItemsForAlarm() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val currentDeadLine = lastDataDeadLine
+
+            if (currentDeadLine != null) {
+                runCatching {
+                    getTodoItemsForAlarmUseCase.invoke(
+                        LocalDateTime.now(),
+                        currentDeadLine
+                    )
+                }.onSuccess { flow ->
+                    flow.collect { todoItems ->
+                        if (todoItems.todoEntities.isEmpty()) {
+                        } else {
+                            val updatedItems =
+                                _thingsTodoItems.value.orEmpty() + todoItems.todoEntities.map {
+                                    ThingsTodo(
+                                        id = it.id,
+                                        title = it.title,
+                                        deadline = it.deadLine ?: LocalDateTime.now(),
+                                        description = it.details ?: "",
+                                        isCompleted = it.isComplete
+                                    )
+                                }
+                            _thingsTodoItems.value = updatedItems
+                            lastDataDeadLine = updatedItems.lastOrNull()?.deadline
+                        }
+                        _isLoading.value = false
+                    }
+                }.onFailure { exception ->
+                    exception.printStackTrace()
+                }.also {
+                    _isLoading.value = false
+                }
+            } else {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // TODO 임시...
     private fun loadInitialScheduleData() {
         _scheduleItems.value = listOf(
-            Schedule("일정 1", LocalDateTime.parse("2024-09-20 09:00", dateTimeFormatter), LocalDateTime.parse("2024-09-20 10:00", dateTimeFormatter), "일정 1의 설명", 1),
-            Schedule("일정 2", LocalDateTime.parse("2024-09-21 11:00", dateTimeFormatter), LocalDateTime.parse("2024-09-21 12:00", dateTimeFormatter), "일정 2의 설명", 2),
-            Schedule("일정 3", LocalDateTime.parse("2024-09-22 13:00", dateTimeFormatter), LocalDateTime.parse("2024-09-22 14:00", dateTimeFormatter), "일정 3의 설명", 3),
+            Schedule(
+                "일정 1",
+                LocalDateTime.parse("2024-09-20 09:00", dateTimeFormatter),
+                LocalDateTime.parse("2024-09-20 10:00", dateTimeFormatter),
+                "일정 1의 설명",
+                1
+            ),
+            Schedule(
+                "일정 2",
+                LocalDateTime.parse("2024-09-21 11:00", dateTimeFormatter),
+                LocalDateTime.parse("2024-09-21 12:00", dateTimeFormatter),
+                "일정 2의 설명",
+                2
+            ),
+            Schedule(
+                "일정 3",
+                LocalDateTime.parse("2024-09-22 13:00", dateTimeFormatter),
+                LocalDateTime.parse("2024-09-22 14:00", dateTimeFormatter),
+                "일정 3의 설명",
+                3
+            ),
         )
     }
 
-    fun loadMoreData() {
-        viewModelScope.launch {
-            val currentList = _thingsTodoItems.value ?: emptyList()
-            val newList = currentList + listOf(
-                ThingsTodo(
-                    title = "추가된 할 일",
-                    deadline = LocalDateTime.parse("2024-09-26 15:00", dateTimeFormatter),
-                    description = "추가된 할 일",
-                    reminderDaysBefore = 1,
-                    isCompleted = false
-                )
-            )
-            _thingsTodoItems.value = newList
-        }
-    }
 
     fun loadMoreScheduleData() {
         viewModelScope.launch {
-            val currentScheduleList = _scheduleItems.value ?: emptyList()
-            val newScheduleList = currentScheduleList + listOf(
-                Schedule(
-                    title = "일정 4",
-                    startDate = LocalDateTime.parse("2024-09-23 16:00", dateTimeFormatter),
-                    endDate = LocalDateTime.parse("2024-09-23 17:00", dateTimeFormatter),
-                    description = "일정 4의 설명",
-                    reminderDaysBefore = 1
-                ),
-                Schedule(
-                    title = "일정 5",
-                    startDate = LocalDateTime.parse("2024-09-24 18:00", dateTimeFormatter),
-                    endDate = LocalDateTime.parse("2024-09-24 19:00", dateTimeFormatter),
-                    description = "일정 5의 설명",
-                    reminderDaysBefore = 2
-                )
-            )
-            _scheduleItems.value = newScheduleList
+            // 추가 로직...
         }
     }
 
+    // 남은 시간 포맷 메소드
     fun formatTimeRemaining(deadline: LocalDateTime): String {
         val now = LocalDateTime.now()
         val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
@@ -105,7 +171,8 @@ class HomeViewModel @Inject constructor() : ViewModel() {
             else -> deadline.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
         }
     }
-
 }
+
+
 
 
