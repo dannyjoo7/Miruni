@@ -2,9 +2,10 @@ package com.joo.miruni.presentation.home
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.Interaction
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +56,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTodo.AddTodoActivity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
 fun HomeScreen(
@@ -253,7 +257,7 @@ fun HomeScreen(
 
 }
 
-
+// 일정 Item
 @Composable
 fun ScheduleItem(context: Context, homeViewModel: HomeViewModel, schedule: Schedule) {
     Card(
@@ -294,7 +298,7 @@ fun ScheduleItem(context: Context, homeViewModel: HomeViewModel, schedule: Sched
     }
 }
 
-
+// 할 일 Item
 @Composable
 fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: ThingsTodo) {
     Box(
@@ -335,33 +339,49 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                 )
                             }
                         ),
-                )
-                {
+                ) {
+
+                    // 제목, 남은 기간, 더보기
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                vertical = 6.dp,
+                                horizontal = 4.dp,
+                            ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // 제목
                         Text(
                             text = thingsToDo.title,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(0.9f)
+                            modifier = Modifier
+                                .weight(0.8f)
+                                .padding(start = 2.dp)
                         )
+
                         // 마감일
                         Text(
                             text = homeViewModel.formatTimeRemaining(thingsToDo.deadline),
                             fontSize = 12.sp,
                             color = Color.Gray,
-                            modifier = Modifier.padding(start = 4.dp) // 간격 조정
-                        )
-                        IconButton(
-                            onClick = { /* Handle more actions */ },
                             modifier = Modifier.padding(start = 4.dp)
+                        )
+
+                        // 메뉴 아이콘
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .weight(0.1f)
+                                .clickable(onClick = { /* Handle more actions */ })
+                                .background(Color.Transparent)
+                                .padding(8.dp)
                         ) {
                             Icon(
-                                painterResource(id = R.drawable.ic_more),
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "See More",
                                 modifier = Modifier.size(12.dp), // 아이콘 크기 설정
-                                contentDescription = "See More"
+                                tint = Color.Black // 아이콘 색상
                             )
                         }
                     }
@@ -374,7 +394,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                             color = Color.DarkGray,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
                         )
                     }
                 }
@@ -387,8 +407,16 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                 .size(12.dp)
                 .background(Color.Red, shape = RoundedCornerShape(90.dp))
                 .align(Alignment.TopStart)
-                .padding(start = 4.dp, top = 4.dp)
         )
     }
 }
 
+class NoRippleInteractionSource : MutableInteractionSource {
+
+    override val interactions: Flow<Interaction> = emptyFlow()
+
+    override suspend fun emit(interaction: Interaction) {}
+
+    override fun tryEmit(interaction: Interaction) = true
+
+}
