@@ -11,12 +11,17 @@
     <!-- 아이폰 옅은 파란 색상 -->
     <color name="ios_light_blue">#FFD9E8F8</color>
 
+    <!-- 아이폰 옅은 초록 색상 -->
+    <color name="ios_light_green">#FF35C759</color>
+
     <!-- 아이폰 회색 색상 -->
     <color name="ios_gray">#FFC4C4C7</color>
     <!-- 아이폰 회색 색상 2 -->
     <color name="ios_light_gray">#FFF7F7F7</color>
-    <!-- 아이폰 회색 색상 2 -->
+    <!-- 아이폰 회색 색상 3 -->
     <color name="ios_gray_calander_font">#FFBFBFC1</color>
+    <!-- 구분선 색 -->
+    <color name="ios_divider">#FF9C9C9C</color>
 
     <!-- 버튼 회색 색상 -->
     <color name="button_gray">#FFEEEEEF</color>
