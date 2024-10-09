@@ -50,4 +50,8 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
         taskDao.deleteTaskById(id)
     }
 
+    override suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime) {
+        taskDao.updateTaskCompletionStatus(id, true, completionTime)
+    }
+
 }

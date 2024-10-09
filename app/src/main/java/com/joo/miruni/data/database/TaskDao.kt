@@ -43,7 +43,14 @@ interface TaskDao {
         taskType: TaskType = TaskType.TODO,
     ): Flow<List<TaskEntity>>
 
+    // task 삭제
     @Query("DELETE FROM tasks WHERE id = :id")
     suspend fun deleteTaskById(id: Long)
 
+    @Query("UPDATE tasks SET isComplete = :isComplete, completeDate = :completeDate WHERE id = :taskId")
+    suspend fun updateTaskCompletionStatus(
+        taskId: Long,
+        isComplete: Boolean,
+        completeDate: LocalDateTime?,
+    )
 }

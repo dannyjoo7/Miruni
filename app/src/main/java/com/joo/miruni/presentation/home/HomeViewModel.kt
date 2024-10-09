@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getTodoItemsForAlarmUseCase: GetTodoItemsForAlarmUseCase,
     private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
+    private val completeTaskItemUseCase: CompleteTaskItemUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
@@ -142,12 +144,25 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    // Task 완료 시
+    fun completeTask(taskId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                completeTaskItemUseCase.invoke(taskId, LocalDateTime.now())
+            }.onSuccess {
+
+            }.onFailure {
+
+            }
+        }
+    }
+
     // TodoTings 확장 토글 메소드
     fun toggleItemExpansion(id: Long) {
         _expandedItems.value = if (_expandedItems.value.contains(id)) {
-            _expandedItems.value - id
+            emptySet()
         } else {
-            _expandedItems.value + id
+            setOf(id)
         }
     }
 
@@ -155,6 +170,7 @@ class HomeViewModel @Inject constructor(
     fun isItemExpanded(id: Long): Boolean {
         return _expandedItems.value.contains(id)
     }
+
 
     // TODO 임시...
     private fun loadInitialScheduleData() {
@@ -183,10 +199,10 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-
+    // 일정 load 메소드
     fun loadMoreScheduleData() {
         viewModelScope.launch {
-            // 추가 로직...
+            // Todo
         }
     }
 

@@ -320,7 +320,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 4.dp)
+            .padding(4.dp)
     ) {
         Card(
             modifier = Modifier
@@ -491,6 +491,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                 )
                             }
 
+                            // 구분선
                             Spacer(modifier = Modifier.width(12.dp))
                             VerticalDivider(
                                 thickness = 1.dp,
@@ -508,7 +509,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
-
+                                        homeViewModel.completeTask(thingsToDo.id)
                                     }
                                     .padding(8.dp),
                                 verticalArrangement = Arrangement.Center,
@@ -535,14 +536,4 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                 .align(Alignment.TopStart)
         )
     }
-}
-
-class NoRippleInteractionSource : MutableInteractionSource {
-
-    override val interactions: Flow<Interaction> = emptyFlow()
-
-    override suspend fun emit(interaction: Interaction) {}
-
-    override fun tryEmit(interaction: Interaction) = true
-
 }

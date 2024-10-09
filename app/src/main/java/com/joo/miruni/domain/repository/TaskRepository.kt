@@ -17,4 +17,5 @@ interface TaskRepository {
     ): Flow<TaskItemsEntity>
 
     suspend fun deleteTaskById(id: Long)
+    suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime)
 }
