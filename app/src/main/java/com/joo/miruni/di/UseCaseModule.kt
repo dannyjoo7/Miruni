@@ -2,6 +2,8 @@ package com.joo.miruni.di
 
 import com.joo.miruni.domain.usecase.AddTodoItemUseCase
 import com.joo.miruni.domain.usecase.AddTodoItemUseCaseImpl
+import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.CompleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCase
@@ -65,6 +67,12 @@ abstract class UseCaseModule {
     abstract fun bindDeleteTaskItemUseCase(
         deleteTaskItemUseCaseImpl: DeleteTaskItemUseCaseImpl,
     ): DeleteTaskItemUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindCompleteTaskItemUseCase(
+        completeTaskItemUseCaseImpl: CompleteTaskItemUseCaseImpl,
+    ): CompleteTaskItemUseCase
 
 }
 
