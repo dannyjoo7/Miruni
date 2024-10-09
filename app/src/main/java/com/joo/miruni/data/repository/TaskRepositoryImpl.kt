@@ -46,4 +46,8 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
         }
     }
 
+    override suspend fun deleteTaskById(id: Long) {
+        taskDao.deleteTaskById(id)
+    }
+
 }

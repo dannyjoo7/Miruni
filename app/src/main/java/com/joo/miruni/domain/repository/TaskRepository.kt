@@ -15,4 +15,6 @@ interface TaskRepository {
         selectDate: LocalDateTime,
         lastDeadLine: LocalDateTime? = null,
     ): Flow<TaskItemsEntity>
+
+    suspend fun deleteTaskById(id: Long)
 }

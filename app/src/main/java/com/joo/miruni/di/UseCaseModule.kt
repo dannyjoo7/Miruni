@@ -2,6 +2,8 @@ package com.joo.miruni.di
 
 import com.joo.miruni.domain.usecase.AddTodoItemUseCase
 import com.joo.miruni.domain.usecase.AddTodoItemUseCaseImpl
+import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.DeleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
@@ -53,5 +55,16 @@ abstract class UseCaseModule {
     abstract fun bindGetTodoItemsForAlarmUseCase(
         getTodoItemsUseCaseImpl: GetTodoItemsForAlarmUseCaseImpl,
     ): GetTodoItemsForAlarmUseCase
+
+
+    /*
+    * HomeViewModel
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindDeleteTaskItemUseCase(
+        deleteTaskItemUseCaseImpl: DeleteTaskItemUseCaseImpl,
+    ): DeleteTaskItemUseCase
+
 }
 

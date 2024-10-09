@@ -1,9 +1,12 @@
 package com.joo.miruni.presentation.home
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -15,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getTodoItemsForAlarmUseCase: GetTodoItemsForAlarmUseCase,
+    private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
@@ -36,6 +40,10 @@ class HomeViewModel @Inject constructor(
     // 로딩 중인지 판단하는 변수
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
+
+    // 확장 여부를 판단하는 변수
+    private val _expandedItems = mutableStateOf<Set<Long>>(emptySet())
+    val expandedItems: State<Set<Long>> = _expandedItems
 
 
     // 페이징을 위한 마지막 데이터의 deadLine
@@ -79,7 +87,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
     // 할 일 추가 load 메소드
     fun loadMoreTodoItemsForAlarm() {
         viewModelScope.launch {
@@ -94,8 +101,7 @@ class HomeViewModel @Inject constructor(
                     )
                 }.onSuccess { flow ->
                     flow.collect { todoItems ->
-                        if (todoItems.todoEntities.isEmpty()) {
-                        } else {
+                        if (todoItems.todoEntities.isNotEmpty()) {
                             val updatedItems =
                                 _thingsTodoItems.value.orEmpty() + todoItems.todoEntities.map {
                                     ThingsTodo(
@@ -120,6 +126,34 @@ class HomeViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    // Task 삭제 메소드
+    fun deleteTaskItem(id: Long) {
+        viewModelScope.launch {
+            runCatching {
+                deleteTaskItemUseCase.invoke(id)
+                _expandedItems.value -= id
+            }.onSuccess {
+
+            }.onFailure {
+
+            }
+        }
+    }
+
+    // TodoTings 확장 토글 메소드
+    fun toggleItemExpansion(id: Long) {
+        _expandedItems.value = if (_expandedItems.value.contains(id)) {
+            _expandedItems.value - id
+        } else {
+            _expandedItems.value + id
+        }
+    }
+
+    // TodoTings가 확장 되어있는지 판단 메소드
+    fun isItemExpanded(id: Long): Boolean {
+        return _expandedItems.value.contains(id)
     }
 
     // TODO 임시...
