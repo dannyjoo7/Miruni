@@ -19,7 +19,7 @@ data class TaskEntity(
 
     val alarmDisplayDate: LocalDate, // 선택된 알람 표시 시간
     val isComplete: Boolean, // 완료 여부
-    val completeDate: LocalDateTime?, // 완료 여부
+    val completeDate: LocalDateTime?, // 완료 시간
     val type: TaskType, // "SCHEDULE" 또는 "TODO"로 구분할 수 있는 enum
 )
 
