@@ -528,11 +528,19 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
             }
         }
 
-        // 알람 표시등: 카드의 왼쪽 위에 위치
+        // 알림 중요도 표시 등
         Box(
             modifier = Modifier
                 .size(12.dp)
-                .background(Color.Red, shape = RoundedCornerShape(90.dp))
+                .background(
+                    color = when (homeViewModel.getColorForRemainingTime(thingsToDo.deadline)) {
+                        Importance.RED -> Color.Red
+                        Importance.ORANGE -> colorResource(R.color.orange)
+                        Importance.YELLOW -> colorResource(R.color.yellow)
+                        Importance.GREEN -> Color.Green
+                    },
+                    shape = RoundedCornerShape(90.dp)
+                )
                 .align(Alignment.TopStart)
         )
     }

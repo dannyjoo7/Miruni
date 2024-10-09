@@ -221,6 +221,20 @@ class HomeViewModel @Inject constructor(
             else -> deadline.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
         }
     }
+
+    // 남은 시간에 따른 색 결정 메소드
+    fun getColorForRemainingTime(deadline: LocalDateTime): Importance {
+        val now = LocalDateTime.now()
+        val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
+
+        return when {
+            minutesRemaining < 0 -> Importance.RED            // 기한 만료
+            minutesRemaining < 720 -> Importance.RED                 // 12시간 이내
+            minutesRemaining < 1440 -> Importance.ORANGE        // 주황색
+            minutesRemaining < 4320 -> Importance.YELLOW             // 노란색
+            else -> Importance.GREEN                             // 초록색
+        }
+    }
 }
 
 
