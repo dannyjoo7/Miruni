@@ -6,6 +6,12 @@
     <!-- 메뉴 색상 -->
     <color name="gray_menu">#FFF5F5F5</color>
 
+    <!-- 오랜지 색상 -->
+    <color name="orange">#FFFF9D00</color>
+
+    <!-- 노란 색상 -->
+    <color name="yellow">#FFFFD900</color>
+
     <!-- 아이폰 파란 색상 -->
     <color name="ios_blue">#FF007AFF</color>
     <!-- 아이폰 옅은 파란 색상 -->
