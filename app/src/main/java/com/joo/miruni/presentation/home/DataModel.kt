@@ -14,6 +14,10 @@ data class ThingsTodo(
     val id: Long,
     val title: String,
     val deadline: LocalDateTime,
-    val description: String?= null,
+    val description: String? = null,
     val isCompleted: Boolean = false,
 )
+
+enum class Importance {
+    RED, ORANGE, YELLOW, GREEN
+}
