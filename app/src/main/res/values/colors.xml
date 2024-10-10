@@ -3,7 +3,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- 메뉴 색상 -->
+    <!-- 메뉴 회색 색상 -->
     <color name="gray_menu">#FFF5F5F5</color>
 
     <!-- 오랜지 색상 -->

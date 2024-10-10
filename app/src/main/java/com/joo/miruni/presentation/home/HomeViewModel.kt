@@ -10,6 +10,7 @@ import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -47,6 +48,10 @@ class HomeViewModel @Inject constructor(
     private val _expandedItems = mutableStateOf<Set<Long>>(emptySet())
     val expandedItems: State<Set<Long>> = _expandedItems
 
+    // 삭제됐는지 여부를 판단하는 변수
+    private val _deletedItems = MutableLiveData<Set<Long>>(emptySet())
+    val deletedItems: LiveData<Set<Long>> get() = _deletedItems
+
 
     // 페이징을 위한 마지막 데이터의 deadLine
     private var lastDataDeadLine: LocalDateTime? = null
@@ -57,6 +62,9 @@ class HomeViewModel @Inject constructor(
         loadInitialScheduleData()
     }
 
+    /*
+    * 할 일
+    * */
 
     // 할 일 load 메소드
     private fun loadTodoItemsForAlarm() {
@@ -133,13 +141,15 @@ class HomeViewModel @Inject constructor(
     // Task 삭제 메소드
     fun deleteTaskItem(id: Long) {
         viewModelScope.launch {
+            _deletedItems.value = _deletedItems.value?.plus(id) ?: setOf(id)
             runCatching {
+                // 애니매이션을 위한 딜레이
+                delay(1000)
                 deleteTaskItemUseCase.invoke(id)
-                _expandedItems.value -= id
             }.onSuccess {
-
+                _expandedItems.value = _expandedItems.value.filterNot { it == id }.toSet()
             }.onFailure {
-
+                _deletedItems.value = _deletedItems.value?.minus(id)
             }
         }
     }
@@ -171,6 +181,38 @@ class HomeViewModel @Inject constructor(
         return _expandedItems.value.contains(id)
     }
 
+    // 남은 시간에 따른 색 결정 메소드
+    fun getColorForRemainingTime(deadline: LocalDateTime): Importance {
+        val now = LocalDateTime.now()
+        val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
+
+        return when {
+            minutesRemaining < 1440 -> Importance.RED           // 24시간 이내
+            minutesRemaining < 2880 -> Importance.ORANGE        // 2일 이내
+            minutesRemaining < 4320 -> Importance.YELLOW        // 3일 이내
+            else -> Importance.GREEN                            // 7일 이내
+        }
+    }
+
+    // 남은 시간 포맷 메소드
+    fun formatTimeRemaining(deadline: LocalDateTime): String {
+        val now = LocalDateTime.now()
+        val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
+        val hoursRemaining = ChronoUnit.HOURS.between(now, deadline)
+        val daysRemaining = ChronoUnit.DAYS.between(now, deadline)
+
+        return when {
+            minutesRemaining < 0 -> "기한 만료"
+            minutesRemaining < 60 -> "${minutesRemaining}분 후"
+            hoursRemaining < 24 -> "${hoursRemaining}시간 후"
+            daysRemaining < 7 -> "${daysRemaining}일 후"
+            else -> deadline.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+        }
+    }
+
+    /*
+    * 일정
+    * */
 
     // TODO 임시...
     private fun loadInitialScheduleData() {
@@ -206,34 +248,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // 남은 시간 포맷 메소드
-    fun formatTimeRemaining(deadline: LocalDateTime): String {
-        val now = LocalDateTime.now()
-        val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
-        val hoursRemaining = ChronoUnit.HOURS.between(now, deadline)
-        val daysRemaining = ChronoUnit.DAYS.between(now, deadline)
 
-        return when {
-            minutesRemaining < 0 -> "기한 만료"
-            minutesRemaining < 60 -> "${minutesRemaining}분 후"
-            hoursRemaining < 24 -> "${hoursRemaining}시간 후"
-            daysRemaining < 7 -> "${daysRemaining}일 후"
-            else -> deadline.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
-        }
-    }
-
-    // 남은 시간에 따른 색 결정 메소드
-    fun getColorForRemainingTime(deadline: LocalDateTime): Importance {
-        val now = LocalDateTime.now()
-        val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
-
-        return when {
-            minutesRemaining < 1440 -> Importance.RED           // 24시간 이내
-            minutesRemaining < 2880 -> Importance.ORANGE        // 2일 이내
-            minutesRemaining < 4320 -> Importance.YELLOW        // 3일 이내
-            else -> Importance.GREEN                            // 7일 이내
-        }
-    }
 }
 
 
