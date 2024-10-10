@@ -54,4 +54,9 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
         taskDao.updateTaskCompletionStatus(id, true, completionTime)
     }
 
+
+    override suspend fun getTodoItemById(taskId: Long): TaskEntity {
+        return taskDao.getTodoItemById(taskId)
+    }
+
 }
