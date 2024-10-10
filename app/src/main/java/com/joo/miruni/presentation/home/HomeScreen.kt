@@ -2,20 +2,17 @@ package com.joo.miruni.presentation.home
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -30,20 +27,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -64,13 +61,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTodo.AddTodoActivity
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
+import com.joo.miruni.presentation.detailPage.DetailActivity
 
 @Composable
 fun HomeScreen(
@@ -149,6 +144,7 @@ fun HomeScreen(
                 }
             }
 
+            // LazyColumn
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier
@@ -157,12 +153,19 @@ fun HomeScreen(
             ) {
                 // 일정 리스트
                 items(scheduleItems.size) { index ->
-                    ScheduleItem(context, homeViewModel, scheduleItems[index])
+                    ScheduleItem(
+                        homeViewModel,
+                        scheduleItems[index],
+                    )
                 }
 
                 // 할 일 리스트
                 items(thingsToDoItems.size) { index ->
-                    ThingsToDoItem(context, homeViewModel, thingsToDoItems[index])
+                    ThingsToDoItem(
+                        context,
+                        homeViewModel,
+                        thingsToDoItems[index],
+                    )
                 }
 
                 // 로딩 인디케이터
@@ -181,6 +184,7 @@ fun HomeScreen(
         }
 
 
+        // 플로팅 버튼 + 메뉴
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -214,7 +218,7 @@ fun HomeScreen(
             ) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color(ContextCompat.getColor(context, R.color.gray_menu)),
+                    color = colorResource(R.color.gray_menu),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(12.dp),
@@ -272,7 +276,7 @@ fun HomeScreen(
 
 // 일정 Item
 @Composable
-fun ScheduleItem(context: Context, homeViewModel: HomeViewModel, schedule: Schedule) {
+fun ScheduleItem(homeViewModel: HomeViewModel, schedule: Schedule) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -283,7 +287,7 @@ fun ScheduleItem(context: Context, homeViewModel: HomeViewModel, schedule: Sched
         shape = RoundedCornerShape(4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(ContextCompat.getColor(context, R.color.gray_menu))
+            containerColor = colorResource(id = R.color.gray_menu),
         )
     ) {
         Box(
@@ -314,234 +318,264 @@ fun ScheduleItem(context: Context, homeViewModel: HomeViewModel, schedule: Sched
 // 할 일 Item
 @Composable
 fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: ThingsTodo) {
+
     var isOpenThingsTodoMenu by remember { mutableStateOf(false) }  // MenuIcon 터치 여부
+
     val isExpanded = homeViewModel.isItemExpanded(thingsToDo.id)          // 확장 여부
+    val deletedItems by homeViewModel.deletedItems.observeAsState(emptySet())   // 삭제 여부
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(4.dp)
+    AnimatedVisibility(
+        visible = !deletedItems.contains(thingsToDo.id),
+        enter = fadeIn(animationSpec = tween(durationMillis = 0)),
+        exit = fadeOut(animationSpec = tween(durationMillis = 500))
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 2.dp, top = 2.dp),
-            shape = RoundedCornerShape(8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(ContextCompat.getColor(context, R.color.gray_menu))
-            )
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
+        if (!thingsToDo.isCompleted) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize(),
             ) {
-                Column(
+                Card(
                     modifier = Modifier
-                        .padding(
-                            horizontal = 8.dp,
-                            vertical = 4.dp
-                        )
-                        .animateContentSize()
+                        .fillMaxWidth()
+                        .padding(4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorResource(R.color.gray_menu),
+                    )
                 ) {
-                    // 제목, 남은 기간, 더보기
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp, horizontal = 4.dp)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) {
-                                // 클릭 시 확장
-                                homeViewModel.toggleItemExpansion(thingsToDo.id)
-                            },
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        // 제목
-                        Text(
-                            text = thingsToDo.title,
-                            fontWeight = FontWeight.Bold,
+                        Column(
                             modifier = Modifier
-                                .weight(0.8f)
-                                .padding(start = 2.dp)
-                        )
-
-                        // 마감일
-                        Text(
-                            text = homeViewModel.formatTimeRemaining(thingsToDo.deadline),
-                            fontSize = 12.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-
-                        // 메뉴 아이콘
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 4.dp)
-                                .weight(0.1f)
-                                .clickable(onClick = {
-                                    isOpenThingsTodoMenu = !isOpenThingsTodoMenu
-                                })
-                                .background(Color.Transparent)
-                                .padding(8.dp)
+                                .padding(
+                                    horizontal = 8.dp,
+                                    vertical = 4.dp
+                                )
+                                .animateContentSize()
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "See More",
-                                modifier = Modifier.size(12.dp),
-                                tint = Color.Black
-                            )
-
-                            // 메뉴
-                            DropdownMenu(
-                                expanded = isOpenThingsTodoMenu,
-                                onDismissRequest = { isOpenThingsTodoMenu = false },
-                                offset = DpOffset(x = 0.dp, y = (-24).dp),
-                                containerColor = Color.Transparent,
-                                tonalElevation = 0.dp,
-                                shadowElevation = 0.dp,
+                            // 제목, 남은 기간, 더보기
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp, horizontal = 4.dp)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        // 클릭 시 확장
+                                        homeViewModel.toggleItemExpansion(thingsToDo.id)
+                                    },
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = Color(
-                                        ContextCompat.getColor(
-                                            context,
-                                            R.color.gray_menu
-                                        )
-                                    ),
+                                // 제목
+                                Text(
+                                    text = thingsToDo.title,
+                                    fontWeight = FontWeight.Bold,
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    tonalElevation = 12.dp,
-                                    shadowElevation = 12.dp,
-                                ) {
+                                        .weight(0.8f)
+                                        .padding(start = 2.dp)
+                                )
 
-                                    // 메뉴 아이템
-                                    Column {
-                                        Text(
-                                            text = "상세보기",
+                                // 마감일
+                                Text(
+                                    text = homeViewModel.formatTimeRemaining(thingsToDo.deadline),
+                                    fontSize = 12.sp,
+                                    color = Color.Gray,
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+
+                                // 메뉴 아이콘
+                                Box(
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .weight(0.1f)
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }
+                                        ) {
+                                            isOpenThingsTodoMenu = !isOpenThingsTodoMenu
+                                        }
+                                        .background(Color.Transparent)
+                                        .padding(8.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_more),
+                                        contentDescription = "See More",
+                                        modifier = Modifier.size(12.dp),
+                                        tint = Color.Black
+                                    )
+
+                                    // 메뉴
+                                    DropdownMenu(
+                                        expanded = isOpenThingsTodoMenu,
+                                        onDismissRequest = { isOpenThingsTodoMenu = false },
+                                        offset = DpOffset(x = 0.dp, y = (-24).dp),
+                                        containerColor = Color.Transparent,
+                                        tonalElevation = 0.dp,
+                                        shadowElevation = 0.dp,
+                                    ) {
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = colorResource(R.color.gray_menu),
                                             modifier = Modifier
-                                                .clickable {
-                                                    // 상세보기 클릭 시 동작
-                                                }
-                                                .padding(16.dp)
-                                                .defaultMinSize(60.dp)
-                                        )
-                                        HorizontalDivider(
-                                            thickness = 0.5.dp,
-                                            color = Color.Black.copy(alpha = 0.2f)
-                                        )
-                                        Text(
-                                            text = "미루기",
-                                            modifier = Modifier
-                                                .clickable {
-                                                    isOpenThingsTodoMenu = false
-                                                }
-                                                .padding(16.dp)
-                                                .defaultMinSize(60.dp),
-                                            color = Color.Red
-                                        )
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                            tonalElevation = 6.dp,
+                                            shadowElevation = 6.dp,
+                                        ) {
+
+                                            // 메뉴 아이템
+                                            Column {
+                                                Text(
+                                                    text = "상세보기",
+                                                    modifier = Modifier
+                                                        .clickable(
+                                                            indication = ripple(
+                                                                bounded = true,
+                                                                color = colorResource(R.color.ios_gray),
+                                                            ),
+                                                            interactionSource = remember { MutableInteractionSource() }
+                                                        ) {
+                                                            // 상세보기 액티비티로 넘어가기
+                                                            val intent = Intent(
+                                                                context,
+                                                                DetailActivity::class.java
+                                                            ).apply {
+                                                                putExtra("TODO_ID", thingsToDo.id)
+                                                            }
+                                                            context.startActivity(intent)
+                                                            isOpenThingsTodoMenu =
+                                                                !isOpenThingsTodoMenu
+                                                        }
+                                                        .padding(16.dp)
+                                                        .defaultMinSize(60.dp)
+                                                )
+                                                HorizontalDivider(
+                                                    thickness = 0.5.dp,
+                                                    color = Color.Black.copy(alpha = 0.2f)
+                                                )
+                                                Text(
+                                                    text = "미루기",
+                                                    modifier = Modifier
+                                                        .clickable(
+                                                            indication = ripple(
+                                                                bounded = true,
+                                                                color = colorResource(R.color.ios_gray),
+                                                            ),
+                                                            interactionSource = remember { MutableInteractionSource() }
+                                                        ) {
+                                                            // 미루기 클릭 시
+                                                        }
+                                                        .padding(16.dp)
+                                                        .defaultMinSize(60.dp),
+                                                    color = Color.Red
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }
 
-                    // 설명칸 비었으면 무시
-                    if (!thingsToDo.description.isNullOrEmpty()) {
-                        Text(
-                            text = thingsToDo.description,
-                            fontSize = 12.sp,
-                            color = Color.DarkGray,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(start = 8.dp, bottom = 10.dp)
-                        )
-                    }
-
-                    // 추가 정보와 구분선
-                    if (isExpanded) {
-                        HorizontalDivider(
-                            thickness = 1.dp, color = Color.Gray.copy(alpha = 0.5f),
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            // 삭제 텍스트
-                            Column(
-                                modifier = Modifier
-                                    .background(Color.Transparent)
-                                    .weight(1f)
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) {
-                                        homeViewModel.deleteTaskItem(thingsToDo.id)
-                                    }
-                                    .padding(8.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
+                            // 설명칸 비었으면 무시
+                            if (!thingsToDo.description.isNullOrEmpty()) {
                                 Text(
-                                    text = "삭제",
-                                    color = Color.Red,
-                                    textAlign = TextAlign.Center,
+                                    text = thingsToDo.description,
+                                    fontSize = 12.sp,
+                                    color = Color.DarkGray,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(start = 8.dp, bottom = 10.dp)
                                 )
                             }
 
-                            // 구분선
-                            Spacer(modifier = Modifier.width(12.dp))
-                            VerticalDivider(
-                                thickness = 1.dp,
-                                color = Color.Gray.copy(alpha = 0.5f),
-                                modifier = Modifier.height(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-
-                            // 완료 텍스트
-                            Column(
-                                modifier = Modifier
-                                    .background(Color.Transparent)
-                                    .weight(1f)
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) {
-                                        homeViewModel.completeTask(thingsToDo.id)
-                                    }
-                                    .padding(8.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = "완료",
-                                    color = colorResource(R.color.ios_blue),
-                                    textAlign = TextAlign.Center,
+                            // 추가 정보와 구분선
+                            if (isExpanded) {
+                                HorizontalDivider(
+                                    thickness = 1.dp, color = Color.Gray.copy(alpha = 0.5f),
                                 )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    // 삭제 텍스트
+                                    Column(
+                                        modifier = Modifier
+                                            .background(Color.Transparent)
+                                            .weight(1f)
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ) {
+                                                homeViewModel.deleteTaskItem(thingsToDo.id)
+                                            }
+                                            .padding(8.dp),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = "삭제",
+                                            color = Color.Red,
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    }
+
+                                    // 구분선
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    VerticalDivider(
+                                        thickness = 1.dp,
+                                        color = Color.Gray.copy(alpha = 0.5f),
+                                        modifier = Modifier.height(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+
+                                    // 완료 텍스트
+                                    Column(
+                                        modifier = Modifier
+                                            .background(Color.Transparent)
+                                            .weight(1f)
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ) {
+                                                homeViewModel.completeTask(thingsToDo.id)
+                                            }
+                                            .padding(8.dp),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = "완료",
+                                            color = colorResource(R.color.ios_blue),
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    }
+                                }
+
                             }
                         }
-
                     }
                 }
+
+                // 알림 중요도 표시 등
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(
+                            color = when (homeViewModel.getColorForRemainingTime(thingsToDo.deadline)) {
+                                Importance.RED -> Color.Red
+                                Importance.ORANGE -> colorResource(R.color.orange)
+                                Importance.YELLOW -> colorResource(R.color.yellow)
+                                Importance.GREEN -> Color.Green
+                            },
+                            shape = RoundedCornerShape(90.dp)
+                        )
+                        .align(Alignment.TopStart)
+                )
             }
         }
-
-        // 알림 중요도 표시 등
-        Box(
-            modifier = Modifier
-                .size(12.dp)
-                .background(
-                    color = when (homeViewModel.getColorForRemainingTime(thingsToDo.deadline)) {
-                        Importance.RED -> Color.Red
-                        Importance.ORANGE -> colorResource(R.color.orange)
-                        Importance.YELLOW -> colorResource(R.color.yellow)
-                        Importance.GREEN -> Color.Green
-                    },
-                    shape = RoundedCornerShape(90.dp)
-                )
-                .align(Alignment.TopStart)
-        )
     }
 }
