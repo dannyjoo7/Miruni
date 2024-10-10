@@ -3,7 +3,6 @@ package com.joo.miruni.domain.model
 import com.joo.miruni.data.entities.TaskEntity
 import com.joo.miruni.data.entities.TaskItemsEntity
 import com.joo.miruni.data.entities.TaskType
-import com.joo.miruni.presentation.addTodo.TodoItem
 
 /*
 * TaskEntity to TodoEntity*/
@@ -47,12 +46,25 @@ fun TodoEntity.toTaskEntity() = TaskEntity(
 * TodoItem to TodoEntity
 * */
 
-fun TodoItem.toTodoEntity() = TodoEntity(
+// AddTodo
+fun com.joo.miruni.presentation.addTodo.TodoItem.toTodoEntity() = TodoEntity(
     id = 0,
     title = todoText,
     details = descriptionText,
     deadLine = selectedDate,
     alarmDisplayDate = adjustedDate,
+    isComplete = false,
+    completeDate = null,
+    type = TaskType.TODO,
+)
+
+// Detail
+fun com.joo.miruni.presentation.detailPage.TodoItem.toTodoEntity() = TodoEntity(
+    id = id!!,
+    title = todoText,
+    details = descriptionText,
+    deadLine = selectedDate,
+    alarmDisplayDate = adjustedDate!!,
     isComplete = false,
     completeDate = null,
     type = TaskType.TODO,

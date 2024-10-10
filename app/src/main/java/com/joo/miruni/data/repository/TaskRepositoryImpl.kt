@@ -59,4 +59,8 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
         return taskDao.getTodoItemById(taskId)
     }
 
+    override suspend fun updateTask(todoEntity: TodoEntity) {
+        taskDao.updateTask(todoEntity.toTaskEntity())
+    }
+
 }

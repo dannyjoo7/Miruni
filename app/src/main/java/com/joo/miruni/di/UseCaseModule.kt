@@ -14,6 +14,8 @@ import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCaseImpl
 import com.joo.miruni.domain.usecase.SaveAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.SaveAlarmTimeUseCaseImpl
+import com.joo.miruni.domain.usecase.UpdateTodoItemUseCase
+import com.joo.miruni.domain.usecase.UpdateTodoItemUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -86,5 +88,10 @@ abstract class UseCaseModule {
         getTodoItemByIDUseCaseImpl: GetTodoItemByIDUseCaseImpl,
     ): GetTodoItemByIDUseCase
 
+    @Binds
+    @Singleton
+    abstract fun bindUpdateTodoItemUseCase(
+        updateTodoItemUseCaseImpl: UpdateTodoItemUseCaseImpl,
+    ): UpdateTodoItemUseCase
 }
 

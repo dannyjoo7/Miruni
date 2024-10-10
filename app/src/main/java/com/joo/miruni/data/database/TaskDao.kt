@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.joo.miruni.data.entities.TaskEntity
 import com.joo.miruni.data.entities.TaskType
 import kotlinx.coroutines.flow.Flow
@@ -59,4 +60,7 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     suspend fun getTodoItemById(taskId: Long): TaskEntity
 
+    // task 업데이트 메소드
+    @Update
+    suspend fun updateTask(taskEntity: TaskEntity)
 }
