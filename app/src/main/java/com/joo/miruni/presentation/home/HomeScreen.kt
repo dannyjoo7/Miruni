@@ -27,7 +27,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -65,7 +64,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTodo.AddTodoActivity
-import com.joo.miruni.presentation.detailPage.DetailActivity
+import com.joo.miruni.presentation.detailPage.ModifyActivity
 
 @Composable
 fun HomeScreen(
@@ -430,7 +429,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                             // 메뉴 아이템
                                             Column {
                                                 Text(
-                                                    text = "상세보기",
+                                                    text = "수정",
                                                     modifier = Modifier
                                                         .clickable(
                                                             indication = ripple(
@@ -439,10 +438,10 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                             ),
                                                             interactionSource = remember { MutableInteractionSource() }
                                                         ) {
-                                                            // 상세보기 액티비티로 넘어가기
+                                                            // 수정 액티비티로 넘어가기
                                                             val intent = Intent(
                                                                 context,
-                                                                DetailActivity::class.java
+                                                                ModifyActivity::class.java
                                                             ).apply {
                                                                 putExtra("TODO_ID", thingsToDo.id)
                                                             }
