@@ -8,6 +8,8 @@ import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCaseImpl
+import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCase
+import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCaseImpl
 import com.joo.miruni.domain.usecase.SaveAlarmTimeUseCase
@@ -73,6 +75,16 @@ abstract class UseCaseModule {
     abstract fun bindCompleteTaskItemUseCase(
         completeTaskItemUseCaseImpl: CompleteTaskItemUseCaseImpl,
     ): CompleteTaskItemUseCase
+
+
+    /*
+    * DetailViewModel
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindGetTodoItemByIDUseCase(
+        getTodoItemByIDUseCaseImpl: GetTodoItemByIDUseCaseImpl,
+    ): GetTodoItemByIDUseCase
 
 }
 
