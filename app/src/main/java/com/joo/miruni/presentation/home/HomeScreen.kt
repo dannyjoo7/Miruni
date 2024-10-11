@@ -65,6 +65,7 @@ import androidx.navigation.NavHostController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTodo.AddTodoActivity
 import com.joo.miruni.presentation.detailPage.ModifyActivity
+import java.time.LocalDateTime
 
 @Composable
 fun HomeScreen(
@@ -80,6 +81,7 @@ fun HomeScreen(
     val thingsToDoItems by homeViewModel.thingsTodoItems.observeAsState(emptyList())
     val scheduleItems by homeViewModel.scheduleItems.observeAsState(emptyList())
     val isLoading by homeViewModel.isLoading.observeAsState(false)
+    val selectDate by homeViewModel.selectDate.observeAsState(LocalDateTime.now())
 
     var initialLoad by remember { mutableStateOf(true) }
 
@@ -107,7 +109,9 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // 왼쪽 버튼
-                IconButton(onClick = { /* Handle left button click */ }) {
+                IconButton(
+                    onClick = { homeViewModel.changeDate("<") }
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_left),
                         contentDescription = "Date Icon"
@@ -121,7 +125,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "오늘",
+                        text = homeViewModel.formatSelectedDate(selectDate),
                         color = Color.Black,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
@@ -135,7 +139,9 @@ fun HomeScreen(
                 }
 
                 // 오른쪽 버튼
-                IconButton(onClick = { /* Handle right button click */ }) {
+                IconButton(onClick = {
+                    homeViewModel.changeDate(">")
+                }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_right),
                         contentDescription = "Weather Icon"
@@ -175,7 +181,10 @@ fun HomeScreen(
                                 .fillMaxSize()
                                 .wrapContentSize(Alignment.Center)
                         ) {
-                            CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                            CircularProgressIndicator(
+                                modifier = Modifier.padding(16.dp),
+                                color = colorResource(R.color.ios_gray)
+                            )
                         }
                     }
                 }
@@ -228,7 +237,13 @@ fun HomeScreen(
                         Text(
                             text = "할 일",
                             modifier = Modifier
-                                .clickable {
+                                .clickable(
+                                    indication = ripple(
+                                        bounded = true,
+                                        color = colorResource(R.color.ios_gray),
+                                    ),
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
                                     isAddMenuExpanded = false
                                     val intent = Intent(context, AddTodoActivity::class.java)
                                     context.startActivity(intent)
@@ -243,7 +258,13 @@ fun HomeScreen(
                         Text(
                             text = "일정",
                             modifier = Modifier
-                                .clickable {
+                                .clickable(
+                                    indication = ripple(
+                                        bounded = true,
+                                        color = colorResource(R.color.ios_gray),
+                                    ),
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
                                     isAddMenuExpanded = false
                                 }
                                 .padding(16.dp)
@@ -428,6 +449,8 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
 
                                             // 메뉴 아이템
                                             Column {
+
+                                                // 수정 메뉴
                                                 Text(
                                                     text = "수정",
                                                     modifier = Modifier
@@ -456,6 +479,8 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                     thickness = 0.5.dp,
                                                     color = Color.Black.copy(alpha = 0.2f)
                                                 )
+
+                                                // 미루기 메뉴
                                                 Text(
                                                     text = "미루기",
                                                     modifier = Modifier
@@ -467,6 +492,9 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                             interactionSource = remember { MutableInteractionSource() }
                                                         ) {
                                                             // 미루기 클릭 시
+                                                            homeViewModel.delayTodoItem(thingsToDo)
+                                                            isOpenThingsTodoMenu =
+                                                                !isOpenThingsTodoMenu
                                                         }
                                                         .padding(16.dp)
                                                         .defaultMinSize(60.dp),

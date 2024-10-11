@@ -7,11 +7,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -22,6 +24,7 @@ class HomeViewModel @Inject constructor(
     private val getTodoItemsForAlarmUseCase: GetTodoItemsForAlarmUseCase,
     private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
     private val completeTaskItemUseCase: CompleteTaskItemUseCase,
+    private val delayTodoItemUseCase: DelayTodoItemUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
@@ -31,6 +34,10 @@ class HomeViewModel @Inject constructor(
     /*
     * Live Date
     * */
+
+    // 선택된 날짜
+    private val _selectDate = MutableLiveData<LocalDateTime>(LocalDateTime.now())
+    val selectDate: LiveData<LocalDateTime> get() = _selectDate
 
     // 할 일 Item list
     private val _thingsTodoItems = MutableLiveData<List<ThingsTodo>>(emptyList())
@@ -62,6 +69,7 @@ class HomeViewModel @Inject constructor(
         loadInitialScheduleData()
     }
 
+
     /*
     * 할 일
     * */
@@ -72,7 +80,7 @@ class HomeViewModel @Inject constructor(
             _isLoading.value = true
             runCatching {
                 getTodoItemsForAlarmUseCase.invoke(
-                    LocalDateTime.now(),
+                    _selectDate.value ?: LocalDateTime.now(),
                     null
                 )
             }.onSuccess { flow ->
@@ -106,7 +114,7 @@ class HomeViewModel @Inject constructor(
             if (currentDeadLine != null) {
                 runCatching {
                     getTodoItemsForAlarmUseCase.invoke(
-                        LocalDateTime.now(),
+                        _selectDate.value ?: LocalDateTime.now(),
                         currentDeadLine
                     )
                 }.onSuccess { flow ->
@@ -167,6 +175,36 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    // 미루기 메소드
+    fun delayTodoItem(thingsTodo: ThingsTodo) {
+        viewModelScope.launch {
+            runCatching {
+                // TODO deadLine 미룰 때 기기에 저장된 유저가 설정한 값으로 대체 -> 현재 1에서 userSetting 값으로...
+                delayTodoItemUseCase.invoke(thingsTodo.id, thingsTodo.deadline.plusDays(1))
+            }.onSuccess {
+
+            }.onFailure {
+
+            }
+        }
+    }
+
+
+    /*
+    * UI
+    * */
+
+    // 날짜 바꾸는 메소드
+    fun changeDate(op: String) {
+        _selectDate.value = when (op) {
+            ">" -> _selectDate.value?.plusDays(1) ?: LocalDateTime.now()
+            "<" -> _selectDate.value?.minusDays(1) ?: LocalDateTime.now()
+            else -> _selectDate.value
+        }
+        loadTodoItemsForAlarm()
+        lastDataDeadLine = null
+    }
+
     // TodoTings 확장 토글 메소드
     fun toggleItemExpansion(id: Long) {
         _expandedItems.value = if (_expandedItems.value.contains(id)) {
@@ -209,6 +247,20 @@ class HomeViewModel @Inject constructor(
             else -> deadline.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
         }
     }
+
+    // 날짜 Text 포멧
+    fun formatSelectedDate(date: LocalDateTime): String {
+        val selectDate = date.toLocalDate()
+        val today = LocalDate.now()
+
+        return when {
+            selectDate.isEqual(today.minusDays(1)) -> "어제"
+            selectDate.isEqual(today) -> "오늘"
+            selectDate.isEqual(today.plusDays(1)) -> "내일"
+            else -> selectDate.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
+        }
+    }
+
 
     /*
     * 일정

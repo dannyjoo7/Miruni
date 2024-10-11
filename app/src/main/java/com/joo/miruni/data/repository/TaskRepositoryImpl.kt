@@ -30,6 +30,7 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
         taskDao.insertTask(todoEntity.toTaskEntity())
     }
 
+    // 날짜로 Task 가져오기
     override suspend fun getTasksForAlarmByDate(
         selectDate: LocalDateTime,
         lastDeadLine: LocalDateTime?,
@@ -61,6 +62,10 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
 
     override suspend fun updateTask(todoEntity: TodoEntity) {
         taskDao.updateTask(todoEntity.toTaskEntity())
+    }
+
+    override suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime) {
+        taskDao.delayTask(id, delayDateTime)
     }
 
 }

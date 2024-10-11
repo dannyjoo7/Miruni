@@ -4,6 +4,8 @@ import com.joo.miruni.domain.usecase.AddTodoItemUseCase
 import com.joo.miruni.domain.usecase.AddTodoItemUseCaseImpl
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCaseImpl
+import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
+import com.joo.miruni.domain.usecase.DelayTodoItemUseCaseImpl
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCase
@@ -78,6 +80,11 @@ abstract class UseCaseModule {
         completeTaskItemUseCaseImpl: CompleteTaskItemUseCaseImpl,
     ): CompleteTaskItemUseCase
 
+    @Binds
+    @Singleton
+    abstract fun bindDelayTodoItemUseCase(
+        delayTodoItemUseCaseImpl: DelayTodoItemUseCaseImpl,
+    ): DelayTodoItemUseCase
 
     /*
     * DetailViewModel

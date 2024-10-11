@@ -63,4 +63,8 @@ interface TaskDao {
     // task 업데이트 메소드
     @Update
     suspend fun updateTask(taskEntity: TaskEntity)
+
+    // 일정 미루기 메소드
+    @Query("UPDATE tasks SET deadLine = :newDeadline WHERE id = :taskId")
+    suspend fun delayTask(taskId: Long, newDeadline: LocalDateTime)
 }
