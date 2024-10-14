@@ -16,6 +16,10 @@ import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCaseImpl
 import com.joo.miruni.domain.usecase.SaveAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.SaveAlarmTimeUseCaseImpl
+import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCase
+import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCaseImpl
+import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
+import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCaseImpl
 import com.joo.miruni.domain.usecase.UpdateTodoItemUseCase
 import com.joo.miruni.domain.usecase.UpdateTodoItemUseCaseImpl
 import dagger.Binds
@@ -43,6 +47,14 @@ abstract class UseCaseModule {
         getAlarmTimeUseCaseImpl: GetAlarmTimeUseCaseImpl,
     ): GetAlarmTimeUseCase
 
+    /*
+    * MainActivity
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindSettingCompletedItemsVisibilityUseCase(
+        settingCompletedItemsVisibilityUseCaseImpl: SettingCompletedItemsVisibilityUseCaseImpl,
+    ): SettingCompletedItemsVisibilityUseCase
 
     /*
     * Add TodoItem
@@ -85,6 +97,13 @@ abstract class UseCaseModule {
     abstract fun bindDelayTodoItemUseCase(
         delayTodoItemUseCaseImpl: DelayTodoItemUseCaseImpl,
     ): DelayTodoItemUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingObserveCompletedItemsVisibilityUseCase(
+        settingObserveCompletedItemsVisibilityUseCaseImpl: SettingObserveCompletedItemsVisibilityUseCaseImpl,
+    ): SettingObserveCompletedItemsVisibilityUseCase
+
 
     /*
     * DetailViewModel
