@@ -19,5 +19,11 @@ data class ThingsTodo(
 )
 
 enum class Importance {
-    RED, ORANGE, YELLOW, GREEN
+    BLINK_RED,  // 12시간 이내
+    RED,        // 24시간 이내
+    ORANGE,     // 2일 이내
+    YELLOW,     // 3일 이내
+    GREEN,      // 7일 이내
+    EMERGENCY   // 긴급
+    ,
 }

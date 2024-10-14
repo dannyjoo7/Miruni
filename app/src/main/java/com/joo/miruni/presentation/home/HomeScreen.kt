@@ -4,6 +4,11 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -50,6 +55,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -339,16 +345,29 @@ fun ScheduleItem(homeViewModel: HomeViewModel, schedule: Schedule) {
 @Composable
 fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: ThingsTodo) {
 
-    var isOpenThingsTodoMenu by remember { mutableStateOf(false) }  // MenuIcon 터치 여부
+    var isOpenThingsTodoMenu by remember { mutableStateOf(false) }        // MenuIcon 터치 여부
 
-    val isExpanded = homeViewModel.isItemExpanded(thingsToDo.id)          // 확장 여부
+    val isExpanded = homeViewModel.isItemExpanded(thingsToDo.id)                // 확장 여부
     val deletedItems by homeViewModel.deletedItems.observeAsState(emptySet())   // 삭제 여부
+
+    /*
+    * 애니매이션 */
+    val flashAnimation by rememberInfiniteTransition(label = "").animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            tween(500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
 
     AnimatedVisibility(
         visible = !deletedItems.contains(thingsToDo.id),
         enter = fadeIn(animationSpec = tween(durationMillis = 0)),
         exit = fadeOut(animationSpec = tween(durationMillis = 500))
     ) {
+
+        // 완료된 할일 필터링
         if (!thingsToDo.isCompleted) {
             Box(
                 modifier = Modifier
@@ -593,10 +612,12 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                         .size(12.dp)
                         .background(
                             color = when (homeViewModel.getColorForRemainingTime(thingsToDo.deadline)) {
+                                Importance.BLINK_RED -> Color.Red.copy(alpha = flashAnimation)
                                 Importance.RED -> Color.Red
                                 Importance.ORANGE -> colorResource(R.color.orange)
                                 Importance.YELLOW -> colorResource(R.color.yellow)
                                 Importance.GREEN -> Color.Green
+                                Importance.EMERGENCY -> Color.Red.copy(alpha = flashAnimation)
                             },
                             shape = RoundedCornerShape(90.dp)
                         )

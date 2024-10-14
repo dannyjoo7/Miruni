@@ -225,6 +225,7 @@ class HomeViewModel @Inject constructor(
         val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
 
         return when {
+            minutesRemaining < 1220 -> Importance.BLINK_RED     // 12시간 이내
             minutesRemaining < 1440 -> Importance.RED           // 24시간 이내
             minutesRemaining < 2880 -> Importance.ORANGE        // 2일 이내
             minutesRemaining < 4320 -> Importance.YELLOW        // 3일 이내
