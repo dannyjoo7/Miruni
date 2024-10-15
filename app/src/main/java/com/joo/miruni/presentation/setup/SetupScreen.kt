@@ -39,12 +39,11 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
     /*
     * Live Data
     * */
-    val selectedTime by setupViewModel.selectedTime.observeAsState() // 선택된 시간
-    val showTimePicker by setupViewModel.showTimePicker.observeAsState() // TimePicker 표시 여부
+    val selectedTime by setupViewModel.selectedTime.observeAsState()        // 선택된 시간
+    val showTimePicker by setupViewModel.showTimePicker.observeAsState()    // TimePicker 표시 여부
 
-    var isSelect by remember { mutableStateOf(false) } // 기상 시간 선택 여부
+    var isSelect by remember { mutableStateOf(false) }                // 기상 시간 선택 여부
 
-    // 전체 화면을 차지하도록 Box 사용
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -55,9 +54,9 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 80.dp), // 하단 버튼을 위한 여백
-            verticalArrangement = Arrangement.Top, // 위쪽 정렬
-            horizontalAlignment = Alignment.CenterHorizontally // 가로 방향 중앙 정렬
+                .padding(bottom = 80.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 평균 기상 시간 입력 박스
             Box(
@@ -69,7 +68,7 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
                         Color.Gray,
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                     )
-                    .background(Color.Transparent) // 배경을 투명하게 설정
+                    .background(Color.Transparent)
             ) {
                 Text(
                     text = "기상시간 입력",
@@ -77,8 +76,8 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
                     fontSize = 24.sp,
                     color = Color.Gray,
                     modifier = Modifier
-                        .align(Alignment.Center) // 텍스트를 박스의 중앙에 정렬
-                        .padding(8.dp) // 텍스트 주위에 여유 공간 추가
+                        .align(Alignment.Center)
+                        .padding(8.dp)
                 )
             }
 
@@ -93,22 +92,22 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
 
         // 중앙에 위치할 시간 선택 버튼
         Column(
-            modifier = Modifier.align(Alignment.Center), // 중앙 정렬
-            horizontalAlignment = Alignment.CenterHorizontally // 가로 방향 중앙 정렬
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
                 onClick = {
                     setupViewModel.toggleTimePickerBtn()
-                    isSelect = false // 기상 시간 선택
+                    isSelect = false
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent, // 배경색을 투명하게 설정
-                    contentColor = Color.Gray // 텍스트 색상 설정
+                    containerColor = Color.Transparent,
+                    contentColor = Color.Gray
                 ),
-                elevation = null, // 그림자 없애기
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp), // 테두리 모서리 설정
+                elevation = null,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp),
                 modifier = Modifier
-                    .padding(top = 16.dp) // 필요에 따라 여백 설정
+                    .padding(top = 16.dp)
             ) {
                 Text(
                     text = setupViewModel.formatLocalTimeToString(
@@ -124,31 +123,37 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
             AnimatedVisibility(visible = showTimePicker ?: false) {
                 Column(
                     modifier = Modifier
-                        .animateContentSize() // 크기 변화에 따른 애니메이션 적용
-                        .offset(y = 16.dp), // 버튼 아래에 위치하도록 여백 추가
-                    horizontalAlignment = Alignment.CenterHorizontally // 가로 방향 중앙 정렬
+                        .animateContentSize()
+                        .offset(y = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     WheelTimePicker(
-                        offset = 2, // 표시할 항목 수
-                        timeFormat = TimeFormat.CLOCK_12H, // 12시간 형식
-                        startTime = setupViewModel.convertLocalTimeToTime(selectedTime ?: LocalTime.now()), // 기본 선택 시간 (오전 9시)
-                        textSize = 19, // 텍스트 크기
-                        selectorEffectEnabled = true, // 선택 효과 사용
-                        darkModeEnabled = false, // 다크 모드 비활성화
+                        offset = 2,
+                        selectorEffectEnabled = true,
+                        timeFormat = TimeFormat.CLOCK_12H,
+                        startTime = setupViewModel.convertLocalTimeToTime(
+                            selectedTime ?: LocalTime.now()
+                        ),
+                        textSize = 19,
                         onTimeChanged = { hour, minute, format ->
-                            setupViewModel.updateSelectedTime(hour, minute, format ?: "오전")
-                        }
+                            setupViewModel.updateSelectedTime(
+                                hour,
+                                minute,
+                                format ?: "오전"
+                            )
+                        },
+                        darkModeEnabled = false,
                     )
 
                     // 시간 선택 완료 버튼
                     Button(
                         onClick = {
                             setupViewModel.toggleTimePickerBtn()
-                            isSelect = true // 기상 시간 선택 완료
+                            isSelect = true
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF007AFF), // 배경 색상을 파란색으로 설정
-                            contentColor = Color.White,  // 텍스트 색상을 흰색으로 설정
+                            containerColor = Color(0xFF007AFF),
+                            contentColor = Color.White,
                         ),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
                         modifier = Modifier
@@ -159,7 +164,7 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
                             text = "기상시간 입력",
                             textAlign = TextAlign.Center,
                             fontSize = 16.sp,
-                            color = Color.White // 텍스트 색상 흰색으로 설정
+                            color = Color.White
                         )
                     }
                 }
@@ -171,7 +176,7 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp)
-                .align(Alignment.BottomCenter), // 하단 중앙 정렬
+                .align(Alignment.BottomCenter),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             AnimatedVisibility(visible = isSelect) {
@@ -180,8 +185,8 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
                         setupViewModel.saveAlarmTime()
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF007AFF), // 배경 색상을 파란색으로 설정
-                        contentColor = Color.White,  // 텍스트 색상을 흰색으로 설정
+                        containerColor = Color(0xFF007AFF),
+                        contentColor = Color.White,
                     ),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
                     modifier = Modifier
@@ -193,7 +198,7 @@ fun SetupScreen(setupViewModel: SetupViewModel) {
                         text = "완료",
                         textAlign = TextAlign.Center,
                         fontSize = 16.sp,
-                        color = Color.White // 텍스트 색상 흰색으로 설정
+                        color = Color.White
                     )
                 }
             }

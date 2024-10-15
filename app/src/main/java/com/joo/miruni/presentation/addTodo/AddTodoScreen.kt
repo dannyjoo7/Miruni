@@ -372,13 +372,13 @@ fun AddTodoScreen(
                                     .padding(16.dp),
                             ) {
                                 WheelTimePicker(
-                                    offset = 4,
+                                    offset = 2,
                                     selectorEffectEnabled = true,
                                     timeFormat = TimeFormat.CLOCK_12H,
-                                    startTime = addTodoViewModel.selectedTime.value?.let {
-                                        addTodoViewModel.convertLocalTimeToTime(it)
-                                    } ?: Time(12, 0, "오전"),
-                                    textSize = 16,
+                                    startTime = addTodoViewModel.convertLocalTimeToTime(
+                                        selectTime ?: LocalTime.now()
+                                    ),
+                                    textSize = 19,
                                     onTimeChanged = { hour, minute, format ->
                                         addTodoViewModel.updateSelectedTime(
                                             hour,
@@ -402,7 +402,7 @@ fun AddTodoScreen(
                                     shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier
                                         .padding(horizontal = 24.dp)
-                                        .fillMaxWidth() // 버튼을 전체 너비로 설정
+                                        .fillMaxWidth()
                                 ) {
                                     Text(
                                         text = "완료",

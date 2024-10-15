@@ -60,23 +60,23 @@ fun WheelTimePicker(
 
     var selectedTime by remember { mutableStateOf(startTime) }
 
-    val formats = listOf("오전", "오후")
+    val formats = listOf("오전", "오후", )
 
     val hours = mutableListOf<Int>().apply {
         for (hour in 0..if (timeFormat == TimeFormat.CLOCK_24H) 23 else 11) {
             add(hour)
         }
         if (timeFormat == TimeFormat.CLOCK_12H) {
-            add(12) // 12시 추가
+            add(12)
         }
     }
 
     val minutes = mutableListOf<Int>().apply {
-        for (minute in 0..59) {
+        for (minute in 0..59 step 5) {
             add(minute)
         }
     }
-    val fontSize = maxOf(13, minOf(19, textSize))
+    val fontSize = maxOf(13, minOf(24, textSize))
 
     LaunchedEffect(selectedTime) {
         onTimeChanged(selectedTime.hour, selectedTime.minute, selectedTime.format)
@@ -146,6 +146,7 @@ fun WheelTimePicker(
                     )
                 })
 
+            // 오전, 오후 선택
             if (timeFormat == TimeFormat.CLOCK_12H) {
                 WheelView(
                     modifier = Modifier.weight(3f),

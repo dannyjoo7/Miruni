@@ -19,7 +19,7 @@ class SetupViewModel @Inject constructor(
 ) : ViewModel() {
 
     // 선택된 시간
-    private val _selectedTime = MutableLiveData<LocalTime>(LocalTime.now())
+    private val _selectedTime = MutableLiveData<LocalTime>(LocalTime.of(9, 0))
     val selectedTime: LiveData<LocalTime> get() = _selectedTime
 
     // Bool 시간 선택 진행 유뮤

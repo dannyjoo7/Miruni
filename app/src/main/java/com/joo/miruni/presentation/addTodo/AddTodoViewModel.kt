@@ -49,7 +49,7 @@ class AddTodoViewModel @Inject constructor(
     val selectedDate: LiveData<LocalDate?> get() = _selectedDate
 
     // 선택된 시간
-    private val _selectedTime = MutableLiveData<LocalTime>(LocalTime.now())
+    private val _selectedTime = MutableLiveData<LocalTime>(getCurrentTimeIn5MinIntervals())
     val selectedTime: LiveData<LocalTime> get() = _selectedTime
 
     // 선택된 알람 표시 시간
@@ -82,7 +82,7 @@ class AddTodoViewModel @Inject constructor(
     val isTodoAdded: LiveData<Boolean> get() = _isTodoAdded
 
     /*
-    * 메소드
+    * UI
     * */
 
     // 할 일 텍스트 업데이트
@@ -109,7 +109,7 @@ class AddTodoViewModel @Inject constructor(
         _showAlarmDisplayStartDatePicker.value = false
     }
 
-    //  AlarmDisplayDatePicker 가시성 on/off
+    // AlarmDisplayDatePicker 가시성 on/off
     fun clickedAlarmDisplayStartDateText() {
         _showAlarmDisplayStartDatePicker.value = _showAlarmDisplayStartDatePicker.value?.not()
         _showDatePicker.value = false
@@ -127,16 +127,7 @@ class AddTodoViewModel @Inject constructor(
         _selectedDate.value = date
     }
 
-    // 선택된 시간 업데이트 메서드
-    fun updateSelectedTime(hour: Int, minute: Int, format: String) {
-        val adjustedHour = when {
-            format == "오후" && hour != 12 -> hour + 12
-            format == "오전" && hour == 12 -> 0
-            else -> hour
-        }
-        val newTime = LocalTime.of(adjustedHour, minute)
-        _selectedTime.value = newTime
-    }
+
 
     // 선택된 알람 표시일 업데이트 메서드
     fun updateSelectedAlarmDisplayDate(amount: Int? = null, durationUnit: String? = null) {
@@ -199,6 +190,24 @@ class AddTodoViewModel @Inject constructor(
         val adjustedHour = if (hour % 12 == 0) 12 else hour % 12
 
         return "${adjustedHour}:${minute.toString().padStart(2, '0')} $format"
+    }
+
+    // 선택된 시간 업데이트 메서드
+    fun updateSelectedTime(hour: Int, minute: Int, format: String) {
+        val adjustedHour = when {
+            format == "오후" && hour != 12 -> hour + 12
+            format == "오전" && hour == 12 -> 0
+            else -> hour
+        }
+        val newTime = LocalTime.of(adjustedHour, minute)
+        _selectedTime.value = newTime
+    }
+
+    // 현재 시간을 5분 단위로 조정
+    private fun getCurrentTimeIn5MinIntervals(): LocalTime {
+        val now = LocalTime.now()
+        val adjustedMinute = (now.minute / 5) * 5
+        return LocalTime.of(now.hour, adjustedMinute)
     }
 
 
@@ -290,7 +299,7 @@ class AddTodoViewModel @Inject constructor(
     }
 
     // 시간과 날짜 합치는 메소드
-    fun combineDateAndTime(date: LocalDate, time: LocalTime): LocalDateTime {
+    private fun combineDateAndTime(date: LocalDate, time: LocalTime): LocalDateTime {
         return date.atTime(time)
     }
 

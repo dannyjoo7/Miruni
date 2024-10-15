@@ -238,8 +238,8 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(12.dp),
-                    tonalElevation = 12.dp,
-                    shadowElevation = 12.dp,
+                    tonalElevation = 4.dp,
+                    shadowElevation = 4.dp,
                 ) {
                     Column {
                         Text(
