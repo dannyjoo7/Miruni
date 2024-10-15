@@ -26,6 +26,11 @@
     <color name="ios_light_gray">#FFF7F7F7</color>
     <!-- 아이폰 회색 색상 3 -->
     <color name="ios_gray_calander_font">#FFBFBFC1</color>
+    <!-- 아이폰 회색 색상 4 -->
+    <color name="ios_complete_gray">#FFCDCDCD</color>
+    <!-- 아이폰 Dialog 회색 색상 -->
+    <color name="ios_dialog_gray">#FFE9E9E9</color>
+
     <!-- 구분선 색 -->
     <color name="ios_divider">#FF9C9C9C</color>
 

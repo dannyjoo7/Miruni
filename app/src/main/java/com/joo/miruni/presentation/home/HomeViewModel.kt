@@ -1,5 +1,6 @@
 package com.joo.miruni.presentation.home
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
@@ -10,6 +11,7 @@ import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
+import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -25,6 +27,7 @@ class HomeViewModel @Inject constructor(
     private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
     private val completeTaskItemUseCase: CompleteTaskItemUseCase,
     private val delayTodoItemUseCase: DelayTodoItemUseCase,
+    private val settingObserveCompletedItemsVisibilityUseCase: SettingObserveCompletedItemsVisibilityUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
@@ -59,6 +62,11 @@ class HomeViewModel @Inject constructor(
     private val _deletedItems = MutableLiveData<Set<Long>>(emptySet())
     val deletedItems: LiveData<Set<Long>> get() = _deletedItems
 
+    // 유저 Setting 값
+
+    // 완료 항목 값
+    private val _settingObserveCompleteVisibility = MutableLiveData<Boolean>(false)
+    val settingObserveCompleteVisibility: LiveData<Boolean> get() = _settingObserveCompleteVisibility
 
     // 페이징을 위한 마지막 데이터의 deadLine
     private var lastDataDeadLine: LocalDateTime? = null
@@ -67,6 +75,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadTodoItemsForAlarm()
         loadInitialScheduleData()
+        loadUserSetting()
     }
 
 
@@ -174,6 +183,12 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    // Task 완료 취소 시
+    fun completeCancelTaskItem(taskId: Long) {
+
+    }
+
 
     // 미루기 메소드
     fun delayTodoItem(thingsTodo: ThingsTodo) {
@@ -298,6 +313,26 @@ class HomeViewModel @Inject constructor(
     fun loadMoreScheduleData() {
         viewModelScope.launch {
             // Todo
+        }
+    }
+
+
+    /*
+    * 유저 설정
+    * */
+
+    private fun loadUserSetting() {
+        viewModelScope.launch {
+            runCatching {
+                settingObserveCompletedItemsVisibilityUseCase.invoke()
+            }.onSuccess { flow ->
+                flow.collect { visibility ->
+                    _settingObserveCompleteVisibility.value = visibility
+                    Log.d(TAG, "value : ${_settingObserveCompleteVisibility.value}")
+                }
+            }.onFailure { exception ->
+                Log.e(TAG, "Failed to load settings", exception)
+            }
         }
     }
 

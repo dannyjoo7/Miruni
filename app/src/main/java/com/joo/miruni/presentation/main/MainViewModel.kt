@@ -64,7 +64,6 @@ class MainViewModel @Inject constructor(
             }.onSuccess { flow ->
                 flow.collect { visibility ->
                     _settingObserveCompleteVisibility.value = visibility
-                    Log.d(TAG, "value : ${_settingObserveCompleteVisibility.value}")
                 }
             }.onFailure { exception ->
                 Log.e(TAG, "Failed to load settings", exception)

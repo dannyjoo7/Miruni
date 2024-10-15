@@ -27,3 +27,9 @@ enum class Importance {
     EMERGENCY   // 긴급
     ,
 }
+
+enum class DialogMod {
+    DELETE,         // 삭제
+    COMPLETE,       // 완료
+    CANCEL_COMPLETE // 완료 취소
+}
