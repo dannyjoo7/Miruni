@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
@@ -222,10 +223,25 @@ class HomeViewModel @Inject constructor(
     // 날짜 바꾸는 메소드
     fun changeDate(op: String) {
         _selectDate.value = when (op) {
-            ">" -> _selectDate.value?.plusDays(1) ?: LocalDateTime.now()
-            "<" -> _selectDate.value?.minusDays(1) ?: LocalDateTime.now()
+            ">" -> LocalDateTime.of(
+                // 자정으로 설정
+                _selectDate.value?.toLocalDate() ?: LocalDate.now(),
+                LocalTime.MIDNIGHT
+            ).plusDays(1) ?: LocalDateTime.now()
+
+            "<" -> LocalDateTime.of(
+                // 자정으로 설정
+                _selectDate.value?.toLocalDate() ?: LocalDate.now(),
+                LocalTime.MIDNIGHT
+            ).minusDays(1) ?: LocalDateTime.now()
+
             else -> _selectDate.value
         }
+        // 바뀐 날짜가 오늘이면 자정이 아닌 현재 시간 적용
+        if ((_selectDate.value?.toLocalDate() ?: LocalDate.now()) == LocalDate.now()) {
+            _selectDate.value = LocalDateTime.now()
+        }
+
         loadTodoItemsForAlarm()
         lastDataDeadLine = null
     }
@@ -286,7 +302,6 @@ class HomeViewModel @Inject constructor(
             else -> selectDate.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
         }
     }
-
 
     /*
     * 일정

@@ -12,6 +12,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -57,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -81,7 +83,7 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val buffer = 3 // 스크롤이 마지막 n개 항목에 도달하면 더 로드(n >= 1)
+    val buffer = 3 // 스크롤이 마지막 n개 항목에 도달하면 더 로드
 
     /*
     * Live Data
@@ -403,20 +405,20 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                         horizontal = 8.dp,
                                         vertical = 4.dp
                                     )
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        // 클릭 시 확장
+                                        homeViewModel.toggleItemExpansion(thingsToDo.id)
+                                    }
                                     .animateContentSize()
                             ) {
                                 // 제목, 남은 기간, 더보기
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 6.dp, horizontal = 4.dp)
-                                        .clickable(
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() }
-                                        ) {
-                                            // 클릭 시 확장
-                                            homeViewModel.toggleItemExpansion(thingsToDo.id)
-                                        },
+                                        .padding(vertical = 6.dp, horizontal = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     // 제목
@@ -684,20 +686,20 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                         horizontal = 8.dp,
                                         vertical = 4.dp
                                     )
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        // 클릭 시 확장
+                                        homeViewModel.toggleItemExpansion(thingsToDo.id)
+                                    }
                                     .animateContentSize()
                             ) {
                                 // 제목, 남은 기간, 더보기
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 6.dp, horizontal = 4.dp)
-                                        .clickable(
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() }
-                                        ) {
-                                            // 클릭 시 확장
-                                            homeViewModel.toggleItemExpansion(thingsToDo.id)
-                                        },
+                                        .padding(vertical = 6.dp, horizontal = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     // 제목
@@ -810,6 +812,16 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                     )
                                 }
 
+                                // 완료 날짜 표시
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp, end = 8.dp),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    Text("yyyy mm dd에 완료함")
+                                }
+
                                 // 추가 정보와 구분선
                                 if (isExpanded) {
                                     HorizontalDivider(
@@ -894,6 +906,25 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                 }
                             }
                         }
+                    }
+                    // 알림 중요도 표시 등
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .align(Alignment.TopStart)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_check),
+                            contentDescription = "complete",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    color = Color.Green,
+                                    shape = RoundedCornerShape(90.dp)
+                                )
+                                .padding(2.dp),
+                            colorFilter = ColorFilter.tint(Color.White),
+                        )
                     }
                 }
             }
