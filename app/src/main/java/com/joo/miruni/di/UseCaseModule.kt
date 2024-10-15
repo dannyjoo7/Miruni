@@ -2,6 +2,8 @@ package com.joo.miruni.di
 
 import com.joo.miruni.domain.usecase.AddTodoItemUseCase
 import com.joo.miruni.domain.usecase.AddTodoItemUseCaseImpl
+import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
@@ -91,6 +93,12 @@ abstract class UseCaseModule {
     abstract fun bindCompleteTaskItemUseCase(
         completeTaskItemUseCaseImpl: CompleteTaskItemUseCaseImpl,
     ): CompleteTaskItemUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindCancelCompleteTaskItemUseCase(
+        ancelcompleteTaskItemUseCaseImpl: CancelCompleteTaskItemUseCaseImpl,
+    ): CancelCompleteTaskItemUseCase
 
     @Binds
     @Singleton

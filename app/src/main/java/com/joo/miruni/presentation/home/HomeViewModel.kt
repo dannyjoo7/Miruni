@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
@@ -26,6 +27,7 @@ class HomeViewModel @Inject constructor(
     private val getTodoItemsForAlarmUseCase: GetTodoItemsForAlarmUseCase,
     private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
     private val completeTaskItemUseCase: CompleteTaskItemUseCase,
+    private val cancelCompleteTaskItemUseCase: CancelCompleteTaskItemUseCase,
     private val delayTodoItemUseCase: DelayTodoItemUseCase,
     private val settingObserveCompletedItemsVisibilityUseCase: SettingObserveCompletedItemsVisibilityUseCase,
 ) : ViewModel() {
@@ -186,7 +188,15 @@ class HomeViewModel @Inject constructor(
 
     // Task 완료 취소 시
     fun completeCancelTaskItem(taskId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                cancelCompleteTaskItemUseCase.invoke(taskId)
+            }.onSuccess {
 
+            }.onFailure {
+
+            }
+        }
     }
 
 

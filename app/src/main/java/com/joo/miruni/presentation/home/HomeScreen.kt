@@ -1012,13 +1012,13 @@ fun BasicDialog(
                         }
 
                         // 구분선
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         VerticalDivider(
                             thickness = 1.dp,
                             color = Color.Gray.copy(alpha = 0.5f),
                             modifier = Modifier.height(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
 
                         // 오른쪽 버튼
                         Column(

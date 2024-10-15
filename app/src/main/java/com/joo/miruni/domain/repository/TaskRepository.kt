@@ -18,6 +18,7 @@ interface TaskRepository {
 
     suspend fun deleteTaskById(id: Long)
     suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime)
+    suspend fun markTaskAsCancelCompleted(id: Long)
     suspend fun getTodoItemById(taskId: Long): TaskEntity
     suspend fun updateTask(todoEntity: TodoEntity)
     suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime)
