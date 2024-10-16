@@ -1,6 +1,6 @@
 package com.joo.miruni.domain.usecase
 
-import com.joo.miruni.presentation.modifyPage.TodoItem
+import com.joo.miruni.presentation.detailPage.TodoItem
 
 
 interface UpdateTodoItemUseCase {

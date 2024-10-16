@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.modifyPage
+package com.joo.miruni.presentation.detailPage
 
 
 import android.os.Bundle
@@ -6,13 +6,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ModifyActivity : ComponentActivity() {
-    private val modifyViewModel: ModifyViewModel by viewModels()
+class DetailActivity : ComponentActivity() {
+    private val detailViewModel: DetailViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,11 +30,11 @@ class ModifyActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            ModifyScreen(modifyViewModel)
+            ModifyScreen(detailViewModel)
         }
     }
 
     private fun initModel(todoId: Long) {
-        modifyViewModel.loadTodoDetails(todoId)
+        detailViewModel.loadTodoDetails(todoId)
     }
 }

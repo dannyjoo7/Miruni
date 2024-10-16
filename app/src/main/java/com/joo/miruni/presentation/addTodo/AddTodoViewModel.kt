@@ -24,7 +24,7 @@ class AddTodoViewModel @Inject constructor(
         const val TAG = "AddTodoViewModel"
 
         const val MAX_TODO_LENGTH = 20
-        const val MAX_DESCRIPTION_LENGTH = 40
+        const val MAX_DESCRIPTION_LENGTH = 100
     }
 
     init {

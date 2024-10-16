@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.modifyPage
+package com.joo.miruni.presentation.detailPage
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -19,7 +19,7 @@ import javax.inject.Inject
 import kotlin.math.absoluteValue
 
 @HiltViewModel
-class ModifyViewModel @Inject constructor(
+class DetailViewModel @Inject constructor(
     private val getTodoItemByIDUseCase: GetTodoItemByIDUseCase,
     private val updateTodoItemUseCase: UpdateTodoItemUseCase,
 ) : ViewModel() {
@@ -27,7 +27,7 @@ class ModifyViewModel @Inject constructor(
         const val TAG = "DetailViewModel"
 
         const val MAX_TODO_LENGTH = 20
-        const val MAX_DESCRIPTION_LENGTH = 40
+        const val MAX_DESCRIPTION_LENGTH = 100
     }
 
     /*

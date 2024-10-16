@@ -73,7 +73,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTodo.AddTodoActivity
-import com.joo.miruni.presentation.modifyPage.ModifyActivity
+import com.joo.miruni.presentation.detailPage.DetailActivity
 import java.time.LocalDateTime
 
 @Composable
@@ -211,80 +211,79 @@ fun HomeScreen(
                 onClick = { isAddMenuExpanded = !isAddMenuExpanded },
                 modifier = Modifier
                     .padding(16.dp)
-                    .align(Alignment.BottomEnd),
+                    .align(Alignment.BottomEnd)
+                ,
                 shape = CircleShape,
-                containerColor = Color.Gray,
-                elevation = FloatingActionButtonDefaults.elevation(0.dp)
+                containerColor = Color.Transparent,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
             ) {
                 Icon(
                     modifier = Modifier.size(68.dp),
-                    painter = painterResource(id = R.drawable.ic_add_circle),
+                    painter = painterResource(id = R.drawable.ic_add),
                     contentDescription = "Add Item",
-                    tint = Color.White,
+                    tint = Color.Black,
                 )
-            }
-
-            // 메뉴
-            DropdownMenu(
-                expanded = isAddMenuExpanded,
-                onDismissRequest = { isAddMenuExpanded = false },
-                offset = DpOffset(x = (-48).dp, y = (0).dp),
-                containerColor = Color.Transparent,
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = colorResource(R.color.gray_menu),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    tonalElevation = 4.dp,
-                    shadowElevation = 4.dp,
+                // 메뉴
+                DropdownMenu(
+                    expanded = isAddMenuExpanded,
+                    onDismissRequest = { isAddMenuExpanded = false },
+                    offset = DpOffset(x = (-72).dp, y = (48).dp),
+                    containerColor = Color.Transparent,
+                    tonalElevation = 0.dp,
+                    shadowElevation = 0.dp,
                 ) {
-                    Column {
-                        Text(
-                            text = "할 일",
-                            modifier = Modifier
-                                .clickable(
-                                    indication = ripple(
-                                        bounded = true,
-                                        color = colorResource(R.color.ios_gray),
-                                    ),
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) {
-                                    val intent = Intent(context, AddTodoActivity::class.java)
-                                    context.startActivity(intent)
-                                    isAddMenuExpanded = false
-                                    homeViewModel.collapseAllItems()
-                                }
-                                .padding(16.dp)
-                                .defaultMinSize(60.dp)
-                        )
-                        HorizontalDivider(
-                            thickness = 0.5.dp,
-                            color = Color.Black.copy(alpha = 0.2f)
-                        )
-                        Text(
-                            text = "일정",
-                            modifier = Modifier
-                                .clickable(
-                                    indication = ripple(
-                                        bounded = true,
-                                        color = colorResource(R.color.ios_gray),
-                                    ),
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) {
-                                    isAddMenuExpanded = false
-                                }
-                                .padding(16.dp)
-                                .defaultMinSize(60.dp)
-                        )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = colorResource(R.color.gray_menu),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        tonalElevation = 4.dp,
+                        shadowElevation = 4.dp,
+                    ) {
+                        Column {
+                            Text(
+                                text = "할 일",
+                                modifier = Modifier
+                                    .clickable(
+                                        indication = ripple(
+                                            bounded = true,
+                                            color = colorResource(R.color.ios_gray),
+                                        ),
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        val intent = Intent(context, AddTodoActivity::class.java)
+                                        context.startActivity(intent)
+                                        isAddMenuExpanded = false
+                                        homeViewModel.collapseAllItems()
+                                    }
+                                    .padding(16.dp)
+                                    .defaultMinSize(60.dp)
+                            )
+                            HorizontalDivider(
+                                thickness = 0.5.dp,
+                                color = Color.Black.copy(alpha = 0.2f)
+                            )
+                            Text(
+                                text = "일정",
+                                modifier = Modifier
+                                    .clickable(
+                                        indication = ripple(
+                                            bounded = true,
+                                            color = colorResource(R.color.ios_gray),
+                                        ),
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        isAddMenuExpanded = false
+                                    }
+                                    .padding(16.dp)
+                                    .defaultMinSize(60.dp)
+                            )
+                        }
                     }
                 }
             }
         }
-
 
     }
 
@@ -442,7 +441,6 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 4.dp)
-                                            .weight(0.1f)
                                             .clickable(
                                                 indication = null,
                                                 interactionSource = remember { MutableInteractionSource() }
@@ -481,9 +479,9 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                 // 메뉴 아이템
                                                 Column {
 
-                                                    // 수정 메뉴
+                                                    // 상세보기 메뉴
                                                     Text(
-                                                        text = "수정",
+                                                        text = "상세보기",
                                                         modifier = Modifier
                                                             .clickable(
                                                                 indication = ripple(
@@ -492,10 +490,10 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                                 ),
                                                                 interactionSource = remember { MutableInteractionSource() }
                                                             ) {
-                                                                // 수정 액티비티로 넘어가기
+                                                                // 상세보기 액티비티로 넘어가기
                                                                 val intent = Intent(
                                                                     context,
-                                                                    ModifyActivity::class.java
+                                                                    DetailActivity::class.java
                                                                 ).apply {
                                                                     putExtra(
                                                                         "TODO_ID",
@@ -725,7 +723,6 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                     Box(
                                         modifier = Modifier
                                             .padding(start = 4.dp)
-                                            .weight(0.1f)
                                             .clickable(
                                                 indication = null,
                                                 interactionSource = remember { MutableInteractionSource() }
@@ -764,9 +761,9 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                 // 메뉴 아이템
                                                 Column {
 
-                                                    // 수정 메뉴
+                                                    // 상세보기 메뉴
                                                     Text(
-                                                        text = "수정",
+                                                        text = "상세보기",
                                                         modifier = Modifier
                                                             .clickable(
                                                                 indication = ripple(
@@ -776,10 +773,10 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                                 interactionSource = remember { MutableInteractionSource() }
                                                             ) {
 
-                                                                // 수정 액티비티로 넘어가기
+                                                                // 상세보기 액티비티로 넘어가기
                                                                 val intent = Intent(
                                                                     context,
-                                                                    ModifyActivity::class.java
+                                                                    DetailActivity::class.java
                                                                 ).apply {
                                                                     putExtra(
                                                                         "TODO_ID",

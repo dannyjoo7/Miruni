@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.modifyPage
+package com.joo.miruni.presentation.detailPage
 
 import android.app.Activity
 import android.content.Context
@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -71,7 +73,7 @@ import java.time.LocalTime
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModifyScreen(
-    modifyViewModel: ModifyViewModel = hiltViewModel(),
+    detailViewModel: DetailViewModel = hiltViewModel(),
 ) {
     // 현재 컨택스트
     val context = LocalContext.current
@@ -82,21 +84,21 @@ fun ModifyScreen(
     /*
     * Live Data
     *  */
-    val todoText by modifyViewModel.todoText.observeAsState("")
-    val descriptionText by modifyViewModel.descriptionText.observeAsState("")
+    val todoText by detailViewModel.todoText.observeAsState("")
+    val descriptionText by detailViewModel.descriptionText.observeAsState("")
 
-    val showDatePicker by modifyViewModel.showDatePicker.observeAsState(false)
-    val showTimePicker by modifyViewModel.showTimePicker.observeAsState(false)
-    val showAlarmDisplayStartDatePicker by modifyViewModel.showAlarmDisplayStartDatePicker.observeAsState(
+    val showDatePicker by detailViewModel.showDatePicker.observeAsState(false)
+    val showTimePicker by detailViewModel.showTimePicker.observeAsState(false)
+    val showAlarmDisplayStartDatePicker by detailViewModel.showAlarmDisplayStartDatePicker.observeAsState(
         true
     )
 
-    val selectDate by modifyViewModel.selectedDate.observeAsState()
-    val selectTime by modifyViewModel.selectedTime.observeAsState()
-    val selectedAlarmDisplayDate by modifyViewModel.selectedAlarmDisplayDate.observeAsState()
+    val selectDate by detailViewModel.selectedDate.observeAsState()
+    val selectTime by detailViewModel.selectedTime.observeAsState()
+    val selectedAlarmDisplayDate by detailViewModel.selectedAlarmDisplayDate.observeAsState()
 
-    val isTodoTextEmpty by modifyViewModel.isTodoTextEmpty.observeAsState(false)
-    val isTodoAddedSuccess by modifyViewModel.isTodoAdded.observeAsState(false)
+    val isTodoTextEmpty by detailViewModel.isTodoTextEmpty.observeAsState(false)
+    val isTodoAddedSuccess by detailViewModel.isTodoAdded.observeAsState(false)
 
     /*
     * 애니매이션
@@ -144,7 +146,7 @@ fun ModifyScreen(
                             modifier = Modifier
                                 .padding(start = 16.dp)
                                 .clickable {
-                                    modifyViewModel.updateTodoItem()
+                                    detailViewModel.updateTodoItem()
                                 },
                             color = colorResource(id = R.color.ios_blue)
                         )
@@ -197,7 +199,7 @@ fun ModifyScreen(
                         TextField(
                             value = todoText,
                             onValueChange = {
-                                modifyViewModel.updateTodoText(it)
+                                detailViewModel.updateTodoText(it)
                             },
                             singleLine = true,
                             placeholder = {
@@ -244,9 +246,9 @@ fun ModifyScreen(
                         TextField(
                             value = descriptionText,
                             onValueChange = {
-                                modifyViewModel.updateDescriptionText(it)
+                                detailViewModel.updateDescriptionText(it)
                             },
-                            singleLine = true,
+                            singleLine = false,
                             placeholder = {
                                 Text(
                                     text = "세부사항",
@@ -262,7 +264,7 @@ fun ModifyScreen(
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(56.dp),
+                                .heightIn(min = 56.dp),
                         )
                     }
                     HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
@@ -290,7 +292,7 @@ fun ModifyScreen(
                         // 날짜 선택 버튼
                         Button(
                             onClick = {
-                                modifyViewModel.clickedDatePickerBtn()
+                                detailViewModel.clickedDatePickerBtn()
                                 keyboardController?.hide()
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -303,7 +305,7 @@ fun ModifyScreen(
                             ),
                         ) {
                             Text(
-                                text = modifyViewModel.formatSelectedDate(
+                                text = detailViewModel.formatSelectedDate(
                                     selectDate ?: LocalDate.now()
                                 ),
                                 color = colorResource(id = R.color.ios_blue),
@@ -315,7 +317,7 @@ fun ModifyScreen(
                         // 시간 선택 버튼
                         Button(
                             onClick = {
-                                modifyViewModel.clickedTimePickerBtn()
+                                detailViewModel.clickedTimePickerBtn()
                                 keyboardController?.hide()
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -328,7 +330,7 @@ fun ModifyScreen(
                             ),
                         ) {
                             Text(
-                                text = modifyViewModel.formatLocalTimeToString(
+                                text = detailViewModel.formatLocalTimeToString(
                                     selectTime ?: LocalTime.now()
                                 ),
                                 color = colorResource(id = R.color.ios_blue),
@@ -348,12 +350,14 @@ fun ModifyScreen(
                             enter = fadeIn(),
                             exit = fadeOut(),
                             modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Center)
                         ) {
                             DatePicker(
                                 context = context,
-                                addTodoViewModel = modifyViewModel,
-                                onDateSelected = { date -> modifyViewModel.selectDate(date) },
-                                onMonthChanged = { month -> modifyViewModel.changeMonth(month) },
+                                detailViewModel = detailViewModel,
+                                onDateSelected = { date -> detailViewModel.selectDate(date) },
+                                onMonthChanged = { month -> detailViewModel.changeMonth(month) },
                             )
                         }
 
@@ -364,6 +368,7 @@ fun ModifyScreen(
                             exit = fadeOut(),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .align(Alignment.Center)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -374,12 +379,12 @@ fun ModifyScreen(
                                     offset = 2,
                                     selectorEffectEnabled = true,
                                     timeFormat = TimeFormat.CLOCK_12H,
-                                    startTime = modifyViewModel.selectedTime.value?.let {
-                                        modifyViewModel.convertLocalTimeToTime(it)
+                                    startTime = detailViewModel.selectedTime.value?.let {
+                                        detailViewModel.convertLocalTimeToTime(it)
                                     } ?: Time(12, 0, "오전"),
-                                    textSize = 16,
+                                    textSize = 19,
                                     onTimeChanged = { hour, minute, format ->
-                                        modifyViewModel.updateSelectedTime(
+                                        detailViewModel.updateSelectedTime(
                                             hour,
                                             minute,
                                             format ?: "오전"
@@ -392,7 +397,7 @@ fun ModifyScreen(
 
                                 Button(
                                     onClick = {
-                                        modifyViewModel.clickedTimePickerBtn()
+                                        detailViewModel.clickedTimePickerBtn()
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color(0xFF007AFF),
@@ -437,7 +442,7 @@ fun ModifyScreen(
                                 .padding(end = 8.dp)
                                 .clickable(
                                     onClick = {
-                                        modifyViewModel.clickedAlarmDisplayStartDateText()
+                                        detailViewModel.clickedAlarmDisplayStartDateText()
                                         keyboardController?.hide()
                                     }),
                             fontSize = 16.sp,
@@ -474,13 +479,13 @@ fun ModifyScreen(
                                     selectedNumber = selectedAlarmDisplayDate?.amount ?: 1,
                                     selectedText = selectedAlarmDisplayDate?.unit ?: "주",
                                     onDurationAmountChanged = { newAmount ->
-                                        modifyViewModel.updateSelectedAlarmDisplayDate(
+                                        detailViewModel.updateSelectedAlarmDisplayDate(
                                             newAmount,
                                             null
                                         )
                                     },
                                     onDurationUnitChanged = { newUnit ->
-                                        modifyViewModel.updateSelectedAlarmDisplayDate(
+                                        detailViewModel.updateSelectedAlarmDisplayDate(
                                             null,
                                             newUnit
                                         )
@@ -491,7 +496,7 @@ fun ModifyScreen(
 
                                 Button(
                                     onClick = {
-                                        modifyViewModel.clickedAlarmDisplayStartDateText()
+                                        detailViewModel.clickedAlarmDisplayStartDateText()
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color(0xFF007AFF),
@@ -523,13 +528,11 @@ fun ModifyScreen(
 @Composable
 fun DatePicker(
     context: Context,
-    addTodoViewModel: ModifyViewModel,
+    detailViewModel: DetailViewModel,
     onDateSelected: (LocalDate) -> Unit,
     onMonthChanged: (Int) -> Unit,
 ) {
-
-
-    val selectedDate by addTodoViewModel.selectedDate.observeAsState(LocalDate.now())
+    val selectedDate by detailViewModel.selectedDate.observeAsState(LocalDate.now())
     val currentDate = selectedDate ?: LocalDate.now()
 
     val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
@@ -611,7 +614,9 @@ fun DatePicker(
 
     Card(
         modifier = Modifier
-            .padding(16.dp),
+            .padding(16.dp)
+            .wrapContentWidth()
+            .widthIn(max = 500.dp, min = 400.dp),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
@@ -629,7 +634,7 @@ fun DatePicker(
             ) {
                 // 날짜 표시 텍스트
                 Text(
-                    text = addTodoViewModel.formatSelectedDateForCalendar(),
+                    text = detailViewModel.formatSelectedDateForCalendar(),
                     fontSize = 18.sp,
                     modifier = Modifier.padding(start = 8.dp),
                     textAlign = TextAlign.Center,

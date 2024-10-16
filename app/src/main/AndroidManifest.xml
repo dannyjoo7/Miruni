@@ -41,7 +41,7 @@
         </activity>
 
         <activity
-            android:name=".presentation.modifyPage.ModifyActivity"
+            android:name=".presentation.detailPage.DetailActivity"
             android:exported="true">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />

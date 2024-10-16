@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -247,7 +249,7 @@ fun AddTodoScreen(
                             onValueChange = {
                                 addTodoViewModel.updateDescriptionText(it)
                             },
-                            singleLine = true,
+                            singleLine = false,
                             placeholder = {
                                 Text(
                                     text = "세부사항",
@@ -263,7 +265,7 @@ fun AddTodoScreen(
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(56.dp),
+                                .heightIn(min = 56.dp),
                         )
                     }
                     HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
@@ -349,6 +351,8 @@ fun AddTodoScreen(
                             enter = fadeIn(),
                             exit = fadeOut(),
                             modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Center)
                         ) {
                             DatePicker(
                                 context = context,
@@ -365,6 +369,7 @@ fun AddTodoScreen(
                             exit = fadeOut(),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .align(Alignment.Center)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -528,8 +533,6 @@ fun DatePicker(
     onDateSelected: (LocalDate) -> Unit,
     onMonthChanged: (Int) -> Unit,
 ) {
-
-
     val selectedDate by addTodoViewModel.selectedDate.observeAsState(LocalDate.now())
     val currentDate = selectedDate ?: LocalDate.now()
 
@@ -612,12 +615,14 @@ fun DatePicker(
 
     Card(
         modifier = Modifier
-            .padding(16.dp),
+            .padding(16.dp)
+            .wrapContentWidth()
+            .widthIn(max = 500.dp, min = 400.dp),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(ContextCompat.getColor(context, R.color.gray_menu))
-        )
+        ),
     ) {
         Column(
             modifier = Modifier
