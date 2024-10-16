@@ -65,7 +65,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,7 +73,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTodo.AddTodoActivity
-import com.joo.miruni.presentation.detailPage.ModifyActivity
+import com.joo.miruni.presentation.modifyPage.ModifyActivity
 import java.time.LocalDateTime
 
 @Composable
@@ -254,9 +253,10 @@ fun HomeScreen(
                                     ),
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    isAddMenuExpanded = false
                                     val intent = Intent(context, AddTodoActivity::class.java)
                                     context.startActivity(intent)
+                                    isAddMenuExpanded = false
+                                    homeViewModel.collapseAllItems()
                                 }
                                 .padding(16.dp)
                                 .defaultMinSize(60.dp)
@@ -505,6 +505,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                                 context.startActivity(intent)
                                                                 isOpenThingsTodoMenu =
                                                                     !isOpenThingsTodoMenu
+                                                                homeViewModel.collapseAllItems()
                                                             }
                                                             .padding(16.dp)
                                                             .defaultMinSize(60.dp)
@@ -635,7 +636,8 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                             homeViewModel.completeTask(thingsToDo.id)
                                         }
                                     },
-                                    title = thingsToDo.title
+                                    title = thingsToDo.title,
+                                    homeViewModel = homeViewModel
                                 )
                             }
                         }
@@ -773,6 +775,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                                 ),
                                                                 interactionSource = remember { MutableInteractionSource() }
                                                             ) {
+
                                                                 // 수정 액티비티로 넘어가기
                                                                 val intent = Intent(
                                                                     context,
@@ -786,6 +789,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                                 context.startActivity(intent)
                                                                 isOpenThingsTodoMenu =
                                                                     !isOpenThingsTodoMenu
+                                                                homeViewModel.collapseAllItems()
                                                             }
                                                             .padding(16.dp)
                                                             .defaultMinSize(60.dp)
@@ -901,7 +905,8 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                 homeViewModel.completeCancelTaskItem(thingsToDo.id)
                                             }
                                         },
-                                        title = thingsToDo.title
+                                        title = thingsToDo.title,
+                                        homeViewModel = homeViewModel
                                     )
                                 }
                             }
@@ -935,6 +940,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
 
 @Composable
 fun BasicDialog(
+    homeViewModel: HomeViewModel,
     dialogType: DialogMod,
     showDialog: Boolean,
     onDismiss: () -> Unit,
@@ -1030,6 +1036,8 @@ fun BasicDialog(
                                 ) {
                                     onCancel()
                                     onDismiss()
+                                    // 모든 아이템 확장 취소
+                                    homeViewModel.collapseAllItems()
                                 }
                                 .padding(8.dp),
                             verticalArrangement = Arrangement.Center,
@@ -1062,6 +1070,8 @@ fun BasicDialog(
                                 ) {
                                     onConfirmed()
                                     onDismiss()
+                                    // 모든 아이템 확장 취소
+                                    homeViewModel.collapseAllItems()
                                 }
                                 .padding(8.dp),
                             verticalArrangement = Arrangement.Center,
@@ -1078,18 +1088,4 @@ fun BasicDialog(
             }
         }
     }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun Preview() {
-    BasicDialog(
-        showDialog = true,
-        onDismiss = { },
-        dialogType = DialogMod.DELETE,
-        title = "아침 식사",
-        onCancel = { },
-        onConfirmed = { }
-    )
 }

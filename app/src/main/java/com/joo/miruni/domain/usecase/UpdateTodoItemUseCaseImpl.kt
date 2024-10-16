@@ -2,7 +2,7 @@ package com.joo.miruni.domain.usecase
 
 import com.joo.miruni.domain.model.toTodoEntity
 import com.joo.miruni.domain.repository.TaskRepository
-import com.joo.miruni.presentation.detailPage.TodoItem
+import com.joo.miruni.presentation.modifyPage.TodoItem
 import javax.inject.Inject
 
 class UpdateTodoItemUseCaseImpl @Inject constructor(

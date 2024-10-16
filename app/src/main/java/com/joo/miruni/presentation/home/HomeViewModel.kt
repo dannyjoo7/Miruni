@@ -241,7 +241,7 @@ class HomeViewModel @Inject constructor(
         if ((_selectDate.value?.toLocalDate() ?: LocalDate.now()) == LocalDate.now()) {
             _selectDate.value = LocalDateTime.now()
         }
-
+        collapseAllItems()
         loadTodoItemsForAlarm()
         lastDataDeadLine = null
     }
@@ -258,6 +258,11 @@ class HomeViewModel @Inject constructor(
     // TodoTings가 확장 되어있는지 판단 메소드
     fun isItemExpanded(id: Long): Boolean {
         return _expandedItems.value.contains(id)
+    }
+
+    // TodoTings가 모든 확장 해제 메소드
+    fun collapseAllItems() {
+        _expandedItems.value = emptySet()
     }
 
     // 남은 시간에 따른 색 결정 메소드

@@ -58,14 +58,14 @@ fun com.joo.miruni.presentation.addTodo.TodoItem.toTodoEntity() = TodoEntity(
     type = TaskType.TODO,
 )
 
-// Detail
-fun com.joo.miruni.presentation.detailPage.TodoItem.toTodoEntity() = TodoEntity(
+// Modify
+fun com.joo.miruni.presentation.modifyPage.TodoItem.toTodoEntity() = TodoEntity(
     id = id!!,
     title = todoText,
     details = descriptionText,
     deadLine = selectedDate,
     alarmDisplayDate = adjustedDate!!,
-    isComplete = false,
+    isComplete = isComplete,
     completeDate = null,
     type = TaskType.TODO,
 )
