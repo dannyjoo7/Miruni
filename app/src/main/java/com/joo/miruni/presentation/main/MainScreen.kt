@@ -157,28 +157,35 @@ fun BottomNavigationBar(
 ) {
     val currentDestination = navController.currentDestination?.route
 
-    NavigationBar(
-        containerColor = Color.White,
-        contentColor = Color.White
-    ) {
-        items.forEach { item ->
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        painterResource(item.iconResId),
-                        contentDescription = item.label
-                    )
-                },
-                label = { },
-                selected = currentDestination == item.screen.route,
-                onClick = {
-                    navController.navigate(item.screen.route) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+    Column {
+        HorizontalDivider(
+            thickness = 0.5.dp,
+            color = Color.Gray
+        )
+
+        NavigationBar(
+            containerColor = Color.White,
+            contentColor = Color.White
+        ) {
+            items.forEach { item ->
+                NavigationBarItem(
+                    icon = {
+                        Icon(
+                            painterResource(item.iconResId),
+                            contentDescription = item.label
+                        )
+                    },
+                    label = { },
+                    selected = currentDestination == item.screen.route,
+                    onClick = {
+                        navController.navigate(item.screen.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
