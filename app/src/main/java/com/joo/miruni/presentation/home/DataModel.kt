@@ -16,6 +16,7 @@ data class ThingsTodo(
     val deadline: LocalDateTime,
     val description: String? = null,
     val isCompleted: Boolean = false,
+    val completeDate: LocalDateTime?,
 )
 
 enum class Importance {
