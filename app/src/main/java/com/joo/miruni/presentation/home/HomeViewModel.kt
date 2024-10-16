@@ -11,6 +11,7 @@ import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +32,7 @@ class HomeViewModel @Inject constructor(
     private val cancelCompleteTaskItemUseCase: CancelCompleteTaskItemUseCase,
     private val delayTodoItemUseCase: DelayTodoItemUseCase,
     private val settingObserveCompletedItemsVisibilityUseCase: SettingObserveCompletedItemsVisibilityUseCase,
+    private val getOverDueTodoItemsForAlarmUseCase: GetOverDueTodoItemsForAlarmUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
@@ -86,6 +88,34 @@ class HomeViewModel @Inject constructor(
     * 할 일
     * */
 
+    // 기한이 지난 할 일 load
+    private fun loadOverdueTasks() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            runCatching {
+                getOverDueTodoItemsForAlarmUseCase.invoke(LocalDateTime.now())
+            }.onSuccess { flow ->
+                flow.collect { todoItems ->
+                    _thingsTodoItems.value = todoItems.todoEntities.map {
+                        ThingsTodo(
+                            id = it.id,
+                            title = it.title,
+                            deadline = it.deadLine ?: LocalDateTime.now(),
+                            description = it.details ?: "",
+                            isCompleted = it.isComplete,
+                            completeDate = it.completeDate
+                        )
+                    }
+                    lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
+                    _isLoading.value = false
+                }
+            }.onFailure { exception ->
+                exception.printStackTrace()
+                _isLoading.value = false
+            }
+        }
+    }
+
     // 할 일 load 메소드
     private fun loadTodoItemsForAlarm() {
         viewModelScope.launch {
@@ -103,7 +133,8 @@ class HomeViewModel @Inject constructor(
                             title = it.title,
                             deadline = it.deadLine ?: LocalDateTime.now(),
                             description = it.details ?: "",
-                            isCompleted = it.isComplete
+                            isCompleted = it.isComplete,
+                            completeDate = it.completeDate,
                         )
                     }
                     lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
@@ -139,7 +170,8 @@ class HomeViewModel @Inject constructor(
                                         title = it.title,
                                         deadline = it.deadLine ?: LocalDateTime.now(),
                                         description = it.details ?: "",
-                                        isCompleted = it.isComplete
+                                        isCompleted = it.isComplete,
+                                        completeDate = it.completeDate,
                                     )
                                 }
                             _thingsTodoItems.value = updatedItems
@@ -222,6 +254,7 @@ class HomeViewModel @Inject constructor(
 
     // 날짜 바꾸는 메소드
     fun changeDate(op: String) {
+        _thingsTodoItems.value = emptyList()
         _selectDate.value = when (op) {
             ">" -> LocalDateTime.of(
                 // 자정으로 설정
@@ -305,6 +338,22 @@ class HomeViewModel @Inject constructor(
             selectDate.isEqual(today) -> "오늘"
             selectDate.isEqual(today.plusDays(1)) -> "내일"
             else -> selectDate.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
+        }
+    }
+
+    // 날짜 및 시간 Text 포맷
+    fun formatLocalDateTime(date: LocalDateTime?): String {
+        val currentYear = LocalDateTime.now().year
+        return when (date) {
+            null -> "(알 수 없음)"
+            else -> {
+                val formatter = if (date.year == currentYear) {
+                    DateTimeFormatter.ofPattern("M월 d일 a h시 m분")
+                } else {
+                    DateTimeFormatter.ofPattern("yyyy년 M월 d일 a h시 m분")
+                }
+                date.format(formatter)
+            }
         }
     }
 

@@ -211,8 +211,7 @@ fun HomeScreen(
                 onClick = { isAddMenuExpanded = !isAddMenuExpanded },
                 modifier = Modifier
                     .padding(16.dp)
-                    .align(Alignment.BottomEnd)
-                ,
+                    .align(Alignment.BottomEnd),
                 shape = CircleShape,
                 containerColor = Color.Transparent,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),
@@ -820,7 +819,10 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                         .padding(bottom = 8.dp, end = 8.dp),
                                     horizontalArrangement = Arrangement.End
                                 ) {
-                                    Text("yyyy mm dd에 완료함")
+                                    Text(
+                                        text = "${homeViewModel.formatLocalDateTime(thingsToDo.completeDate)}에 완료함",
+                                        fontSize = 10.sp
+                                    )
                                 }
 
                                 // 추가 정보와 구분선
