@@ -26,6 +26,13 @@ interface TaskDao {
     @Query("SELECT * FROM tasks")
     suspend fun getAllTasks(): List<TaskEntity>
 
+    // deadLine 넘긴 할 일
+    @Query("SELECT * FROM tasks WHERE type = :taskType AND deadLine < :currentDateTime")
+    fun getOverdueTasks(
+        currentDateTime: LocalDateTime,
+        taskType: TaskType = TaskType.TODO
+    ): Flow<List<TaskEntity>>
+
     @Query(
         """
     SELECT * FROM tasks 

@@ -12,6 +12,8 @@ import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCaseImpl
+import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCase
+import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
@@ -111,6 +113,12 @@ abstract class UseCaseModule {
     abstract fun bindSettingObserveCompletedItemsVisibilityUseCase(
         settingObserveCompletedItemsVisibilityUseCaseImpl: SettingObserveCompletedItemsVisibilityUseCaseImpl,
     ): SettingObserveCompletedItemsVisibilityUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindGetOverDueTodoItemsForAlarmUseCase(
+        getOverDueTodoItemsForAlarmUseCaseImpl: GetOverDueTodoItemsForAlarmUseCaseImpl,
+    ): GetOverDueTodoItemsForAlarmUseCase
 
 
     /*

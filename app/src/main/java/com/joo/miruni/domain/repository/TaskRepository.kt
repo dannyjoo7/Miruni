@@ -22,4 +22,5 @@ interface TaskRepository {
     suspend fun getTodoItemById(taskId: Long): TaskEntity
     suspend fun updateTask(todoEntity: TodoEntity)
     suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime)
+    suspend fun getOverdueTaskEntities(date: LocalDateTime): Flow<TaskItemsEntity>
 }

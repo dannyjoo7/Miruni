@@ -7,7 +7,7 @@ import com.joo.miruni.domain.model.TodoEntity
 import com.joo.miruni.domain.model.toTaskEntity
 import com.joo.miruni.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -33,19 +33,14 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
     // 날짜로 Task 가져오기
     override suspend fun getTasksForAlarmByDate(
         selectDate: LocalDateTime,
-        lastDeadLine: LocalDateTime?,
+        lastDeadLine: LocalDateTime?
     ): Flow<TaskItemsEntity> {
-        return flow {
-            try {
-                taskDao.getTodoTasksPaginated(selectDate, lastDeadLine)
-                    .collect { taskEntities ->
-                        emit(TaskItemsEntity(taskEntities))
-                    }
-            } catch (e: Exception) {
-                e.printStackTrace()
+        return taskDao.getTodoTasksPaginated(selectDate, lastDeadLine)
+            .map { taskEntities ->
+                TaskItemsEntity(taskEntities)
             }
-        }
     }
+
 
     override suspend fun deleteTaskById(id: Long) {
         taskDao.deleteTaskById(id)
@@ -70,6 +65,13 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
 
     override suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime) {
         taskDao.delayTask(id, delayDateTime)
+    }
+
+    override suspend fun getOverdueTaskEntities(date: LocalDateTime): Flow<TaskItemsEntity> {
+        return taskDao.getOverdueTasks(currentDateTime = date)
+            .map { taskEntities ->
+                TaskItemsEntity(taskItemsEntity = taskEntities)
+            }
     }
 
 }
