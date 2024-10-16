@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.detailPage
+package com.joo.miruni.presentation.modifyPage
 
 import com.joo.miruni.domain.model.TodoEntity
 import java.time.LocalDate
@@ -15,6 +15,7 @@ data class TodoItem(
     val descriptionText: String?,
     val selectedDate: LocalDateTime?,
     val adjustedDate: LocalDate?,    // 알림 표시 시작일
+    val isComplete: Boolean,
 )
 
 fun TodoEntity.toTodoItem() = TodoItem(
@@ -23,4 +24,5 @@ fun TodoEntity.toTodoItem() = TodoItem(
     descriptionText = details,
     selectedDate = deadLine,
     adjustedDate = alarmDisplayDate,
+    isComplete = isComplete
 )

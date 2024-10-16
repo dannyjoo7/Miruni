@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.detailPage
+package com.joo.miruni.presentation.modifyPage
 
 
 import android.os.Bundle
@@ -27,7 +27,6 @@ class ModifyActivity : ComponentActivity() {
         }
 
         // 상태바 설정
-        WindowCompat.setDecorFitsSystemWindows(window, false) // 엣지 투 엣지 모드
         window.statusBarColor = android.graphics.Color.TRANSPARENT
 
         setContent {

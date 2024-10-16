@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.detailPage
+package com.joo.miruni.presentation.modifyPage
 
 import android.app.Activity
 import android.content.Context
@@ -371,7 +371,7 @@ fun ModifyScreen(
                                     .padding(16.dp),
                             ) {
                                 WheelTimePicker(
-                                    offset = 4,
+                                    offset = 2,
                                     selectorEffectEnabled = true,
                                     timeFormat = TimeFormat.CLOCK_12H,
                                     startTime = modifyViewModel.selectedTime.value?.let {

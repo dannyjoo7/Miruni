@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.detailPage
+package com.joo.miruni.presentation.modifyPage
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -295,7 +295,8 @@ class ModifyViewModel @Inject constructor(
                 adjustedDate = calculateAdjustedDate(
                     _selectedDate.value ?: LocalDate.now(),
                     _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
-                )
+                ),
+                isComplete = _todoItem.value!!.isComplete
             )
 
             runCatching {
