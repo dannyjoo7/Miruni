@@ -3,6 +3,7 @@ package com.joo.miruni.domain.model
 import com.joo.miruni.data.entities.TaskEntity
 import com.joo.miruni.data.entities.TaskItemsEntity
 import com.joo.miruni.data.entities.TaskType
+import com.joo.miruni.presentation.addTask.addTodo.TodoItem
 
 /*
 * TaskEntity to TodoEntity*/
@@ -47,7 +48,7 @@ fun TodoEntity.toTaskEntity() = TaskEntity(
 * */
 
 // AddTodo
-fun com.joo.miruni.presentation.addTodo.TodoItem.toTodoEntity() = TodoEntity(
+fun TodoItem.toTodoEntity() = TodoEntity(
     id = 0,
     title = todoText,
     details = descriptionText,

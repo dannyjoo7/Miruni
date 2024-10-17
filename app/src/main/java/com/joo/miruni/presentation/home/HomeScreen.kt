@@ -72,7 +72,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.joo.miruni.R
-import com.joo.miruni.presentation.addTodo.AddTodoActivity
+import com.joo.miruni.presentation.addTask.addSchedule.AddScheduleActivity
+import com.joo.miruni.presentation.addTask.addTodo.AddTodoActivity
 import com.joo.miruni.presentation.detailPage.DetailActivity
 import java.time.LocalDateTime
 
@@ -251,6 +252,7 @@ fun HomeScreen(
                                         ),
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
+                                        // 할 일 추가
                                         val intent = Intent(context, AddTodoActivity::class.java)
                                         context.startActivity(intent)
                                         isAddMenuExpanded = false
@@ -273,7 +275,11 @@ fun HomeScreen(
                                         ),
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
+                                        // 일정 추가
+                                        val intent = Intent(context, AddScheduleActivity::class.java)
+                                        context.startActivity(intent)
                                         isAddMenuExpanded = false
+                                        homeViewModel.collapseAllItems()
                                     }
                                     .padding(16.dp)
                                     .defaultMinSize(60.dp)

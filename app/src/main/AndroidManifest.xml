@@ -33,7 +33,15 @@
         </activity>
 
         <activity
-            android:name=".presentation.addTodo.AddTodoActivity"
+            android:name=".presentation.addTask.addTodo.AddTodoActivity"
+            android:exported="true">
+            <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".presentation.addTask.addSchedule.AddScheduleActivity"
             android:exported="true">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />

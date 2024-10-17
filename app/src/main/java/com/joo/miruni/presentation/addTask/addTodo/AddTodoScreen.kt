@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.addTodo
+package com.joo.miruni.presentation.addTask.addTodo
 
 import android.app.Activity
 import android.content.Context
@@ -28,7 +28,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -80,6 +82,9 @@ fun AddTodoScreen(
 
     // 키보드 컨트롤러
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    // 스크롤 상태
+    val scrollState = rememberScrollState()
 
 
     /*
@@ -162,7 +167,7 @@ fun AddTodoScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_arrow_back),
-                            contentDescription = "menu",
+                            contentDescription = "back",
                         )
                     }
                 },
@@ -177,6 +182,7 @@ fun AddTodoScreen(
             modifier = Modifier
                 .padding(contentPadding)
                 .padding(16.dp)
+                .verticalScroll(scrollState)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
