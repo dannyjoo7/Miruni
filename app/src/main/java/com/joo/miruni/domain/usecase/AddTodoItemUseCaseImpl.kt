@@ -9,6 +9,6 @@ class AddTodoItemUseCaseImpl @Inject constructor(
     private val taskRepository: TaskRepository,
 ) : AddTodoItemUseCase {
     override suspend fun invoke(todoItem: TodoItem) {
-        taskRepository.addTask(todoItem.toTodoEntity())
+        taskRepository.addTodo(todoItem.toTodoEntity())
     }
 }
