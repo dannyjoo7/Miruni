@@ -3,11 +3,10 @@ package com.joo.miruni.presentation.addTask.addTodo
 import android.app.Activity
 import android.content.Context
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.repeatable
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -58,6 +57,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.joo.miruni.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -66,7 +67,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.android.material.timepicker.TimeFormat
 import com.joo.miruni.presentation.widget.AlarmDisplayDatePicker
-import com.joo.miruni.presentation.widget.Time
 import com.joo.miruni.presentation.widget.WheelTimePicker
 import java.time.LocalDate
 import java.time.LocalTime
@@ -85,7 +85,6 @@ fun AddTodoScreen(
 
     // 스크롤 상태
     val scrollState = rememberScrollState()
-
 
     /*
     * Live Data
@@ -109,18 +108,34 @@ fun AddTodoScreen(
     /*
     * 애니매이션
     * */
-    val shakeAnimation by animateFloatAsState(
-        targetValue = if (isTodoTextEmpty) 30f else 0f,
-        animationSpec = repeatable(
-            iterations = 6,
-            animation = tween(
-                durationMillis = 100,
-                easing = FastOutSlowInEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        ), label = "Shaking Animation"
-    )
-    val shakeOffset = if (isTodoTextEmpty) shakeAnimation else 0f
+    val todoTextColor = if (isTodoTextEmpty) Color.Red else colorResource(R.color.ios_gray)
+    val todoShakeOffset = remember { Animatable(0f) }
+
+    // keyFrames 단위로 흔들기 애니매이션
+    val shakeKeyframes: AnimationSpec<Float> = keyframes {
+        durationMillis = 400
+        val easing = FastOutLinearInEasing
+
+        for (i in 1..8) {
+            val x = when (i % 3) {
+                0 -> 4f
+                1 -> -4f
+                else -> 0f
+            }
+            x at durationMillis / 10 * i using easing
+        }
+    }
+
+    // 비었을 시 애니메이션 실행
+    LaunchedEffect(isTodoTextEmpty) {
+        if (isTodoTextEmpty) {
+            todoShakeOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = shakeKeyframes
+            )
+            addTodoViewModel.finishAnimation()
+        }
+    }
 
 
     // Todo추가 성공 시 해당 액티비티 종료
@@ -194,7 +209,7 @@ fun AddTodoScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 60.dp)
-                            .offset(x = with(LocalDensity.current) { shakeOffset.toDp() })
+                            .offset(x = todoShakeOffset.value.dp)
                     ) {
                         Text(
                             text = "할 일",
@@ -213,11 +228,7 @@ fun AddTodoScreen(
                                 Text(
                                     text = "할 일",
                                     fontSize = 16.sp,
-                                    color = if (isTodoTextEmpty) {
-                                        Color.Red
-                                    } else {
-                                        colorResource(id = R.color.ios_gray)
-                                    }
+                                    color = todoTextColor
                                 )
 
                             },
@@ -226,6 +237,7 @@ fun AddTodoScreen(
                                 focusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = colorResource(R.color.ios_blue),
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -268,6 +280,7 @@ fun AddTodoScreen(
                                 focusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = colorResource(R.color.ios_blue),
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -362,7 +375,7 @@ fun AddTodoScreen(
                         ) {
                             DatePicker(
                                 context = context,
-                                addTodoViewModel = addTodoViewModel,
+                                selectedDate = selectDate,
                                 onDateSelected = { date -> addTodoViewModel.selectDate(date) },
                                 onMonthChanged = { month -> addTodoViewModel.changeMonth(month) },
                             )
@@ -535,11 +548,10 @@ fun AddTodoScreen(
 @Composable
 fun DatePicker(
     context: Context,
-    addTodoViewModel: AddTodoViewModel,
+    selectedDate: LocalDate?,
     onDateSelected: (LocalDate) -> Unit,
     onMonthChanged: (Int) -> Unit,
 ) {
-    val selectedDate by addTodoViewModel.selectedDate.observeAsState(LocalDate.now())
     val currentDate = selectedDate ?: LocalDate.now()
 
     val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
@@ -641,7 +653,7 @@ fun DatePicker(
             ) {
                 // 날짜 표시 텍스트
                 Text(
-                    text = addTodoViewModel.formatSelectedDateForCalendar(),
+                    text = "${currentDate.monthValue}월 ${currentDate.year}",
                     fontSize = 18.sp,
                     modifier = Modifier.padding(start = 8.dp),
                     textAlign = TextAlign.Center,

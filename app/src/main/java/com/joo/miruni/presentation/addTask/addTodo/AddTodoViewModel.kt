@@ -81,6 +81,7 @@ class AddTodoViewModel @Inject constructor(
     private val _isTodoAdded = MutableLiveData<Boolean>(false)
     val isTodoAdded: LiveData<Boolean> get() = _isTodoAdded
 
+
     /*
     * UI
     * */
@@ -126,8 +127,6 @@ class AddTodoViewModel @Inject constructor(
     fun updateSelectedDate(date: LocalDate?) {
         _selectedDate.value = date
     }
-
-
 
     // 선택된 알람 표시일 업데이트 메서드
     fun updateSelectedAlarmDisplayDate(amount: Int? = null, durationUnit: String? = null) {
@@ -215,15 +214,6 @@ class AddTodoViewModel @Inject constructor(
     * DatePicker
     * */
 
-    // MM월 yyyy 변환 메소드
-    fun formatSelectedDateForCalendar(): String {
-        return _selectedDate.value?.let {
-            val month = it.monthValue
-            val year = it.year
-            "${month}월 $year"
-        } ?: ""
-    }
-
     // 월 변경 처리
     fun changeMonth(month: Int) {
         _selectedDate.value?.let {
@@ -248,38 +238,44 @@ class AddTodoViewModel @Inject constructor(
 
     // 추가 버튼 클릭 시
     fun addTodoItem() {
-        viewModelScope.launch {
-            if (_todoText.value.isNullOrEmpty()) {
-                _isTodoTextEmpty.value = true
-                delay(600)
-                _isTodoTextEmpty.value = false
-                return@launch
-            }
-
-            val todoItem = TodoItem(
-                todoText = _todoText.value ?: "",
-                descriptionText = _descriptionText.value ?: "",
-                selectedDate = combineDateAndTime(
-                    _selectedDate.value ?: LocalDate.now().plusDays(1),
-                    _selectedTime.value ?: LocalTime.now()
-                ),
-                adjustedDate = calculateAdjustedDate(
-                    _selectedDate.value ?: LocalDate.now(),
-                    _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
+        if (validateTodoItem()) {
+            viewModelScope.launch {
+                val todoItem = TodoItem(
+                    todoText = _todoText.value ?: "",
+                    descriptionText = _descriptionText.value ?: "",
+                    selectedDate = combineDateAndTime(
+                        _selectedDate.value ?: LocalDate.now().plusDays(1),
+                        _selectedTime.value ?: LocalTime.now()
+                    ),
+                    adjustedDate = calculateAdjustedDate(
+                        _selectedDate.value ?: LocalDate.now(),
+                        _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
+                    )
                 )
-            )
 
-            runCatching {
-                addTodoItemUseCase(todoItem)
-            }.onSuccess {
-                _isTodoAdded.value = true
-            }.onFailure { exception ->
-                _isTodoAdded.value = false
-                Log.e(TAG, exception.message.toString())
+                runCatching {
+                    addTodoItemUseCase(todoItem)
+                }.onSuccess {
+                    _isTodoAdded.value = true
+                }.onFailure { exception ->
+                    _isTodoAdded.value = false
+                    Log.e(TAG, exception.message.toString())
+                }
             }
+        } else {
+            return
         }
     }
 
+    // 무결성 검사
+    private fun validateTodoItem(): Boolean {
+        // 제목이 비어있는지 체크
+        if (_todoText.value.isNullOrEmpty()) {
+            _isTodoTextEmpty.value = true
+            return false
+        }
+        return true
+    }
 
     // 알람 표시 시작일 계산 메소드
     private fun calculateAdjustedDate(
@@ -303,6 +299,10 @@ class AddTodoViewModel @Inject constructor(
         return date.atTime(time)
     }
 
+    // 애니메이션 종료
+    fun finishAnimation() {
+        _isTodoTextEmpty.value = false
+    }
 }
 
 
