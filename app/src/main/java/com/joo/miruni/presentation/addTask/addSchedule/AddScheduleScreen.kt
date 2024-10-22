@@ -3,11 +3,10 @@ package com.joo.miruni.presentation.addTask.addSchedule
 import android.app.Activity
 import android.content.Context
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.repeatable
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -16,7 +15,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -63,7 +61,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -93,7 +90,7 @@ fun AddScheduleScreen(
     val titleText by addScheduleViewModel.titleText.observeAsState("")
     val descriptionText by addScheduleViewModel.descriptionText.observeAsState("")
 
-    val showStartDatePicker by addScheduleViewModel.showStartDatePicker.observeAsState(false)
+    val showStartDatePicker by addScheduleViewModel.showDateRangePicker.observeAsState(false)
     val showAlarmDisplayStartDatePicker by addScheduleViewModel.showAlarmDisplayStartDatePicker.observeAsState(
         true
     )
@@ -102,24 +99,58 @@ fun AddScheduleScreen(
     val selectedEndDate by addScheduleViewModel.selectedEndDate.observeAsState()
     val selectedAlarmDisplayDate by addScheduleViewModel.selectedAlarmDisplayDate.observeAsState()
 
-    val isTodoTextEmpty by addScheduleViewModel.isTitleTextEmpty.observeAsState(false)
+    val isTitleTextEmpty by addScheduleViewModel.isTitleTextEmpty.observeAsState(false)
+    val isDateEmpty by addScheduleViewModel.isDateEmpty.observeAsState(false)
     val isScheduleAdded by addScheduleViewModel.isScheduleAdded.observeAsState(false)
+
+    /*
+    * UI
+    * */
+
+    val titleTextColor = if (isTitleTextEmpty) Color.Red else colorResource(R.color.ios_gray)
+    val dateTextColor =
+        if (isDateEmpty) Color.Red else colorResource(R.color.ios_blue)
 
     /*
     * 애니매이션
     * */
-    val shakeAnimation by animateFloatAsState(
-        targetValue = if (isTodoTextEmpty) 30f else 0f,
-        animationSpec = repeatable(
-            iterations = 6,
-            animation = tween(
-                durationMillis = 100,
-                easing = FastOutSlowInEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        ), label = "Shaking Animation"
-    )
-    val shakeOffset = if (isTodoTextEmpty) shakeAnimation else 0f
+
+    val titleShakeOffset = remember { Animatable(0f) }
+    val dateShakeOffset = remember { Animatable(0f) }
+
+    // keyFrames 단위로 흔들기 애니매이션
+    val shakeKeyframes: AnimationSpec<Float> = keyframes {
+        durationMillis = 400
+        val easing = FastOutLinearInEasing
+
+        for (i in 1..8) {
+            val x = when (i % 3) {
+                0 -> 4f
+                1 -> -4f
+                else -> 0f
+            }
+            x at durationMillis / 10 * i using easing
+        }
+    }
+
+    // 비었을 시 애니메이션 실행
+    LaunchedEffect(isTitleTextEmpty, isDateEmpty) {
+        if (isTitleTextEmpty) {
+            titleShakeOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = shakeKeyframes
+            )
+            addScheduleViewModel.finishAnimation()
+        }
+
+        if (isDateEmpty) {
+            dateShakeOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = shakeKeyframes
+            )
+            addScheduleViewModel.finishAnimation()
+        }
+    }
 
 
     // Schedule 추가 성공 시 해당 액티비티 종료
@@ -193,7 +224,7 @@ fun AddScheduleScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 60.dp)
-                            .offset(x = with(LocalDensity.current) { shakeOffset.toDp() })
+                            .offset(x = titleShakeOffset.value.dp)
                     ) {
                         Text(
                             text = "일정",
@@ -212,11 +243,7 @@ fun AddScheduleScreen(
                                 Text(
                                     text = "제목",
                                     fontSize = 16.sp,
-                                    color = if (isTodoTextEmpty) {
-                                        Color.Red
-                                    } else {
-                                        colorResource(id = R.color.ios_gray)
-                                    }
+                                    color = titleTextColor
                                 )
 
                             },
@@ -225,6 +252,7 @@ fun AddScheduleScreen(
                                 focusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = colorResource(R.color.ios_blue),
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -267,6 +295,7 @@ fun AddScheduleScreen(
                                 focusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = colorResource(R.color.ios_blue),
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -286,6 +315,7 @@ fun AddScheduleScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 60.dp)
+                            .offset(x = dateShakeOffset.value.dp),
                     ) {
                         Text(
                             text = "기간",
@@ -301,7 +331,7 @@ fun AddScheduleScreen(
                             modifier = Modifier
                                 .weight(0.9f)
                                 .clickable {
-                                    addScheduleViewModel.clickedStartDateRangePickerBtn()
+                                    addScheduleViewModel.clickedDateRangePickerBtn()
                                     keyboardController?.hide()
                                 },
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -315,7 +345,7 @@ fun AddScheduleScreen(
                                 text = addScheduleViewModel.formatSelectedDateForCalendar(
                                     selectedStartDate
                                 ),
-                                color = colorResource(id = R.color.ios_blue),
+                                color = dateTextColor,
                                 fontSize = 18.sp,
                             )
                             Image(
@@ -323,7 +353,7 @@ fun AddScheduleScreen(
                                     .size(8.dp),
                                 painter = painterResource(id = R.drawable.ic_vertical_dot),
                                 contentDescription = "complete",
-                                colorFilter = ColorFilter.tint(colorResource(R.color.ios_blue)),
+                                colorFilter = ColorFilter.tint(dateTextColor),
                             )
                             Text(
                                 modifier = Modifier.padding(
@@ -333,7 +363,7 @@ fun AddScheduleScreen(
                                 text = addScheduleViewModel.formatSelectedDateForCalendar(
                                     selectedEndDate
                                 ),
-                                color = colorResource(id = R.color.ios_blue),
+                                color = dateTextColor,
                                 fontSize = 18.sp,
                             )
                         }
@@ -370,6 +400,9 @@ fun AddScheduleScreen(
                                         addScheduleViewModel.selectEndDate(endDate)
                                     }
                                 },
+                                onDismiss = {
+                                    addScheduleViewModel.clickedDateRangePickerBtn()
+                                }
                             )
                         }
                     }
@@ -486,6 +519,7 @@ fun DateRangePicker(
     selectedStartDate: LocalDate?,
     selectedEndDate: LocalDate?,
     onDateSelected: (LocalDate?, LocalDate?) -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
     var currentDate by remember { mutableStateOf(LocalDate.now()) }
@@ -523,12 +557,16 @@ fun DateRangePicker(
                             val isToday = currentDay.isEqual(today)
 
                             // 해당 날짜가 어느 유형으로 선택됐는가
-                            val isStartDateSelected = selectedStartDate?.dayOfMonth == dayOfMonth && selectedStartDate.monthValue == month
-                            val isEndDateSelected = selectedEndDate?.dayOfMonth == dayOfMonth && selectedEndDate.monthValue == month
+                            val isStartDateSelected =
+                                selectedStartDate?.dayOfMonth == dayOfMonth && selectedStartDate.monthValue == month
+                            val isEndDateSelected =
+                                selectedEndDate?.dayOfMonth == dayOfMonth && selectedEndDate.monthValue == month
 
                             // 선택 범위 안에 있는가
                             val isInRange = selectedStartDate != null && selectedEndDate != null &&
-                                    !currentDay.isBefore(selectedStartDate) && !currentDay.isAfter(selectedEndDate)
+                                    !currentDay.isBefore(selectedStartDate) && !currentDay.isAfter(
+                                selectedEndDate
+                            )
 
                             // StartDate 이전에 날짜인가
                             val isBeforeStartDate =
@@ -595,7 +633,6 @@ fun DateRangePicker(
         }
     }
 
-
     Card(
         modifier = Modifier
             .padding(16.dp)
@@ -651,10 +688,27 @@ fun DateRangePicker(
 
             // 달력 렌더링
             renderCalendar()
+
+            // 두 날짜 선택 완료 시 확인 버튼
+            if (selectedStartDate != null && selectedEndDate != null) {
+                Button(
+                    onClick = {
+                        onDismiss()
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.ios_blue),
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = "확인")
+                }
+            }
         }
     }
 }
-
 
 //@Preview(showBackground = true)
 //@Composable

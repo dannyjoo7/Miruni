@@ -11,7 +11,7 @@ data class AlarmDisplayDuration(
 data class ScheduleItem(
     val title: String,
     val descriptionText: String,
-    val startDate: LocalDateTime,
-    val endDate: LocalDateTime,
+    val startDate: LocalDate,
+    val endDate: LocalDate,
     val adjustedDate: LocalDate,
 )

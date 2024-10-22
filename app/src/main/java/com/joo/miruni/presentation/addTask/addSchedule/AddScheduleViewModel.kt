@@ -5,8 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joo.miruni.domain.usecase.AddScheduleItemUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddScheduleViewModel @Inject constructor(
-
+    private val addScheduleItemUseCase: AddScheduleItemUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "AddScheduleViewModel"
@@ -57,21 +57,21 @@ class AddScheduleViewModel @Inject constructor(
 
 
     // Bool 시작 날짜 선택 진행 유뮤
-    private val _showStartDatePicker = MutableLiveData(false)
-    val showStartDatePicker: LiveData<Boolean> get() = _showStartDatePicker
-
-    // Bool 종료 날짜 선택 진행 유뮤
-    private val _showEndDatePicker = MutableLiveData(false)
-    val showEndDatePicker: LiveData<Boolean> get() = _showEndDatePicker
+    private val _showDateRangePicker = MutableLiveData(false)
+    val showDateRangePicker: LiveData<Boolean> get() = _showDateRangePicker
 
     // Bool 알람 표시 시작일 선택 진행 유뮤
     private val _showAlarmDisplayStartDatePicker = MutableLiveData(false)
     val showAlarmDisplayStartDatePicker: LiveData<Boolean> get() = _showAlarmDisplayStartDatePicker
 
 
-    // TodoTextEmpty 애니매이션
+    // TodoTextEmpty 무결성 검사
     private val _isTitleTextEmpty = MutableLiveData(false)
     val isTitleTextEmpty: LiveData<Boolean> get() = _isTitleTextEmpty
+
+    // 날짜 무결성 검사
+    private val _isDateEmpty = MutableLiveData(false)
+    val isDateEmpty: LiveData<Boolean> get() = _isDateEmpty
 
 
     // AddSchedule 성공 여부
@@ -93,24 +93,15 @@ class AddScheduleViewModel @Inject constructor(
     }
 
     // StartDatePicker 가시성 on/off
-    fun clickedStartDateRangePickerBtn() {
-        _showStartDatePicker.value = _showStartDatePicker.value?.not()
-        _showEndDatePicker.value = false
-        _showAlarmDisplayStartDatePicker.value = false
-    }
-
-    // EndDatePicker 가시성 on/off
-    fun clickedEndDatePickerBtn() {
-        _showEndDatePicker.value = _showEndDatePicker.value?.not()
-        _showStartDatePicker.value = false
+    fun clickedDateRangePickerBtn() {
+        _showDateRangePicker.value = _showDateRangePicker.value?.not()
         _showAlarmDisplayStartDatePicker.value = false
     }
 
     // AlarmDisplayDatePicker 가시성 on/off
     fun clickedAlarmDisplayStartDateText() {
         _showAlarmDisplayStartDatePicker.value = _showAlarmDisplayStartDatePicker.value?.not()
-        _showStartDatePicker.value = false
-        _showEndDatePicker.value = false
+        _showDateRangePicker.value = false
     }
 
     // 선택된 알람 표시일 업데이트 메서드
@@ -131,7 +122,6 @@ class AddScheduleViewModel @Inject constructor(
         _selectedStartDate.value = null
         _selectedEndDate.value = null
     }
-
 
     // 시작 날짜 선택 메소드
     fun selectStartDate(date: LocalDate) {
@@ -177,60 +167,54 @@ class AddScheduleViewModel @Inject constructor(
         } ?: "날짜 선택"
     }
 
-    // 월 변경 처리
-    fun changeStartDateMonth(month: Int) {
-        _selectedStartDate.value = null
-    }
-
-
-    // 연도 변경 처리
-    fun changeYear(year: Int) {
-        _selectedStartDate.value = _selectedStartDate.value?.withYear(year)
-    }
-
-
     /*
     * Top Bar
     * */
 
     // 추가 버튼 클릭 시
     fun addScheduleItem() {
-        viewModelScope.launch {
-            if (_titleText.value.isNullOrEmpty()) {
-                _isTitleTextEmpty.value = true
-                delay(600)
-                _isTitleTextEmpty.value = false
-                return@launch
-            }
-
-            val scheduleItem = ScheduleItem(
-                title = _titleText.value ?: "",
-                descriptionText = _descriptionText.value ?: "",
-                startDate = combineDateAndTime(
-                    _selectedStartDate.value ?: LocalDate.now().plusDays(1),
-                    LocalTime.of(0, 0)
-                ),
-                endDate = combineDateAndTime(
-                    _selectedEndDate.value ?: LocalDate.now().plusDays(1),
-                    LocalTime.of(0, 0)
-                ),
-                adjustedDate = calculateAdjustedDate(
-                    _selectedStartDate.value ?: LocalDate.now(),
-                    _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
+        if (validateScheduleItem()) {
+            viewModelScope.launch {
+                val scheduleItem = ScheduleItem(
+                    title = _titleText.value ?: "",
+                    descriptionText = _descriptionText.value ?: "",
+                    startDate = _selectedStartDate.value ?: LocalDate.now().plusDays(1),
+                    endDate = _selectedEndDate.value ?: LocalDate.now().plusDays(1),
+                    adjustedDate = calculateAdjustedDate(
+                        _selectedStartDate.value ?: LocalDate.now(),
+                        _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
+                    )
                 )
-            )
-
-            runCatching {
-
-            }.onSuccess {
-                _isScheduleAdded.value = true
-            }.onFailure { exception ->
-                _isScheduleAdded.value = false
-                Log.e(TAG, exception.message.toString())
+                runCatching {
+                    addScheduleItemUseCase(scheduleItem)
+                }.onSuccess {
+                    _isScheduleAdded.value = true
+                }.onFailure { exception ->
+                    _isScheduleAdded.value = false
+                    Log.e(TAG, exception.message.toString())
+                }
             }
+        } else {
+            return
         }
     }
 
+    // 무결성 검사
+    private fun validateScheduleItem(): Boolean {
+        // 제목이 비어있는지 체크
+        if (_titleText.value.isNullOrEmpty()) {
+            _isTitleTextEmpty.value = true
+            return false
+        }
+
+        // 시작일과 종료일이 유효한지 체크
+        if (_selectedStartDate.value == null || _selectedEndDate.value == null) {
+            _isDateEmpty.value = true
+            return false
+        }
+
+        return true
+    }
 
     // 알람 표시 시작일 계산 메소드
     private fun calculateAdjustedDate(
@@ -254,7 +238,11 @@ class AddScheduleViewModel @Inject constructor(
         return date.atTime(time)
     }
 
-
+    // 애니메이션 종료
+    fun finishAnimation() {
+        _isTitleTextEmpty.value = false
+        _isDateEmpty.value = false
+    }
 }
 
 

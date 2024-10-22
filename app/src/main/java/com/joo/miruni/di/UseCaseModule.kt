@@ -1,5 +1,7 @@
 package com.joo.miruni.di
 
+import com.joo.miruni.domain.usecase.AddScheduleItemUseCase
+import com.joo.miruni.domain.usecase.AddScheduleItemUseCaseImpl
 import com.joo.miruni.domain.usecase.AddTodoItemUseCase
 import com.joo.miruni.domain.usecase.AddTodoItemUseCaseImpl
 import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
@@ -14,6 +16,8 @@ import com.joo.miruni.domain.usecase.GetAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCaseImpl
 import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCaseImpl
+import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
+import com.joo.miruni.domain.usecase.GetScheduleItemsUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
@@ -69,21 +73,33 @@ abstract class UseCaseModule {
         addTodoItemUseCaseImpl: AddTodoItemUseCaseImpl,
     ): AddTodoItemUseCase
 
-    /*
-    * GetTaskItem
-    * */
 
-    // GetTodoTaskItems
+    /*
+    * Add ScheduleItem
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindAddScheduleItemUseCase(
+        addScheduleItemUseCaseImpl: AddScheduleItemUseCaseImpl,
+    ): AddScheduleItemUseCase
+
+    /*
+    * HomeViewModel
+    * */
     @Binds
     @Singleton
     abstract fun bindGetTodoItemsForAlarmUseCase(
         getTodoItemsUseCaseImpl: GetTodoItemsForAlarmUseCaseImpl,
     ): GetTodoItemsForAlarmUseCase
 
+    @Binds
+    @Singleton
+    abstract fun bindGetScheduleItemsUseCase(
+        getScheduleItemsUseCaseImpl: GetScheduleItemsUseCaseImpl,
+    ): GetScheduleItemsUseCase
 
-    /*
-    * HomeViewModel
-    * */
+
+
     @Binds
     @Singleton
     abstract fun bindDeleteTaskItemUseCase(

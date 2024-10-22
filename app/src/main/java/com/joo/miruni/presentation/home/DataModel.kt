@@ -1,13 +1,17 @@
 package com.joo.miruni.presentation.home
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Schedule(
+    val id: Long,
     val title: String,
-    val startDate: LocalDateTime,
-    val endDate: LocalDateTime,
+    val startDate: LocalDate?,
+    val endDate: LocalDate?,
     val description: String? = null,
-    val reminderDaysBefore: Int,
+    val daysBefore: Int,
+    val isComplete: Boolean,
+    val completeDate: LocalDateTime?,
 )
 
 data class ThingsTodo(
