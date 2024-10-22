@@ -12,6 +12,7 @@ import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCase
+import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getTodoItemsForAlarmUseCase: GetTodoItemsForAlarmUseCase,
+    private val getScheduleItemsForAlarmUseCase: GetScheduleItemsUseCase,
     private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
     private val completeTaskItemUseCase: CompleteTaskItemUseCase,
     private val cancelCompleteTaskItemUseCase: CancelCompleteTaskItemUseCase,
@@ -36,7 +38,6 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
-        private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     }
 
     /*
@@ -55,9 +56,13 @@ class HomeViewModel @Inject constructor(
     private val _scheduleItems = MutableLiveData<List<Schedule>>(emptyList())
     val scheduleItems: LiveData<List<Schedule>> get() = _scheduleItems
 
-    // 로딩 중인지 판단하는 변수
-    private val _isLoading = MutableLiveData(false)
-    val isLoading: LiveData<Boolean> get() = _isLoading
+    // todoList 로딩 중인지 판단하는 변수
+    private val _isTodoListLoading = MutableLiveData(false)
+    val isTodoListLoading: LiveData<Boolean> get() = _isTodoListLoading
+
+    // scheduleList 로딩 중인지 판단하는 변수
+    private val _isScheduleListLoading = MutableLiveData(false)
+    val isScheduleListLoading: LiveData<Boolean> get() = _isScheduleListLoading
 
     // 확장 여부를 판단하는 변수
     private val _expandedItems = mutableStateOf<Set<Long>>(emptySet())
@@ -73,8 +78,11 @@ class HomeViewModel @Inject constructor(
     private val _settingObserveCompleteVisibility = MutableLiveData<Boolean>(false)
     val settingObserveCompleteVisibility: LiveData<Boolean> get() = _settingObserveCompleteVisibility
 
-    // 페이징을 위한 마지막 데이터의 deadLine
+    // todoList 페이징을 위한 마지막 데이터의 deadLine
     private var lastDataDeadLine: LocalDateTime? = null
+
+    // scheduleList 페이징을 위한 마지막 데이터의 startDate
+    private var lastStartDate: LocalDate? = null
 
 
     init {
@@ -91,7 +99,7 @@ class HomeViewModel @Inject constructor(
     // 기한이 지난 할 일 load
     private fun loadOverdueTasks() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _isTodoListLoading.value = true
             runCatching {
                 getOverDueTodoItemsForAlarmUseCase.invoke(LocalDateTime.now())
             }.onSuccess { flow ->
@@ -107,11 +115,11 @@ class HomeViewModel @Inject constructor(
                         )
                     }
                     lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
-                    _isLoading.value = false
+                    _isTodoListLoading.value = false
                 }
             }.onFailure { exception ->
                 exception.printStackTrace()
-                _isLoading.value = false
+                _isTodoListLoading.value = false
             }
         }
     }
@@ -119,7 +127,7 @@ class HomeViewModel @Inject constructor(
     // 할 일 load 메소드
     private fun loadTodoItemsForAlarm() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _isTodoListLoading.value = true
             runCatching {
                 getTodoItemsForAlarmUseCase.invoke(
                     _selectDate.value ?: LocalDateTime.now(),
@@ -138,12 +146,12 @@ class HomeViewModel @Inject constructor(
                         )
                     }
                     lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
-                    _isLoading.value = false
+                    _isTodoListLoading.value = false
                 }
 
             }.onFailure { exception ->
                 exception.printStackTrace()
-                _isLoading.value = false
+                _isTodoListLoading.value = false
             }
         }
     }
@@ -151,7 +159,7 @@ class HomeViewModel @Inject constructor(
     // 할 일 추가 load 메소드
     fun loadMoreTodoItemsForAlarm() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _isTodoListLoading.value = true
             val currentDeadLine = lastDataDeadLine
 
             if (currentDeadLine != null) {
@@ -177,15 +185,15 @@ class HomeViewModel @Inject constructor(
                             _thingsTodoItems.value = updatedItems
                             lastDataDeadLine = updatedItems.lastOrNull()?.deadline
                         }
-                        _isLoading.value = false
+                        _isTodoListLoading.value = false
                     }
                 }.onFailure { exception ->
                     exception.printStackTrace()
                 }.also {
-                    _isLoading.value = false
+                    _isTodoListLoading.value = false
                 }
             } else {
-                _isLoading.value = false
+                _isTodoListLoading.value = false
             }
         }
     }
@@ -361,37 +369,77 @@ class HomeViewModel @Inject constructor(
     * 일정
     * */
 
-    // TODO 임시...
+    // 일정 초기 로드 메소드
     private fun loadInitialScheduleData() {
-        _scheduleItems.value = listOf(
-            Schedule(
-                "일정 1",
-                LocalDateTime.parse("2024-09-20 09:00", dateTimeFormatter),
-                LocalDateTime.parse("2024-09-20 10:00", dateTimeFormatter),
-                "일정 1의 설명",
-                1
-            ),
-            Schedule(
-                "일정 2",
-                LocalDateTime.parse("2024-09-21 11:00", dateTimeFormatter),
-                LocalDateTime.parse("2024-09-21 12:00", dateTimeFormatter),
-                "일정 2의 설명",
-                2
-            ),
-            Schedule(
-                "일정 3",
-                LocalDateTime.parse("2024-09-22 13:00", dateTimeFormatter),
-                LocalDateTime.parse("2024-09-22 14:00", dateTimeFormatter),
-                "일정 3의 설명",
-                3
-            ),
-        )
+        viewModelScope.launch {
+            _isScheduleListLoading.value = true
+            runCatching {
+                getScheduleItemsForAlarmUseCase.invoke(
+                    _selectDate.value?.toLocalDate() ?: LocalDate.now(),
+                    null
+                )
+            }.onSuccess { flow ->
+                flow.collect { scheduleItems ->
+                    _scheduleItems.value = scheduleItems.scheduleEntities.map {
+                        Schedule(
+                            id = it.id,
+                            title = it.title,
+                            startDate = it.startDate,
+                            endDate = it.endDate,
+                            description = it.details,
+                            daysBefore = ChronoUnit.DAYS.between(LocalDate.now(), it.startDate)
+                                .toInt(),
+                            isComplete = it.isComplete,
+                            completeDate = it.completeDate,
+                        )
+                    }.sortedBy { it.startDate }
+                    lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
+                    _isScheduleListLoading.value = false
+                }
+
+            }.onFailure { exception ->
+                exception.printStackTrace()
+                _isScheduleListLoading.value = false
+            }
+        }
     }
 
-    // 일정 load 메소드
+    // 일정 more load 메소드
     fun loadMoreScheduleData() {
         viewModelScope.launch {
-            // Todo
+            _isScheduleListLoading.value = true
+            runCatching {
+                getScheduleItemsForAlarmUseCase.invoke(
+                    _selectDate.value?.toLocalDate() ?: LocalDate.now(),
+                    lastStartDate
+                )
+            }.onSuccess { flow ->
+                flow.collect { scheduleItems ->
+                    _scheduleItems.value =
+                        _scheduleItems.value?.plus(scheduleItems.scheduleEntities.map {
+                            Schedule(
+                                id = it.id,
+                                title = it.title,
+                                startDate = it.startDate,
+                                endDate = it.endDate,
+                                description = it.details,
+                                daysBefore = ChronoUnit.DAYS.between(LocalDate.now(), it.startDate)
+                                    .toInt(),
+                                isComplete = it.isComplete,
+                                completeDate = it.completeDate,
+                            )
+                        }.filterNot { newSchedule ->
+                            _scheduleItems.value?.any { existingSchedule ->
+                                existingSchedule.id == newSchedule.id
+                            } == true
+                        })?.sortedBy { it.startDate } ?: emptyList()
+                    lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
+                    _isScheduleListLoading.value = false
+                }
+            }.onFailure { exception ->
+                exception.printStackTrace()
+                _isScheduleListLoading.value = false
+            }
         }
     }
 

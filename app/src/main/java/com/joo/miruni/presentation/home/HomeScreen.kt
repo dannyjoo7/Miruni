@@ -31,6 +31,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -59,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -85,15 +88,24 @@ fun HomeScreen(
     val context = LocalContext.current
     val buffer = 3 // 스크롤이 마지막 n개 항목에 도달하면 더 로드
 
+
     /*
     * Live Data
     * */
     val thingsToDoItems by homeViewModel.thingsTodoItems.observeAsState(emptyList())
     val scheduleItems by homeViewModel.scheduleItems.observeAsState(emptyList())
-    val isLoading by homeViewModel.isLoading.observeAsState(false)
+    val isTodoListLoading by homeViewModel.isTodoListLoading.observeAsState(false)
+    val isScheduleListLoading by homeViewModel.isScheduleListLoading.observeAsState(false)
     val selectDate by homeViewModel.selectDate.observeAsState(LocalDateTime.now())
 
     var initialLoad by remember { mutableStateOf(true) }
+
+    // 스케줄 페이지 상태
+    val pageCount = (scheduleItems.size + 2) / 3
+    val schedulePagerState = rememberPagerState(
+        pageCount = {
+            pageCount
+        })
 
     // 무한 스크롤
     val lazyListState = rememberLazyListState()
@@ -159,6 +171,53 @@ fun HomeScreen(
                 }
             }
 
+            // 일정
+            HorizontalPager(
+                state = schedulePagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
+            ) { page ->
+                val startIndex = page * 3
+                val endIndex = minOf(startIndex + 3, scheduleItems.size)
+
+                if (startIndex < scheduleItems.size) {
+                    val scheduleGroup = scheduleItems.subList(startIndex, endIndex)
+
+                    Column(
+                        modifier = Modifier
+                            .height(60.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        for (i in scheduleGroup.indices step 3) {
+                            Row {
+                                for (j in i until minOf(i + 3, scheduleGroup.size)) {
+                                    ScheduleItem(scheduleGroup[j])
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 페이지가 끝에 도달했을 때 추가 데이터 로드
+                LaunchedEffect(schedulePagerState.currentPage) {
+                    if (page == pageCount - 1) {
+                        homeViewModel.loadMoreScheduleData()
+                    }
+                }
+
+                // 로딩바
+                if (isScheduleListLoading && page == pageCount - 1) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(16.dp),
+                        color = colorResource(R.color.ios_gray)
+                    )
+                }
+            }
+
+
             // LazyColumn
             LazyColumn(
                 state = lazyListState,
@@ -166,14 +225,6 @@ fun HomeScreen(
                     .weight(1f)
                     .padding(start = 8.dp, end = 8.dp)
             ) {
-                // 일정 리스트
-                items(scheduleItems.size) { index ->
-                    ScheduleItem(
-                        homeViewModel,
-                        scheduleItems[index],
-                    )
-                }
-
                 // 할 일 리스트
                 items(thingsToDoItems.size) { index ->
                     ThingsToDoItem(
@@ -184,7 +235,7 @@ fun HomeScreen(
                 }
 
                 // 로딩 인디케이터
-                if (isLoading) {
+                if (isTodoListLoading) {
                     item {
                         Column(
                             modifier = Modifier
@@ -276,7 +327,8 @@ fun HomeScreen(
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
                                         // 일정 추가
-                                        val intent = Intent(context, AddScheduleActivity::class.java)
+                                        val intent =
+                                            Intent(context, AddScheduleActivity::class.java)
                                         context.startActivity(intent)
                                         isAddMenuExpanded = false
                                         homeViewModel.collapseAllItems()
@@ -294,7 +346,7 @@ fun HomeScreen(
 
     // 스크롤 이벤트를 통해 데이터 로드
     LaunchedEffect(reachesBottom) {
-        if (reachesBottom && !isLoading && !initialLoad) {
+        if (reachesBottom && !isTodoListLoading && !initialLoad) {
             homeViewModel.loadMoreTodoItemsForAlarm()
         }
     }
@@ -310,10 +362,12 @@ fun HomeScreen(
 
 // 일정 Item
 @Composable
-fun ScheduleItem(homeViewModel: HomeViewModel, schedule: Schedule) {
+fun ScheduleItem(schedule: Schedule) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+
     Card(
         modifier = Modifier
-            .fillMaxWidth()
+            .width((screenWidth / 3).dp)
             .padding(
                 horizontal = 6.dp,
                 vertical = 4.dp,
@@ -327,7 +381,7 @@ fun ScheduleItem(homeViewModel: HomeViewModel, schedule: Schedule) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(2.dp)
+                .padding(8.dp)
         ) {
             Column(
                 modifier = Modifier.align(Alignment.Center),
@@ -336,7 +390,7 @@ fun ScheduleItem(homeViewModel: HomeViewModel, schedule: Schedule) {
             ) {
                 // D-Day
                 Text(
-                    text = "D-${schedule.reminderDaysBefore}",
+                    text = "D-${schedule.daysBefore}",
                     fontWeight = FontWeight.Bold,
                 )
 

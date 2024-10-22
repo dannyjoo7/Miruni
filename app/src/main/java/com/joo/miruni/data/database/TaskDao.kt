@@ -30,9 +30,10 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE type = :taskType AND deadLine < :currentDateTime")
     fun getOverdueTasks(
         currentDateTime: LocalDateTime,
-        taskType: TaskType = TaskType.TODO
+        taskType: TaskType = TaskType.TODO,
     ): Flow<List<TaskEntity>>
 
+    // TODO목록 페이지로 가져오기
     @Query(
         """
     SELECT * FROM tasks 
@@ -74,4 +75,24 @@ interface TaskDao {
     // 일정 미루기 메소드
     @Query("UPDATE tasks SET deadLine = :newDeadline WHERE id = :taskId")
     suspend fun delayTask(taskId: Long, newDeadline: LocalDateTime)
+
+    // 스케줄 목록 페이지로 가져오기
+    @Query(
+        """
+    SELECT * FROM tasks 
+    WHERE type = :taskType 
+    AND (startDate IS NOT NULL AND startDate >= :selectDate)
+    AND (endDate IS NULL OR endDate >= :selectDate)
+    AND (startDate > :lastStartDate OR :lastStartDate IS NULL) 
+    ORDER BY startDate ASC  
+    LIMIT :limit
+    """
+    )
+    fun getScheduleTasksPaginated(
+        selectDate: LocalDate,
+        lastStartDate: LocalDate? = null,
+        limit: Int = 5,
+        taskType: TaskType = TaskType.SCHEDULE,
+    ): Flow<List<TaskEntity>>
+
 }
