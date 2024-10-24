@@ -22,7 +22,10 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "tasks"
-                ).build()
+                )
+                    //TODO 앱 출시 직전에 삭제
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }
