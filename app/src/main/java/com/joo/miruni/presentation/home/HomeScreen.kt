@@ -44,7 +44,6 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -59,6 +58,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
@@ -71,13 +71,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTask.addSchedule.AddScheduleActivity
 import com.joo.miruni.presentation.addTask.addTodo.AddTodoActivity
-import com.joo.miruni.presentation.detailPage.DetailActivity
+import com.joo.miruni.presentation.detail.detailSchedule.DetailScheduleActivity
+import com.joo.miruni.presentation.detail.detailTodo.DetailTodoActivity
+import com.joo.miruni.presentation.widget.BasicDialog
+import com.joo.miruni.presentation.widget.DialogMod
 import java.time.LocalDateTime
 
 @Composable
@@ -86,8 +88,6 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val buffer = 3 // 스크롤이 마지막 n개 항목에 도달하면 더 로드
-
 
     /*
     * Live Data
@@ -96,11 +96,17 @@ fun HomeScreen(
     val scheduleItems by homeViewModel.scheduleItems.observeAsState(emptyList())
     val isTodoListLoading by homeViewModel.isTodoListLoading.observeAsState(false)
     val isScheduleListLoading by homeViewModel.isScheduleListLoading.observeAsState(false)
+    val isCompletedViewChecked =
+        homeViewModel.settingObserveCompleteVisibility.observeAsState(false)
     val selectDate by homeViewModel.selectDate.observeAsState(LocalDateTime.now())
 
+    // FAB 메뉴
+    var isAddMenuExpanded by remember { mutableStateOf(false) }
+
+    // 한번 초기화가 되었는지 판단 변수
     var initialLoad by remember { mutableStateOf(true) }
 
-    // 스케줄 페이지 상태
+    // 일정 페이지 상태
     val pageCount = (scheduleItems.size + 2) / 3
     val schedulePagerState = rememberPagerState(
         pageCount = {
@@ -108,19 +114,18 @@ fun HomeScreen(
         })
 
     // 무한 스크롤
+    val todoBuffer = 3
     val lazyListState = rememberLazyListState()
     val reachesBottom: Boolean by remember {
         derivedStateOf {
             val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index >= lazyListState.layoutInfo.totalItemsCount - buffer
+            lastVisibleItem != null && lastVisibleItem.index >= lazyListState.layoutInfo.totalItemsCount - todoBuffer
         }
     }
 
-    // FAB 메뉴
-    var isAddMenuExpanded by remember { mutableStateOf(false) }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
-
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -176,7 +181,7 @@ fun HomeScreen(
                 state = schedulePagerState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp)
+                    .padding(horizontal = 6.dp)
             ) { page ->
                 val startIndex = page * 3
                 val endIndex = minOf(startIndex + 3, scheduleItems.size)
@@ -192,7 +197,19 @@ fun HomeScreen(
                         for (i in scheduleGroup.indices step 3) {
                             Row {
                                 for (j in i until minOf(i + 3, scheduleGroup.size)) {
-                                    ScheduleItem(scheduleGroup[j])
+                                    if (!isCompletedViewChecked.value && scheduleGroup[j].isComplete) {
+
+                                    } else {
+                                        ScheduleItem(context, scheduleGroup[j])
+                                    }
+                                }
+                                // 로딩바
+                                if (isScheduleListLoading && page == pageCount - 1) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(16.dp),
+                                        color = colorResource(R.color.ios_gray)
+                                    )
                                 }
                             }
                         }
@@ -206,19 +223,11 @@ fun HomeScreen(
                     }
                 }
 
-                // 로딩바
-                if (isScheduleListLoading && page == pageCount - 1) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(16.dp),
-                        color = colorResource(R.color.ios_gray)
-                    )
-                }
+
             }
 
 
-            // LazyColumn
+            // 할 일
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier
@@ -362,8 +371,17 @@ fun HomeScreen(
 
 // 일정 Item
 @Composable
-fun ScheduleItem(schedule: Schedule) {
+fun ScheduleItem(context: Context, schedule: Schedule) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
+
+    val isDDayAnimation by rememberInfiniteTransition(label = "D-Day").animateFloat(
+        initialValue = 1f,
+        targetValue = 0.25f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "D-Day"
+    )
 
     Card(
         modifier = Modifier
@@ -371,11 +389,33 @@ fun ScheduleItem(schedule: Schedule) {
             .padding(
                 horizontal = 6.dp,
                 vertical = 4.dp,
-            ),
+            )
+            .clickable(
+                indication = ripple(
+                    bounded = true,
+                    color = colorResource(R.color.ios_gray),
+                ),
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                // 클릭 시 일정 상세보기
+                val intent = Intent(
+                    context,
+                    DetailScheduleActivity::class.java
+                ).apply {
+                    putExtra(
+                        "SCHEDULE_ID",
+                        schedule.id
+                    )
+                }
+                context.startActivity(intent)
+            },
         shape = RoundedCornerShape(4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.gray_menu),
+            containerColor = if (!schedule.isComplete) {
+                colorResource(id = R.color.gray_menu)
+            } else {
+                colorResource(id = R.color.ios_complete_gray) },
         )
     ) {
         Box(
@@ -384,19 +424,32 @@ fun ScheduleItem(schedule: Schedule) {
                 .padding(8.dp)
         ) {
             Column(
-                modifier = Modifier.align(Alignment.Center),
+                modifier = Modifier
+                    .align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 // D-Day
                 Text(
-                    text = "D-${schedule.daysBefore}",
-                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .alpha(if (schedule.daysBefore == 0) isDDayAnimation else 1f),
+                    text = if (schedule.daysBefore == 0) {
+                        "D-DAY"
+                    } else {
+                        "D-${schedule.daysBefore}"
+                    },
+                    fontWeight = if (schedule.daysBefore == 0) {
+                        FontWeight.Bold
+                    } else {
+                        FontWeight.SemiBold
+                    },
                 )
 
                 // 일정 제목
                 Text(
                     text = schedule.title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -416,10 +469,11 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
     val isExpanded = homeViewModel.isItemExpanded(thingsToDo.id)                // 확장 여부
     val deletedItems by homeViewModel.deletedItems.observeAsState(emptySet())   // 삭제 여부
     var showDialog by remember { mutableStateOf(false) }                  // dialog 보여짐 여부
-    var dialogMod by remember { mutableStateOf(DialogMod.DELETE) }              // dialog mod
+    var dialogMod by remember { mutableStateOf(DialogMod.TODO_DELETE) }              // dialog mod
 
     /*
-    * 애니매이션 */
+    * 애니매이션
+    * */
     val flashAnimation by rememberInfiniteTransition(label = "").animateFloat(
         initialValue = 1f,
         targetValue = 0f,
@@ -447,7 +501,17 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(4.dp),
+                            .padding(4.dp)
+                            .clickable(
+                                indication = ripple(
+                                    bounded = true,
+                                    color = colorResource(R.color.ios_gray),
+                                ),
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                // 클릭 시 확장
+                                homeViewModel.toggleItemExpansion(thingsToDo.id)
+                            },
                         shape = RoundedCornerShape(8.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         colors = CardDefaults.cardColors(
@@ -463,13 +527,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                         horizontal = 8.dp,
                                         vertical = 4.dp
                                     )
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) {
-                                        // 클릭 시 확장
-                                        homeViewModel.toggleItemExpansion(thingsToDo.id)
-                                    }
+
                                     .animateContentSize()
                             ) {
                                 // 제목, 남은 기간, 더보기
@@ -552,7 +610,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                                 // 상세보기 액티비티로 넘어가기
                                                                 val intent = Intent(
                                                                     context,
-                                                                    DetailActivity::class.java
+                                                                    DetailTodoActivity::class.java
                                                                 ).apply {
                                                                     putExtra(
                                                                         "TODO_ID",
@@ -631,7 +689,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                     indication = null,
                                                     interactionSource = remember { MutableInteractionSource() }
                                                 ) {
-                                                    dialogMod = DialogMod.DELETE
+                                                    dialogMod = DialogMod.TODO_DELETE
                                                     showDialog = true
                                                 }
                                                 .padding(8.dp),
@@ -663,7 +721,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                     indication = null,
                                                     interactionSource = remember { MutableInteractionSource() }
                                                 ) {
-                                                    dialogMod = DialogMod.COMPLETE
+                                                    dialogMod = DialogMod.TODO_COMPLETE
                                                     showDialog = true
                                                 }
                                                 .padding(8.dp),
@@ -684,17 +742,23 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                 BasicDialog(
                                     dialogType = dialogMod,
                                     showDialog = showDialog,
-                                    onDismiss = { showDialog = false },
-                                    onCancel = { showDialog = false },
+                                    onDismiss = {
+                                        showDialog = false
+                                        homeViewModel.collapseAllItems()
+                                    },
+                                    onCancel = {
+                                        showDialog = false
+                                        homeViewModel.collapseAllItems()
+                                    },
                                     onConfirmed = {
-                                        if (dialogMod == DialogMod.DELETE) {
+                                        if (dialogMod == DialogMod.TODO_DELETE) {
                                             homeViewModel.deleteTaskItem(thingsToDo.id)
-                                        } else if (dialogMod == DialogMod.COMPLETE) {
+                                        } else if (dialogMod == DialogMod.TODO_COMPLETE) {
                                             homeViewModel.completeTask(thingsToDo.id)
                                         }
+                                        homeViewModel.collapseAllItems()
                                     },
                                     title = thingsToDo.title,
-                                    homeViewModel = homeViewModel
                                 )
                             }
                         }
@@ -835,7 +899,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                                 // 상세보기 액티비티로 넘어가기
                                                                 val intent = Intent(
                                                                     context,
-                                                                    DetailActivity::class.java
+                                                                    DetailTodoActivity::class.java
                                                                 ).apply {
                                                                     putExtra(
                                                                         "TODO_ID",
@@ -904,7 +968,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                     indication = null,
                                                     interactionSource = remember { MutableInteractionSource() }
                                                 ) {
-                                                    dialogMod = DialogMod.DELETE
+                                                    dialogMod = DialogMod.TODO_DELETE
                                                     showDialog = true
                                                 }
                                                 .padding(8.dp),
@@ -936,7 +1000,7 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                                     indication = null,
                                                     interactionSource = remember { MutableInteractionSource() }
                                                 ) {
-                                                    dialogMod = DialogMod.CANCEL_COMPLETE
+                                                    dialogMod = DialogMod.TODO_CANCEL_COMPLETE
                                                     showDialog = true
                                                 }
                                                 .padding(8.dp),
@@ -955,17 +1019,23 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
                                     BasicDialog(
                                         dialogType = dialogMod,
                                         showDialog = showDialog,
-                                        onDismiss = { showDialog = false },
-                                        onCancel = { showDialog = false },
+                                        onDismiss = {
+                                            showDialog = false
+                                            homeViewModel.collapseAllItems()
+                                        },
+                                        onCancel = {
+                                            showDialog = false
+                                            homeViewModel.collapseAllItems()
+                                        },
                                         onConfirmed = {
-                                            if (dialogMod == DialogMod.DELETE) {
+                                            if (dialogMod == DialogMod.TODO_DELETE) {
                                                 homeViewModel.deleteTaskItem(thingsToDo.id)
-                                            } else if (dialogMod == DialogMod.CANCEL_COMPLETE) {
+                                            } else if (dialogMod == DialogMod.TODO_CANCEL_COMPLETE) {
                                                 homeViewModel.completeCancelTaskItem(thingsToDo.id)
                                             }
+                                            homeViewModel.collapseAllItems()
                                         },
                                         title = thingsToDo.title,
-                                        homeViewModel = homeViewModel
                                     )
                                 }
                             }
@@ -997,154 +1067,3 @@ fun ThingsToDoItem(context: Context, homeViewModel: HomeViewModel, thingsToDo: T
 }
 
 
-@Composable
-fun BasicDialog(
-    homeViewModel: HomeViewModel,
-    dialogType: DialogMod,
-    showDialog: Boolean,
-    onDismiss: () -> Unit,
-    onCancel: () -> Unit,
-    onConfirmed: () -> Unit,
-    title: String,
-) {
-    val dialogTitle: String
-    val dialogContent: String
-    val cancelButtonText: String
-    val confirmButtonText: String
-
-    when (dialogType) {
-        DialogMod.DELETE -> {
-            dialogTitle = "할 일 삭제"
-            dialogContent = "$title \n 항목을 정말로 삭제하시겠습니까?"
-            cancelButtonText = "취소"
-            confirmButtonText = "삭제"
-        }
-
-        DialogMod.COMPLETE -> {
-            dialogTitle = "할 일 완료"
-            dialogContent = "$title \n 항목을 정말로 완료하시겠습니까?"
-            cancelButtonText = "취소"
-            confirmButtonText = "완료"
-        }
-
-        DialogMod.CANCEL_COMPLETE -> {
-            dialogTitle = "완료 취소"
-            dialogContent = "$title \n 항목을 정말로 완료 취소하시겠습니까?"
-            cancelButtonText = "취소"
-            confirmButtonText = "완료 취소"
-        }
-    }
-
-    if (showDialog) {
-        Dialog(
-            onDismissRequest = { onDismiss() }
-        ) {
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier
-                    .defaultMinSize(minWidth = 240.dp)
-                    .width(260.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .background(colorResource(R.color.ios_dialog_gray)),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // 제목
-                    Row(
-                        modifier = Modifier.padding(top = 16.dp)
-                    ) {
-                        Text(
-                            text = dialogTitle,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-
-                    // 내용
-                    Row(
-                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
-                    ) {
-                        Text(
-                            text = dialogContent,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-
-                    // 버튼
-                    HorizontalDivider(
-                        thickness = 1.dp, color = Color.Gray.copy(alpha = 0.5f)
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-
-                        // 왼쪽 버튼
-                        Column(
-                            modifier = Modifier
-                                .background(Color.Transparent)
-                                .weight(1f)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) {
-                                    onCancel()
-                                    onDismiss()
-                                    // 모든 아이템 확장 취소
-                                    homeViewModel.collapseAllItems()
-                                }
-                                .padding(8.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = cancelButtonText,
-                                color = Color.Red,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-
-                        // 구분선
-                        Spacer(modifier = Modifier.width(4.dp))
-                        VerticalDivider(
-                            thickness = 1.dp,
-                            color = Color.Gray.copy(alpha = 0.5f),
-                            modifier = Modifier.height(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        // 오른쪽 버튼
-                        Column(
-                            modifier = Modifier
-                                .background(Color.Transparent)
-                                .weight(1f)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) {
-                                    onConfirmed()
-                                    onDismiss()
-                                    // 모든 아이템 확장 취소
-                                    homeViewModel.collapseAllItems()
-                                }
-                                .padding(8.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = confirmButtonText,
-                                color = colorResource(R.color.ios_blue),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
