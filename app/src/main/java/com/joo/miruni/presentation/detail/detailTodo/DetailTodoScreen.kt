@@ -1,17 +1,17 @@
-package com.joo.miruni.presentation.detailPage
+package com.joo.miruni.presentation.detail.detailTodo
 
 import android.app.Activity
 import android.content.Context
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.repeatable
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +28,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -56,10 +58,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.joo.miruni.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.android.material.timepicker.TimeFormat
@@ -72,8 +75,8 @@ import java.time.LocalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModifyScreen(
-    detailViewModel: DetailViewModel = hiltViewModel(),
+fun DetailTodoScreen(
+    detailTodoViewModel: DetailTodoViewModel = hiltViewModel(),
 ) {
     // 현재 컨택스트
     val context = LocalContext.current
@@ -81,40 +84,61 @@ fun ModifyScreen(
     // 키보드 컨트롤러
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // 스크롤 상태
+    val scrollState = rememberScrollState()
+
     /*
     * Live Data
     *  */
-    val todoText by detailViewModel.todoText.observeAsState("")
-    val descriptionText by detailViewModel.descriptionText.observeAsState("")
+    val todoText by detailTodoViewModel.todoText.observeAsState("")
+    val descriptionText by detailTodoViewModel.descriptionText.observeAsState("")
 
-    val showDatePicker by detailViewModel.showDatePicker.observeAsState(false)
-    val showTimePicker by detailViewModel.showTimePicker.observeAsState(false)
-    val showAlarmDisplayStartDatePicker by detailViewModel.showAlarmDisplayStartDatePicker.observeAsState(
+    val isModified by detailTodoViewModel.isModified.observeAsState()
+
+    val showDatePicker by detailTodoViewModel.showDatePicker.observeAsState(false)
+    val showTimePicker by detailTodoViewModel.showTimePicker.observeAsState(false)
+    val showAlarmDisplayStartDatePicker by detailTodoViewModel.showAlarmDisplayStartDatePicker.observeAsState(
         true
     )
 
-    val selectDate by detailViewModel.selectedDate.observeAsState()
-    val selectTime by detailViewModel.selectedTime.observeAsState()
-    val selectedAlarmDisplayDate by detailViewModel.selectedAlarmDisplayDate.observeAsState()
+    val selectDate by detailTodoViewModel.selectedDate.observeAsState()
+    val selectTime by detailTodoViewModel.selectedTime.observeAsState()
+    val selectedAlarmDisplayDate by detailTodoViewModel.selectedAlarmDisplayDate.observeAsState()
 
-    val isTodoTextEmpty by detailViewModel.isTodoTextEmpty.observeAsState(false)
-    val isTodoAddedSuccess by detailViewModel.isTodoAdded.observeAsState(false)
+    val isTodoTextEmpty by detailTodoViewModel.isTodoTextEmpty.observeAsState(false)
+    val isTodoAddedSuccess by detailTodoViewModel.isTodoUpdate.observeAsState(false)
 
     /*
     * 애니매이션
     * */
-    val shakeAnimation by animateFloatAsState(
-        targetValue = if (isTodoTextEmpty) 30f else 0f,
-        animationSpec = repeatable(
-            iterations = 6,
-            animation = tween(
-                durationMillis = 100,
-                easing = FastOutSlowInEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        ), label = "Shaking Animation"
-    )
-    val shakeOffset = if (isTodoTextEmpty) shakeAnimation else 0f
+    val todoTextColor = if (isTodoTextEmpty) Color.Red else colorResource(R.color.ios_gray)
+    val todoShakeOffset = remember { Animatable(0f) }
+
+    // keyFrames 단위로 흔들기 애니매이션
+    val shakeKeyframes: AnimationSpec<Float> = keyframes {
+        durationMillis = 400
+        val easing = FastOutLinearInEasing
+
+        for (i in 1..8) {
+            val x = when (i % 3) {
+                0 -> 4f
+                1 -> -4f
+                else -> 0f
+            }
+            x at durationMillis / 10 * i using easing
+        }
+    }
+
+    // 비었을 시 애니메이션 실행
+    LaunchedEffect(isTodoTextEmpty) {
+        if (isTodoTextEmpty) {
+            todoShakeOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = shakeKeyframes
+            )
+            detailTodoViewModel.finishAnimation()
+        }
+    }
 
 
     // Todo추가 성공 시 해당 액티비티 종료
@@ -145,10 +169,14 @@ fun ModifyScreen(
                             text = "수정",
                             modifier = Modifier
                                 .padding(start = 16.dp)
-                                .clickable {
-                                    detailViewModel.updateTodoItem()
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    enabled = isModified == true
+                                ) {
+                                    detailTodoViewModel.updateTodoItem()
                                 },
-                            color = colorResource(id = R.color.ios_blue)
+                            color = if (isModified == true) colorResource(id = R.color.ios_blue) else Color.Transparent,
                         )
                     }
                 },
@@ -176,6 +204,7 @@ fun ModifyScreen(
             modifier = Modifier
                 .padding(contentPadding)
                 .padding(16.dp)
+                .verticalScroll(scrollState)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -187,7 +216,15 @@ fun ModifyScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 60.dp)
-                            .offset(x = with(LocalDensity.current) { shakeOffset.toDp() })
+                            .offset {
+                                IntOffset(
+                                    x = todoShakeOffset.value
+                                        .toDp()
+                                        .toPx()
+                                        .toInt(),
+                                    y = 0
+                                )
+                            }
                     ) {
                         Text(
                             text = "할 일",
@@ -199,18 +236,14 @@ fun ModifyScreen(
                         TextField(
                             value = todoText,
                             onValueChange = {
-                                detailViewModel.updateTodoText(it)
+                                detailTodoViewModel.updateTodoText(it)
                             },
                             singleLine = true,
                             placeholder = {
                                 Text(
                                     text = "할 일",
                                     fontSize = 16.sp,
-                                    color = if (isTodoTextEmpty) {
-                                        Color.Red
-                                    } else {
-                                        colorResource(id = R.color.ios_gray)
-                                    }
+                                    color = todoTextColor
                                 )
 
                             },
@@ -219,6 +252,7 @@ fun ModifyScreen(
                                 focusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = colorResource(R.color.ios_blue),
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -246,7 +280,7 @@ fun ModifyScreen(
                         TextField(
                             value = descriptionText,
                             onValueChange = {
-                                detailViewModel.updateDescriptionText(it)
+                                detailTodoViewModel.updateDescriptionText(it)
                             },
                             singleLine = false,
                             placeholder = {
@@ -261,6 +295,7 @@ fun ModifyScreen(
                                 focusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = colorResource(R.color.ios_blue),
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -292,7 +327,7 @@ fun ModifyScreen(
                         // 날짜 선택 버튼
                         Button(
                             onClick = {
-                                detailViewModel.clickedDatePickerBtn()
+                                detailTodoViewModel.clickedDatePickerBtn()
                                 keyboardController?.hide()
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -305,7 +340,7 @@ fun ModifyScreen(
                             ),
                         ) {
                             Text(
-                                text = detailViewModel.formatSelectedDate(
+                                text = detailTodoViewModel.formatSelectedDate(
                                     selectDate ?: LocalDate.now()
                                 ),
                                 color = colorResource(id = R.color.ios_blue),
@@ -317,7 +352,7 @@ fun ModifyScreen(
                         // 시간 선택 버튼
                         Button(
                             onClick = {
-                                detailViewModel.clickedTimePickerBtn()
+                                detailTodoViewModel.clickedTimePickerBtn()
                                 keyboardController?.hide()
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -330,7 +365,7 @@ fun ModifyScreen(
                             ),
                         ) {
                             Text(
-                                text = detailViewModel.formatLocalTimeToString(
+                                text = detailTodoViewModel.formatLocalTimeToString(
                                     selectTime ?: LocalTime.now()
                                 ),
                                 color = colorResource(id = R.color.ios_blue),
@@ -355,9 +390,9 @@ fun ModifyScreen(
                         ) {
                             DatePicker(
                                 context = context,
-                                detailViewModel = detailViewModel,
-                                onDateSelected = { date -> detailViewModel.selectDate(date) },
-                                onMonthChanged = { month -> detailViewModel.changeMonth(month) },
+                                detailTodoViewModel = detailTodoViewModel,
+                                onDateSelected = { date -> detailTodoViewModel.selectDate(date) },
+                                onMonthChanged = { month -> detailTodoViewModel.changeMonth(month) },
                             )
                         }
 
@@ -379,12 +414,12 @@ fun ModifyScreen(
                                     offset = 2,
                                     selectorEffectEnabled = true,
                                     timeFormat = TimeFormat.CLOCK_12H,
-                                    startTime = detailViewModel.selectedTime.value?.let {
-                                        detailViewModel.convertLocalTimeToTime(it)
+                                    startTime = detailTodoViewModel.selectedTime.value?.let {
+                                        detailTodoViewModel.convertLocalTimeToTime(it)
                                     } ?: Time(12, 0, "오전"),
                                     textSize = 19,
                                     onTimeChanged = { hour, minute, format ->
-                                        detailViewModel.updateSelectedTime(
+                                        detailTodoViewModel.updateSelectedTime(
                                             hour,
                                             minute,
                                             format ?: "오전"
@@ -397,7 +432,7 @@ fun ModifyScreen(
 
                                 Button(
                                     onClick = {
-                                        detailViewModel.clickedTimePickerBtn()
+                                        detailTodoViewModel.clickedTimePickerBtn()
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color(0xFF007AFF),
@@ -442,7 +477,7 @@ fun ModifyScreen(
                                 .padding(end = 8.dp)
                                 .clickable(
                                     onClick = {
-                                        detailViewModel.clickedAlarmDisplayStartDateText()
+                                        detailTodoViewModel.clickedAlarmDisplayStartDateText()
                                         keyboardController?.hide()
                                     }),
                             fontSize = 16.sp,
@@ -479,13 +514,13 @@ fun ModifyScreen(
                                     selectedNumber = selectedAlarmDisplayDate?.amount ?: 1,
                                     selectedText = selectedAlarmDisplayDate?.unit ?: "주",
                                     onDurationAmountChanged = { newAmount ->
-                                        detailViewModel.updateSelectedAlarmDisplayDate(
+                                        detailTodoViewModel.updateSelectedAlarmDisplayDate(
                                             newAmount,
                                             null
                                         )
                                     },
                                     onDurationUnitChanged = { newUnit ->
-                                        detailViewModel.updateSelectedAlarmDisplayDate(
+                                        detailTodoViewModel.updateSelectedAlarmDisplayDate(
                                             null,
                                             newUnit
                                         )
@@ -496,7 +531,7 @@ fun ModifyScreen(
 
                                 Button(
                                     onClick = {
-                                        detailViewModel.clickedAlarmDisplayStartDateText()
+                                        detailTodoViewModel.clickedAlarmDisplayStartDateText()
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color(0xFF007AFF),
@@ -528,18 +563,14 @@ fun ModifyScreen(
 @Composable
 fun DatePicker(
     context: Context,
-    detailViewModel: DetailViewModel,
+    detailTodoViewModel: DetailTodoViewModel,
     onDateSelected: (LocalDate) -> Unit,
     onMonthChanged: (Int) -> Unit,
 ) {
-    val selectedDate by detailViewModel.selectedDate.observeAsState(LocalDate.now())
+    val selectedDate by detailTodoViewModel.selectedDate.observeAsState(LocalDate.now())
     val currentDate = selectedDate ?: LocalDate.now()
 
     val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
-    val months = listOf(
-        "1월", "2월", "3월", "4월", "5월", "6월",
-        "7월", "8월", "9월", "10월", "11월", "12월"
-    )
 
     // 달력 렌더링
     val renderCalendar: @Composable () -> Unit = {
@@ -634,7 +665,7 @@ fun DatePicker(
             ) {
                 // 날짜 표시 텍스트
                 Text(
-                    text = detailViewModel.formatSelectedDateForCalendar(),
+                    text = detailTodoViewModel.formatSelectedDateForCalendar(),
                     fontSize = 18.sp,
                     modifier = Modifier.padding(start = 8.dp),
                     textAlign = TextAlign.Center,

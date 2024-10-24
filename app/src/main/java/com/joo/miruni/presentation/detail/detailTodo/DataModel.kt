@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.detailPage
+package com.joo.miruni.presentation.detail.detailTodo
 
 import com.joo.miruni.domain.model.TodoEntity
 import java.time.LocalDate

@@ -49,7 +49,15 @@
         </activity>
 
         <activity
-            android:name=".presentation.detailPage.DetailActivity"
+            android:name=".presentation.detail.detailTodo.DetailTodoActivity"
+            android:exported="true">
+            <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".presentation.detail.detailSchedule.DetailScheduleActivity"
             android:exported="true">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />

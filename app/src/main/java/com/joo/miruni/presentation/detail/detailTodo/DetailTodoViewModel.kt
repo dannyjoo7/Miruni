@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.detailPage
+package com.joo.miruni.presentation.detail.detailTodo
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -19,12 +19,12 @@ import javax.inject.Inject
 import kotlin.math.absoluteValue
 
 @HiltViewModel
-class DetailViewModel @Inject constructor(
+class DetailTodoViewModel @Inject constructor(
     private val getTodoItemByIDUseCase: GetTodoItemByIDUseCase,
     private val updateTodoItemUseCase: UpdateTodoItemUseCase,
 ) : ViewModel() {
     companion object {
-        const val TAG = "DetailViewModel"
+        const val TAG = "DetailTodoViewModel"
 
         const val MAX_TODO_LENGTH = 20
         const val MAX_DESCRIPTION_LENGTH = 100
@@ -37,6 +37,10 @@ class DetailViewModel @Inject constructor(
     // TodoItem
     private val _todoItem = MutableLiveData<TodoItem>()
     val todoItem: LiveData<TodoItem> get() = _todoItem
+
+    // 수정 됐는지 판단 변수
+    private val _isModified = MutableLiveData(false)
+    val isModified: LiveData<Boolean> get() = _isModified
 
     // 할 일 텍스트
     private val _todoText = MutableLiveData("")
@@ -80,9 +84,9 @@ class DetailViewModel @Inject constructor(
     val isTodoTextEmpty: LiveData<Boolean> get() = _isTodoTextEmpty
 
 
-    // AddTodo 성공 여부
-    private val _isTodoAdded = MutableLiveData<Boolean>(false)
-    val isTodoAdded: LiveData<Boolean> get() = _isTodoAdded
+    // updateTodo 성공 여부
+    private val _isTodoUpdate = MutableLiveData<Boolean>(false)
+    val isTodoUpdate: LiveData<Boolean> get() = _isTodoUpdate
 
 
     /*
@@ -119,15 +123,20 @@ class DetailViewModel @Inject constructor(
         }
     }
 
+    /*
+    * UI
+    * */
 
     // 할 일 텍스트 업데이트
     fun updateTodoText(newValue: String) {
         _todoText.value = newValue.take(MAX_TODO_LENGTH)
+        isModify()
     }
 
     // 세부사항 텍스트 업데이트
     fun updateDescriptionText(newValue: String) {
         _descriptionText.value = newValue.take(MAX_DESCRIPTION_LENGTH)
+        isModify()
     }
 
     // DatePicker 가시성 on/off
@@ -155,22 +164,12 @@ class DetailViewModel @Inject constructor(
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date
         _showDatePicker.value = false
+        isModify()
     }
 
     // 선택된 날짜 업데이트 메소드
     fun updateSelectedDate(date: LocalDate?) {
         _selectedDate.value = date
-    }
-
-    // 선택된 시간 업데이트 메서드
-    fun updateSelectedTime(hour: Int, minute: Int, format: String) {
-        val adjustedHour = when {
-            format == "오후" && hour != 12 -> hour + 12
-            format == "오전" && hour == 12 -> 0
-            else -> hour
-        }
-        val newTime = LocalTime.of(adjustedHour, minute)
-        _selectedTime.value = newTime
     }
 
     // 선택된 알람 표시일 업데이트 메서드
@@ -181,8 +180,13 @@ class DetailViewModel @Inject constructor(
             amount = amount ?: currentValue.amount,
             unit = durationUnit ?: currentValue.unit
         )
+        isModify()
     }
 
+    // 애니메이션 종료
+    fun finishAnimation() {
+        _isTodoTextEmpty.value = false
+    }
 
     /*
     * TimePicker
@@ -236,6 +240,24 @@ class DetailViewModel @Inject constructor(
         return "${adjustedHour}:${minute.toString().padStart(2, '0')} $format"
     }
 
+    // 선택된 시간 업데이트 메서드
+    fun updateSelectedTime(hour: Int, minute: Int, format: String) {
+        val adjustedHour = when {
+            format == "오후" && hour != 12 -> hour + 12
+            format == "오전" && hour == 12 -> 0
+            else -> hour
+        }
+        val newTime = LocalTime.of(adjustedHour, minute)
+        _selectedTime.value = newTime
+        isModify()
+    }
+
+    // 현재 시간을 5분 단위로 조정
+    private fun getCurrentTimeIn5MinIntervals(): LocalTime {
+        val now = LocalTime.now()
+        val adjustedMinute = (now.minute / 5) * 5
+        return LocalTime.of(now.hour, adjustedMinute)
+    }
 
     /*
     * DatePicker
@@ -302,14 +324,13 @@ class DetailViewModel @Inject constructor(
             runCatching {
                 updateTodoItemUseCase(todoItem)
             }.onSuccess {
-                _isTodoAdded.value = true
+                _isTodoUpdate.value = true
             }.onFailure { exception ->
-                _isTodoAdded.value = false
+                _isTodoUpdate.value = false
                 Log.e(TAG, exception.message.toString())
             }
         }
     }
-
 
     // 알람 표시 시작일 계산 메소드
     private fun calculateAdjustedDate(
@@ -351,7 +372,10 @@ class DetailViewModel @Inject constructor(
         return date.atTime(time)
     }
 
-
+    // 항목이 수정됨
+    private fun isModify() {
+        _isModified.value = true
+    }
 }
 
 

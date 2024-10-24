@@ -1,4 +1,4 @@
-package com.joo.miruni.presentation.detailPage
+package com.joo.miruni.presentation.detail.detailTodo
 
 
 import android.os.Bundle
@@ -10,8 +10,8 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class DetailActivity : ComponentActivity() {
-    private val detailViewModel: DetailViewModel by viewModels()
+class DetailTodoActivity : ComponentActivity() {
+    private val detailTodoViewModel: DetailTodoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,11 +30,11 @@ class DetailActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            ModifyScreen(detailViewModel)
+            DetailTodoScreen(detailTodoViewModel)
         }
     }
 
     private fun initModel(todoId: Long) {
-        detailViewModel.loadTodoDetails(todoId)
+        detailTodoViewModel.loadTodoDetails(todoId)
     }
 }
