@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,26 +47,25 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.joo.miruni.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.material.timepicker.TimeFormat
+import com.joo.miruni.R
 import com.joo.miruni.presentation.widget.AlarmDisplayDatePicker
 import com.joo.miruni.presentation.widget.WheelTimePicker
 import java.time.LocalDate
@@ -166,7 +166,10 @@ fun AddTodoScreen(
                             text = "추가",
                             modifier = Modifier
                                 .padding(start = 16.dp)
-                                .clickable {
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
                                     addTodoViewModel.addTodoItem()
                                 },
                             color = colorResource(id = R.color.ios_blue)
@@ -209,7 +212,15 @@ fun AddTodoScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 60.dp)
-                            .offset(x = todoShakeOffset.value.dp)
+                            .offset {
+                                IntOffset(
+                                    x = todoShakeOffset.value
+                                        .toDp()
+                                        .toPx()
+                                        .toInt(),
+                                    y = 0
+                                )
+                            }
                     ) {
                         Text(
                             text = "할 일",
@@ -555,10 +566,6 @@ fun DatePicker(
     val currentDate = selectedDate ?: LocalDate.now()
 
     val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
-    val months = listOf(
-        "1월", "2월", "3월", "4월", "5월", "6월",
-        "7월", "8월", "9월", "10월", "11월", "12월"
-    )
 
     // 달력 렌더링
     val renderCalendar: @Composable () -> Unit = {

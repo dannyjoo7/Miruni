@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.joo.miruni.domain.usecase.AddTodoItemUseCase
 import com.joo.miruni.presentation.widget.Time
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -25,10 +24,6 @@ class AddTodoViewModel @Inject constructor(
 
         const val MAX_TODO_LENGTH = 20
         const val MAX_DESCRIPTION_LENGTH = 100
-    }
-
-    init {
-
     }
 
     /*
@@ -81,6 +76,9 @@ class AddTodoViewModel @Inject constructor(
     private val _isTodoAdded = MutableLiveData<Boolean>(false)
     val isTodoAdded: LiveData<Boolean> get() = _isTodoAdded
 
+    /*
+    * 메소드
+    * */
 
     /*
     * UI
@@ -138,6 +136,10 @@ class AddTodoViewModel @Inject constructor(
         )
     }
 
+    // 애니메이션 종료
+    fun finishAnimation() {
+        _isTodoTextEmpty.value = false
+    }
 
     /*
     * TimePicker
@@ -299,10 +301,7 @@ class AddTodoViewModel @Inject constructor(
         return date.atTime(time)
     }
 
-    // 애니메이션 종료
-    fun finishAnimation() {
-        _isTodoTextEmpty.value = false
-    }
+
 }
 
 

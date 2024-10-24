@@ -32,7 +32,7 @@ class AddScheduleViewModel @Inject constructor(
     * 변수
     * */
 
-    // 할 일 텍스트
+    // 일정 텍스트
     private val _titleText = MutableLiveData("")
     val titleText: LiveData<String> get() = _titleText
 
@@ -49,20 +49,10 @@ class AddScheduleViewModel @Inject constructor(
     private val _selectedEndDate = MutableLiveData<LocalDate?>(null)
     val selectedEndDate: LiveData<LocalDate?> get() = _selectedEndDate
 
-    // 선택된 알람 표시 시간
-    private val _selectedAlarmDisplayDate = MutableLiveData<AlarmDisplayDuration>(
-        AlarmDisplayDuration(1, "주")
-    )
-    val selectedAlarmDisplayDate: LiveData<AlarmDisplayDuration> get() = _selectedAlarmDisplayDate
-
 
     // Bool 시작 날짜 선택 진행 유뮤
     private val _showDateRangePicker = MutableLiveData(false)
     val showDateRangePicker: LiveData<Boolean> get() = _showDateRangePicker
-
-    // Bool 알람 표시 시작일 선택 진행 유뮤
-    private val _showAlarmDisplayStartDatePicker = MutableLiveData(false)
-    val showAlarmDisplayStartDatePicker: LiveData<Boolean> get() = _showAlarmDisplayStartDatePicker
 
 
     // TodoTextEmpty 무결성 검사
@@ -95,22 +85,11 @@ class AddScheduleViewModel @Inject constructor(
     // StartDatePicker 가시성 on/off
     fun clickedDateRangePickerBtn() {
         _showDateRangePicker.value = _showDateRangePicker.value?.not()
-        _showAlarmDisplayStartDatePicker.value = false
     }
 
     // AlarmDisplayDatePicker 가시성 on/off
     fun clickedAlarmDisplayStartDateText() {
-        _showAlarmDisplayStartDatePicker.value = _showAlarmDisplayStartDatePicker.value?.not()
         _showDateRangePicker.value = false
-    }
-
-    // 선택된 알람 표시일 업데이트 메서드
-    fun updateSelectedAlarmDisplayDate(amount: Int? = null, durationUnit: String? = null) {
-        val currentValue = _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
-        _selectedAlarmDisplayDate.value = AlarmDisplayDuration(
-            amount = amount ?: currentValue.amount,
-            unit = durationUnit ?: currentValue.unit
-        )
     }
 
     /*
@@ -176,14 +155,12 @@ class AddScheduleViewModel @Inject constructor(
         if (validateScheduleItem()) {
             viewModelScope.launch {
                 val scheduleItem = ScheduleItem(
+                    id = 0,
                     title = _titleText.value ?: "",
                     descriptionText = _descriptionText.value ?: "",
                     startDate = _selectedStartDate.value ?: LocalDate.now().plusDays(1),
                     endDate = _selectedEndDate.value ?: LocalDate.now().plusDays(1),
-                    adjustedDate = calculateAdjustedDate(
-                        _selectedStartDate.value ?: LocalDate.now(),
-                        _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
-                    )
+                    isComplete = false
                 )
                 runCatching {
                     addScheduleItemUseCase(scheduleItem)
