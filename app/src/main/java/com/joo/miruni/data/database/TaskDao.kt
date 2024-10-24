@@ -66,7 +66,7 @@ interface TaskDao {
 
     // taskId로 task 찾기
     @Query("SELECT * FROM tasks WHERE id = :taskId")
-    suspend fun getTodoItemById(taskId: Long): TaskEntity
+    suspend fun getTaskItemById(taskId: Long): TaskEntity
 
     // task 업데이트 메소드
     @Update
@@ -94,5 +94,4 @@ interface TaskDao {
         limit: Int = 5,
         taskType: TaskType = TaskType.SCHEDULE,
     ): Flow<List<TaskEntity>>
-
 }
