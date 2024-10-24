@@ -40,7 +40,7 @@ fun ScheduleEntity.toTaskEntity() = TaskEntity(
     startDate = startDate,
     endDate = endDate,
     deadLine = null,
-    alarmDisplayDate = alarmDisplayDate,
+    alarmDisplayDate = null,
     isComplete = isComplete,
     completeDate = completeDate,
     type = type
@@ -50,14 +50,14 @@ fun ScheduleEntity.toTaskEntity() = TaskEntity(
 * ScheduleItem to ScheduleEntity
 * */
 
-// AddTodo
+// AddSchedule
 fun ScheduleItem.toScheduleEntity() = ScheduleEntity(
-    id = 0,
+    id = id,
     title = title,
     details = descriptionText,
     startDate = startDate,
     endDate = endDate,
-    alarmDisplayDate = adjustedDate,
+    alarmDisplayDate = null,
     isComplete = false,
     completeDate = null,
     type = TaskType.SCHEDULE,

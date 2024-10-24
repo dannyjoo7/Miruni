@@ -12,7 +12,7 @@ data class ScheduleEntity(
     val startDate: LocalDate?,
     val endDate: LocalDate?,
 
-    val alarmDisplayDate: LocalDate,
+    val alarmDisplayDate: LocalDate?,
     val isComplete: Boolean,
     val completeDate: LocalDateTime?,
 

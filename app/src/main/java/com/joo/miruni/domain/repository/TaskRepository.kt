@@ -9,21 +9,62 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface TaskRepository {
+
+    /*
+    * TASK
+    * */
+
+    // 날짜 범위로 task 데이터 가져오기
     suspend fun getTasksForDateRange(start: LocalDate, end: LocalDate): List<TaskEntity>
+
+    // 날짜 범위와 알람 표시일을 기준으로 task 데이터 가져오기
     suspend fun getTasksForAlarmDisplayDateRange(start: LocalDate, end: LocalDate): List<TaskEntity>
+
+    // 기한이 지난 task 가져오기
+    suspend fun getOverdueTaskEntities(date: LocalDateTime): Flow<TaskItemsEntity>
+
+    // task 삭제
+    suspend fun deleteTaskById(id: Long)
+
+    // task 완료
+    suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime)
+
+    // task 완료 취소
+    suspend fun markTaskAsCancelCompleted(id: Long)
+
+    // task 업데이트
+    suspend fun updateTask(taskEntity: TaskEntity)
+
+    // task ID로 찾기
+    suspend fun getTaskItemById(taskId: Long): TaskEntity
+
+    /*
+    * 할 일
+    * */
+
+    // 할 일 추가
     suspend fun addTodo(todoEntity: TodoEntity)
+
+    // 할 일 추가 load
     suspend fun getTasksForAlarmByDate(
         selectDate: LocalDateTime,
         lastDeadLine: LocalDateTime? = null,
     ): Flow<TaskItemsEntity>
 
-    suspend fun deleteTaskById(id: Long)
-    suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime)
-    suspend fun markTaskAsCancelCompleted(id: Long)
-    suspend fun getTodoItemById(taskId: Long): TaskEntity
-    suspend fun updateTask(todoEntity: TodoEntity)
+    // 할 일 미루기
     suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime)
-    suspend fun getOverdueTaskEntities(date: LocalDateTime): Flow<TaskItemsEntity>
+
+
+    /*
+    * 일정
+    * */
+
+    // 일정 추가
     suspend fun addSchedule(scheduleEntity: ScheduleEntity)
-    suspend fun getSchedules(selectDate: LocalDate, lastStartDate: LocalDate?): Flow<TaskItemsEntity>
+
+    // 일정 선택된 날짜 기준으로 가져오기
+    suspend fun getSchedules(
+        selectDate: LocalDate,
+        lastStartDate: LocalDate?,
+    ): Flow<TaskItemsEntity>
 }

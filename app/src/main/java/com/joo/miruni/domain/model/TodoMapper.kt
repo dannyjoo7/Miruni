@@ -4,6 +4,7 @@ import com.joo.miruni.data.entities.TaskEntity
 import com.joo.miruni.data.entities.TaskItemsEntity
 import com.joo.miruni.data.entities.TaskType
 import com.joo.miruni.presentation.addTask.addTodo.TodoItem
+import java.time.LocalDate
 
 /*
 * TaskEntity to TodoEntity*/
@@ -19,7 +20,7 @@ fun TaskEntity.toTodoEntity() = TodoEntity(
     title = title,
     details = details,
     deadLine = deadLine,
-    alarmDisplayDate = alarmDisplayDate,
+    alarmDisplayDate = alarmDisplayDate ?: LocalDate.now(),
     isComplete = isComplete,
     completeDate = completeDate,
     type = type,
@@ -60,7 +61,7 @@ fun TodoItem.toTodoEntity() = TodoEntity(
 )
 
 // Modify
-fun com.joo.miruni.presentation.detailPage.TodoItem.toTodoEntity() = TodoEntity(
+fun com.joo.miruni.presentation.detail.detailTodo.TodoItem.toTodoEntity() = TodoEntity(
     id = id!!,
     title = todoText,
     details = descriptionText,
