@@ -6,6 +6,10 @@
     <!-- 메뉴 회색 색상 -->
     <color name="gray_menu">#FFF5F5F5</color>
 
+
+    <!-- 빨간 색상 -->
+    <color name="ios_red">#FFFF3B30</color>
+
     <!-- 오랜지 색상 -->
     <color name="orange">#FFFF9D00</color>
 
