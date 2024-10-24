@@ -16,6 +16,8 @@ import com.joo.miruni.domain.usecase.GetAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.GetAlarmTimeUseCaseImpl
 import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCaseImpl
+import com.joo.miruni.domain.usecase.GetScheduleItemByIDUseCase
+import com.joo.miruni.domain.usecase.GetScheduleItemByIDUseCaseImpl
 import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
 import com.joo.miruni.domain.usecase.GetScheduleItemsUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCase
@@ -28,6 +30,8 @@ import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCase
 import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCaseImpl
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCaseImpl
+import com.joo.miruni.domain.usecase.UpdateScheduleItemUseCase
+import com.joo.miruni.domain.usecase.UpdateScheduleItemUseCaseImpl
 import com.joo.miruni.domain.usecase.UpdateTodoItemUseCase
 import com.joo.miruni.domain.usecase.UpdateTodoItemUseCaseImpl
 import dagger.Binds
@@ -99,7 +103,6 @@ abstract class UseCaseModule {
     ): GetScheduleItemsUseCase
 
 
-
     @Binds
     @Singleton
     abstract fun bindDeleteTaskItemUseCase(
@@ -151,5 +154,17 @@ abstract class UseCaseModule {
     abstract fun bindUpdateTodoItemUseCase(
         updateTodoItemUseCaseImpl: UpdateTodoItemUseCaseImpl,
     ): UpdateTodoItemUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindGetScheduleItemByIDUseCase(
+        getScheduleItemByIDUseCaseImpl: GetScheduleItemByIDUseCaseImpl,
+    ): GetScheduleItemByIDUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindUpdateScheduleItemUseCase(
+        updateScheduleItemUseCaseImpl: UpdateScheduleItemUseCaseImpl,
+    ): UpdateScheduleItemUseCase
 }
 
