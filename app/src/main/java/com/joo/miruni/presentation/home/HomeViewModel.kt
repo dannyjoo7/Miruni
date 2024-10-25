@@ -240,7 +240,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
     // 미루기 메소드
     fun delayTodoItem(thingsTodo: ThingsTodo) {
         viewModelScope.launch {
@@ -296,44 +295,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // TodoTings가 확장 되어있는지 판단 메소드
-    fun isItemExpanded(id: Long): Boolean {
-        return _expandedItems.value.contains(id)
-    }
-
     // TodoTings가 모든 확장 해제 메소드
     fun collapseAllItems() {
         _expandedItems.value = emptySet()
-    }
-
-    // 남은 시간에 따른 색 결정 메소드
-    fun getColorForRemainingTime(deadline: LocalDateTime): Importance {
-        val now = LocalDateTime.now()
-        val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
-
-        return when {
-            minutesRemaining < 720 -> Importance.BLINK_RED      // 12시간 이내
-            minutesRemaining < 1440 -> Importance.RED           // 24시간 이내
-            minutesRemaining < 2880 -> Importance.ORANGE        // 2일 이내
-            minutesRemaining < 4320 -> Importance.YELLOW        // 3일 이내
-            else -> Importance.GREEN                            // 7일 이내
-        }
-    }
-
-    // 남은 시간 포맷 메소드
-    fun formatTimeRemaining(deadline: LocalDateTime): String {
-        val now = LocalDateTime.now()
-        val minutesRemaining = ChronoUnit.MINUTES.between(now, deadline)
-        val hoursRemaining = ChronoUnit.HOURS.between(now, deadline)
-        val daysRemaining = ChronoUnit.DAYS.between(now, deadline)
-
-        return when {
-            minutesRemaining < 0 -> "기한 만료"
-            minutesRemaining < 60 -> "${minutesRemaining}분 후"
-            hoursRemaining < 24 -> "${hoursRemaining}시간 후"
-            daysRemaining < 7 -> "${daysRemaining}일 후"
-            else -> deadline.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
-        }
     }
 
     // 날짜 Text 포멧
@@ -346,22 +310,6 @@ class HomeViewModel @Inject constructor(
             selectDate.isEqual(today) -> "오늘"
             selectDate.isEqual(today.plusDays(1)) -> "내일"
             else -> selectDate.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
-        }
-    }
-
-    // 날짜 및 시간 Text 포맷
-    fun formatLocalDateTime(date: LocalDateTime?): String {
-        val currentYear = LocalDateTime.now().year
-        return when (date) {
-            null -> "(알 수 없음)"
-            else -> {
-                val formatter = if (date.year == currentYear) {
-                    DateTimeFormatter.ofPattern("M월 d일 a h시 m분")
-                } else {
-                    DateTimeFormatter.ofPattern("yyyy년 M월 d일 a h시 m분")
-                }
-                date.format(formatter)
-            }
         }
     }
 
@@ -462,8 +410,6 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
-
 }
 
 
