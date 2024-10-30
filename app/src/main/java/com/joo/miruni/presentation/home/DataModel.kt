@@ -32,3 +32,8 @@ enum class Importance {
     EMERGENCY   // 긴급
     ,
 }
+
+enum class DateChange {
+    RIGHT,
+    LEFT
+}

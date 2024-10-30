@@ -14,9 +14,8 @@ class GetTodoItemsForAlarmUseCaseImpl @Inject constructor(
 
     override suspend fun invoke(
         selectDate: LocalDateTime,
-        lastDeadLine: LocalDateTime?,
     ): Flow<TodoItemsEntity> {
-        return taskRepository.getTasksForAlarmByDate(selectDate, lastDeadLine)
+        return taskRepository.getTasksForAlarmByDate(selectDate)
             .map { taskItemsEntity ->
                 taskItemsEntity.toTodoItemsEntity()
             }

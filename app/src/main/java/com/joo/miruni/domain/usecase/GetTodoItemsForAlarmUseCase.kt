@@ -8,6 +8,5 @@ import java.time.LocalDateTime
 interface GetTodoItemsForAlarmUseCase {
     suspend operator fun invoke(
         selectDate: LocalDateTime,
-        lastDeadLine: LocalDateTime?,
     ): Flow<TodoItemsEntity>
 }

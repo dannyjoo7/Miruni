@@ -117,15 +117,7 @@ fun HomeScreen(
         })
 
     // 무한 스크롤
-    val todoBuffer = 3
     val lazyListState = rememberLazyListState()
-    val reachesBottom: Boolean by remember {
-        derivedStateOf {
-            val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index >= lazyListState.layoutInfo.totalItemsCount - todoBuffer
-        }
-    }
-
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -140,11 +132,14 @@ fun HomeScreen(
             ) {
                 // 왼쪽 버튼
                 IconButton(
-                    onClick = { homeViewModel.changeDate("<") }
+                    onClick = {
+                        homeViewModel.changeDate(DateChange.LEFT)
+                        initialLoad = false
+                    }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_left),
-                        contentDescription = "Date Icon"
+                        contentDescription = "Previous Date Icon"
                     )
                 }
 
@@ -170,61 +165,64 @@ fun HomeScreen(
 
                 // 오른쪽 버튼
                 IconButton(onClick = {
-                    homeViewModel.changeDate(">")
+                    homeViewModel.changeDate(DateChange.RIGHT)
+                    initialLoad = false
                 }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_right),
-                        contentDescription = "Weather Icon"
+                        contentDescription = "Next Date Icon"
                     )
                 }
             }
 
             // 일정
-            HorizontalPager(
-                state = schedulePagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp)
-            ) { page ->
-                val startIndex = page * 3
-                val endIndex = minOf(startIndex + 3, scheduleItems.size)
+            if (scheduleItems.isNotEmpty()) {
+                HorizontalPager(
+                    state = schedulePagerState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp)
+                ) { page ->
+                    val startIndex = page * 3
+                    val endIndex = minOf(startIndex + 3, scheduleItems.size)
 
-                if (startIndex < scheduleItems.size) {
-                    val scheduleGroup = scheduleItems.subList(startIndex, endIndex)
+                    if (startIndex < scheduleItems.size) {
+                        val scheduleGroup = scheduleItems.subList(startIndex, endIndex)
 
-                    Column(
-                        modifier = Modifier
-                            .height(60.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        for (i in scheduleGroup.indices step 3) {
-                            Row {
-                                for (j in i until minOf(i + 3, scheduleGroup.size)) {
-                                    if (isCompletedViewChecked.value || !scheduleGroup[j].isComplete) {
-                                        ScheduleItem(context, scheduleGroup[j])
+                        Column(
+                            modifier = Modifier
+                                .height(60.dp),
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            for (i in scheduleGroup.indices step 3) {
+                                Row {
+                                    for (j in i until minOf(i + 3, scheduleGroup.size)) {
+                                        if (isCompletedViewChecked.value || !scheduleGroup[j].isComplete) {
+                                            ScheduleItem(context, scheduleGroup[j])
+                                        }
                                     }
-                                }
-                                // 로딩바
-                                if (isScheduleListLoading && page == pageCount - 1) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier
-                                            .padding(16.dp),
-                                        color = colorResource(R.color.ios_gray)
-                                    )
+                                    // 로딩바
+                                    if (isScheduleListLoading && page == pageCount - 1) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier
+                                                .padding(16.dp),
+                                            color = colorResource(R.color.ios_gray)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // 페이지가 끝에 도달했을 때 추가 데이터 로드
-                LaunchedEffect(schedulePagerState.currentPage) {
-                    if (page == pageCount - 1) {
-                        homeViewModel.loadMoreScheduleData()
+                    // 페이지가 끝에 도달했을 때 추가 데이터 로드
+                    LaunchedEffect(schedulePagerState.currentPage) {
+                        if (page == pageCount - 1) {
+                            homeViewModel.loadMoreScheduleData()
+                        }
                     }
+
+
                 }
-
-
             }
 
 
@@ -407,13 +405,6 @@ fun HomeScreen(
 
     }
 
-    // 스크롤 이벤트를 통해 데이터 로드
-    LaunchedEffect(reachesBottom) {
-        if (reachesBottom && !isTodoListLoading && !initialLoad) {
-            homeViewModel.loadMoreTodoItemsForAlarm()
-        }
-    }
-
     // 초기 로드 상태 업데이트
     LaunchedEffect(thingsToDoItems) {
         if (thingsToDoItems.isNotEmpty()) {
@@ -530,6 +521,7 @@ fun ThingsToDoItem(
     var dialogMod by remember { mutableStateOf(DialogMod.TODO_DELETE) }         // dialog mod
 
     val isComplete = thingsToDo.isCompleted
+    val isOverdue = LocalDateTime.now().isAfter(thingsToDo.deadline)
 
     /*
     * 애니매이션
@@ -767,6 +759,33 @@ fun ThingsToDoItem(
                             }
                         }
 
+                        // 기한이 지난
+                        if (isOverdue && !isComplete) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp, end = 8.dp),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                Text(
+                                    text = run {
+                                        "${
+                                            thingsToDo.deadline.let { date ->
+                                                val formatter =
+                                                    if (date.year == LocalDateTime.now().year) {
+                                                        DateTimeFormatter.ofPattern("M월 d일 a h시 m분")
+                                                    } else {
+                                                        DateTimeFormatter.ofPattern("yyyy년 M월 d일 a h시 m분")
+                                                    }
+                                                date.format(formatter)
+                                            } ?: "(알 수 없음)"
+                                        }에 만료됨"
+                                    },
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+
                         // 추가 정보와 구분선
                         if (isExpanded) {
                             HorizontalDivider(
@@ -881,6 +900,26 @@ fun ThingsToDoItem(
                             )
                             .padding(2.dp),
                         colorFilter = ColorFilter.tint(Color.White),
+                    )
+                }
+            } else if (isOverdue) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .align(Alignment.TopStart)
+                        .background(Color.Transparent)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_close),
+                        contentDescription = "overdue",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = Color.Transparent,
+                                shape = RoundedCornerShape(90.dp)
+                            )
+                            .size(28.dp),
+                        colorFilter = ColorFilter.tint(Color.Red),
                     )
                 }
             } else {

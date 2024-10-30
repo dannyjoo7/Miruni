@@ -20,9 +20,6 @@ interface TaskRepository {
     // 날짜 범위와 알람 표시일을 기준으로 task 데이터 가져오기
     suspend fun getTasksForAlarmDisplayDateRange(start: LocalDate, end: LocalDate): List<TaskEntity>
 
-    // 기한이 지난 task 가져오기
-    suspend fun getOverdueTaskEntities(date: LocalDateTime): Flow<TaskItemsEntity>
-
     // task 삭제
     suspend fun deleteTaskById(id: Long)
 
@@ -38,18 +35,22 @@ interface TaskRepository {
     // task ID로 찾기
     suspend fun getTaskItemById(taskId: Long): TaskEntity
 
+    // task 선택된 날짜 기준으로 가져오기
+    suspend fun getTasksForAlarmByDate(
+        selectDate: LocalDateTime,
+    ): Flow<TaskItemsEntity>
+
+    // 기한이 지난 task 가져오기
+    suspend fun getOverdueTaskEntities(
+        currentDateTime: LocalDateTime,
+    ): Flow<TaskItemsEntity>
+
     /*
     * 할 일
     * */
 
     // 할 일 추가
     suspend fun addTodo(todoEntity: TodoEntity)
-
-    // 할 일 추가 load
-    suspend fun getTasksForAlarmByDate(
-        selectDate: LocalDateTime,
-        lastDeadLine: LocalDateTime? = null,
-    ): Flow<TaskItemsEntity>
 
     // 할 일 미루기
     suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime)

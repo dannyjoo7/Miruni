@@ -27,9 +27,21 @@ interface TaskDao {
     suspend fun getAllTasks(): List<TaskEntity>
 
     // deadLine 넘긴 할 일
-    @Query("SELECT * FROM tasks WHERE type = :taskType AND deadLine < :currentDateTime")
+    @Query(
+        """
+    SELECT * FROM tasks 
+    WHERE type = :taskType 
+    AND deadLine < :currentDateTime 
+    AND (deadLine < :lastDeadLine OR :lastDeadLine IS NULL) 
+    AND isComplete = 0
+    ORDER BY deadLine ASC 
+    LIMIT :limit
+    """
+    )
     fun getOverdueTasks(
         currentDateTime: LocalDateTime,
+        lastDeadLine: LocalDateTime? = null,
+        limit: Int = 20,
         taskType: TaskType = TaskType.TODO,
     ): Flow<List<TaskEntity>>
 
@@ -40,15 +52,11 @@ interface TaskDao {
     WHERE type = :taskType 
     AND deadLine >= :selectDate 
     AND alarmDisplayDate <= :selectDate
-    AND (deadLine > :lastDeadLine OR :lastDeadLine IS NULL)
     ORDER BY deadLine ASC
-    LIMIT :limit
     """
     )
     fun getTodoTasksPaginated(
         selectDate: LocalDateTime,
-        lastDeadLine: LocalDateTime? = null,
-        limit: Int = 20,
         taskType: TaskType = TaskType.TODO,
     ): Flow<List<TaskEntity>>
 
@@ -56,7 +64,7 @@ interface TaskDao {
     @Query("DELETE FROM tasks WHERE id = :id")
     suspend fun deleteTaskById(id: Long)
 
-    // task 완료
+    // task 완료 여부
     @Query("UPDATE tasks SET isComplete = :isComplete, completeDate = :completeDate WHERE id = :taskId")
     suspend fun updateTaskCompletionStatus(
         taskId: Long,

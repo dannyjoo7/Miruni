@@ -11,11 +11,11 @@ import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -34,7 +34,6 @@ class HomeViewModel @Inject constructor(
     private val cancelCompleteTaskItemUseCase: CancelCompleteTaskItemUseCase,
     private val delayTodoItemUseCase: DelayTodoItemUseCase,
     private val settingObserveCompletedItemsVisibilityUseCase: SettingObserveCompletedItemsVisibilityUseCase,
-    private val getOverDueTodoItemsForAlarmUseCase: GetOverDueTodoItemsForAlarmUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
@@ -72,11 +71,13 @@ class HomeViewModel @Inject constructor(
     private val _deletedItems = MutableLiveData<Set<Long>>(emptySet())
     val deletedItems: LiveData<Set<Long>> get() = _deletedItems
 
-    // 유저 Setting 값
-
     // 완료 항목 값
     private val _settingObserveCompleteVisibility = MutableLiveData<Boolean>(false)
     val settingObserveCompleteVisibility: LiveData<Boolean> get() = _settingObserveCompleteVisibility
+
+    // 스크롤 끝인지 판단하는 변수
+    private val _isEndOfScroll = MutableLiveData<Boolean>(false)
+    val isEndOfScroll: LiveData<Boolean> get() = _isEndOfScroll
 
     // todoList 페이징을 위한 마지막 데이터의 deadLine
     private var lastDataDeadLine: LocalDateTime? = null
@@ -84,6 +85,8 @@ class HomeViewModel @Inject constructor(
     // scheduleList 페이징을 위한 마지막 데이터의 startDate
     private var lastStartDate: LocalDate? = null
 
+    // getThings 코루틴
+    private var getTodoItemsJob: Job? = null
 
     init {
         loadTodoItemsForAlarm()
@@ -96,46 +99,18 @@ class HomeViewModel @Inject constructor(
     * 할 일
     * */
 
-    // 기한이 지난 할 일 load
-    private fun loadOverdueTasks() {
-        viewModelScope.launch {
-            _isTodoListLoading.value = true
-            runCatching {
-                getOverDueTodoItemsForAlarmUseCase.invoke(LocalDateTime.now())
-            }.onSuccess { flow ->
-                flow.collect { todoItems ->
-                    _thingsTodoItems.value = todoItems.todoEntities.map {
-                        ThingsTodo(
-                            id = it.id,
-                            title = it.title,
-                            deadline = it.deadLine ?: LocalDateTime.now(),
-                            description = it.details ?: "",
-                            isCompleted = it.isComplete,
-                            completeDate = it.completeDate
-                        )
-                    }
-                    lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
-                    _isTodoListLoading.value = false
-                }
-            }.onFailure { exception ->
-                exception.printStackTrace()
-                _isTodoListLoading.value = false
-            }
-        }
-    }
-
     // 할 일 load 메소드
     private fun loadTodoItemsForAlarm() {
-        viewModelScope.launch {
+        getTodoItemsJob?.cancel()
+        getTodoItemsJob = viewModelScope.launch {
             _isTodoListLoading.value = true
             runCatching {
                 getTodoItemsForAlarmUseCase.invoke(
-                    _selectDate.value ?: LocalDateTime.now(),
-                    null
+                    _selectDate.value ?: LocalDateTime.now()
                 )
             }.onSuccess { flow ->
                 flow.collect { todoItems ->
-                    _thingsTodoItems.value = todoItems.todoEntities.map {
+                    val newItems = todoItems.todoEntities.map {
                         ThingsTodo(
                             id = it.id,
                             title = it.title,
@@ -145,54 +120,28 @@ class HomeViewModel @Inject constructor(
                             completeDate = it.completeDate,
                         )
                     }
+                    val updatedItems = _thingsTodoItems.value.orEmpty().toMutableList()
+
+                    newItems.forEach { newItem ->
+                        val existingItemIndex = updatedItems.indexOfFirst { it.id == newItem.id }
+                        if (existingItemIndex != -1) {
+                            val existingItem = updatedItems[existingItemIndex]
+                            if (existingItem != newItem) {
+                                updatedItems[existingItemIndex] = newItem
+                            }
+                        } else {
+                            updatedItems.add(newItem)
+                        }
+                    }
+                    _thingsTodoItems.value =
+                        updatedItems.distinctBy { it.id }.sortedBy { it.deadline }
+
                     lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
                     _isTodoListLoading.value = false
                 }
 
             }.onFailure { exception ->
                 exception.printStackTrace()
-                _isTodoListLoading.value = false
-            }
-        }
-    }
-
-    // 할 일 추가 load 메소드
-    fun loadMoreTodoItemsForAlarm() {
-        viewModelScope.launch {
-            _isTodoListLoading.value = true
-            val currentDeadLine = lastDataDeadLine
-
-            if (currentDeadLine != null) {
-                runCatching {
-                    getTodoItemsForAlarmUseCase.invoke(
-                        _selectDate.value ?: LocalDateTime.now(),
-                        currentDeadLine
-                    )
-                }.onSuccess { flow ->
-                    flow.collect { todoItems ->
-                        if (todoItems.todoEntities.isNotEmpty()) {
-                            val updatedItems =
-                                _thingsTodoItems.value.orEmpty() + todoItems.todoEntities.map {
-                                    ThingsTodo(
-                                        id = it.id,
-                                        title = it.title,
-                                        deadline = it.deadLine ?: LocalDateTime.now(),
-                                        description = it.details ?: "",
-                                        isCompleted = it.isComplete,
-                                        completeDate = it.completeDate,
-                                    )
-                                }
-                            _thingsTodoItems.value = updatedItems
-                            lastDataDeadLine = updatedItems.lastOrNull()?.deadline
-                        }
-                        _isTodoListLoading.value = false
-                    }
-                }.onFailure { exception ->
-                    exception.printStackTrace()
-                }.also {
-                    _isTodoListLoading.value = false
-                }
-            } else {
                 _isTodoListLoading.value = false
             }
         }
@@ -220,7 +169,7 @@ class HomeViewModel @Inject constructor(
             runCatching {
                 completeTaskItemUseCase.invoke(taskId, LocalDateTime.now())
             }.onSuccess {
-
+                Log.d(TAG, "Complete selectDate = ${selectDate.value}")
             }.onFailure {
 
             }
@@ -233,7 +182,7 @@ class HomeViewModel @Inject constructor(
             runCatching {
                 cancelCompleteTaskItemUseCase.invoke(taskId)
             }.onSuccess {
-
+                Log.d(TAG, "Cancel Complete selectDate = ${selectDate.value}")
             }.onFailure {
 
             }
@@ -260,28 +209,29 @@ class HomeViewModel @Inject constructor(
     * */
 
     // 날짜 바꾸는 메소드
-    fun changeDate(op: String) {
+    fun changeDate(op: DateChange) {
         _thingsTodoItems.value = emptyList()
         _selectDate.value = when (op) {
-            ">" -> LocalDateTime.of(
+            DateChange.RIGHT -> LocalDateTime.of(
                 // 자정으로 설정
                 _selectDate.value?.toLocalDate() ?: LocalDate.now(),
                 LocalTime.MIDNIGHT
             ).plusDays(1) ?: LocalDateTime.now()
 
-            "<" -> LocalDateTime.of(
+            DateChange.LEFT -> LocalDateTime.of(
                 // 자정으로 설정
                 _selectDate.value?.toLocalDate() ?: LocalDate.now(),
                 LocalTime.MIDNIGHT
             ).minusDays(1) ?: LocalDateTime.now()
-
-            else -> _selectDate.value
         }
+
         // 바뀐 날짜가 오늘이면 자정이 아닌 현재 시간 적용
         if ((_selectDate.value?.toLocalDate() ?: LocalDate.now()) == LocalDate.now()) {
             _selectDate.value = LocalDateTime.now()
         }
+
         collapseAllItems()
+
         loadTodoItemsForAlarm()
         lastDataDeadLine = null
     }
@@ -403,7 +353,6 @@ class HomeViewModel @Inject constructor(
             }.onSuccess { flow ->
                 flow.collect { visibility ->
                     _settingObserveCompleteVisibility.value = visibility
-                    Log.d(TAG, "value : ${_settingObserveCompleteVisibility.value}")
                 }
             }.onFailure { exception ->
                 Log.e(TAG, "Failed to load settings", exception)

@@ -3,8 +3,27 @@ package com.joo.miruni.presentation.main
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
@@ -25,7 +44,7 @@ import com.joo.miruni.presentation.BottomNavItem
 import com.joo.miruni.presentation.Screen
 import com.joo.miruni.presentation.calendar.CalendarScreen
 import com.joo.miruni.presentation.home.HomeScreen
-import com.joo.miruni.presentation.putoff.PutOffScreen
+import com.joo.miruni.presentation.overdue.OverdueScreen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -193,11 +212,18 @@ fun BottomNavigationBar(
 
 @Composable
 fun NavigationHost(navController: NavHostController) {
-    NavHost(navController, startDestination = Screen.Home.route) {
-        composable(Screen.Home.route) { HomeScreen(navController) }
-        composable(Screen.PutOff.route) { PutOffScreen() }
-        composable(Screen.Calendar.route) { CalendarScreen() }
+    NavHost(
+        navController,
+        startDestination = Screen.Home.route,
+    ) {
+        composable(
+            Screen.Home.route,
+        ) { HomeScreen(navController) }
+        composable(
+            Screen.Overdue.route,
+        ) { OverdueScreen() }
+        composable(
+            Screen.Calendar.route
+        ) { CalendarScreen() }
     }
 }
-
-

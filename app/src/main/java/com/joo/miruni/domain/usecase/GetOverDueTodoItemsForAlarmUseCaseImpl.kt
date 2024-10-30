@@ -11,7 +11,10 @@ import javax.inject.Inject
 class GetOverDueTodoItemsForAlarmUseCaseImpl @Inject constructor(
     private val taskRepository: TaskRepository,
 ) : GetOverDueTodoItemsForAlarmUseCase {
-    override suspend operator fun invoke(selectDate: LocalDateTime): Flow<TodoItemsEntity> {
+
+    override suspend operator fun invoke(
+        selectDate: LocalDateTime,
+    ): Flow<TodoItemsEntity> {
         return taskRepository.getOverdueTaskEntities(selectDate).map { taskEntities ->
             taskEntities.toTodoItemsEntity()
         }
