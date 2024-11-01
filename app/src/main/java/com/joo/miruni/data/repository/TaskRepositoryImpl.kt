@@ -73,6 +73,12 @@ class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : Tas
         taskDao.delayTask(id, delayDateTime)
     }
 
+    override suspend fun delayAllTodoEntity(itemsIds: List<Long>, delayDateTime: LocalDateTime) {
+        itemsIds.forEach { itemId ->
+            taskDao.delayTask(itemId, delayDateTime)
+        }
+    }
+
     override suspend fun getOverdueTaskEntities(
         currentDateTime: LocalDateTime,
     ): Flow<TaskItemsEntity> {

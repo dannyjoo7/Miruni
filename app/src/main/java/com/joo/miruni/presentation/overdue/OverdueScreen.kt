@@ -1,21 +1,24 @@
 package com.joo.miruni.presentation.overdue
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.joo.miruni.R
 import com.joo.miruni.presentation.detail.detailTodo.DetailTodoActivity
 import com.joo.miruni.presentation.home.ThingsToDoItem
+import com.joo.miruni.presentation.widget.BasicDialog
 import com.joo.miruni.presentation.widget.DialogMod
 
 @Composable
@@ -47,15 +51,17 @@ fun OverdueScreen(
     * */
     val overdueTodoItems by overdueViewModel.overdueTodoItems.observeAsState(emptyList())
     val isOverdueTodoListLoading by overdueViewModel.isOverdueTodoListLoading.observeAsState(false)
+    val isDelayAllTodoLoading by overdueViewModel.isDelayAllTodoLoading.observeAsState(false)
     val deletedItems by overdueViewModel.deletedItems.observeAsState()
 
     // 한번 초기화가 되었는지 판단 변수
     var initialLoad by remember { mutableStateOf(true) }
 
-
     // 무한 스크롤
     val lazyListState = rememberLazyListState()
 
+    // 다이얼로그 show 여부
+    var isShowDialog by remember { mutableStateOf(false) }
 
     // 초기 로드 상태 업데이트
     LaunchedEffect(overdueTodoItems) {
@@ -78,7 +84,7 @@ fun OverdueScreen(
                 Text(
                     text = "기한이 지난 할 일",
                     textAlign = TextAlign.Center,
-                    fontSize = 24.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -95,6 +101,21 @@ fun OverdueScreen(
                         textAlign = TextAlign.Center,
                         fontSize = 36.sp,
                         color = colorResource(R.color.ios_gray),
+                    )
+                }
+            }
+            // 모두 삭제 진행 상태 중일시
+            else if (isDelayAllTodoLoading) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = colorResource(R.color.ios_divider)),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(16.dp),
+                        color = colorResource(R.color.ios_gray)
                     )
                 }
             } else {
@@ -178,10 +199,51 @@ fun OverdueScreen(
                                 }
                             }
                         }
+
+                        // 모두 미루기 버튼
+                        item {
+                            Button(
+                                onClick = {
+                                    isShowDialog = !isShowDialog
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Red,
+                                    contentColor = Color.White,
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp, horizontal = 8.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "모두 미루기",
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 16.sp,
+                                    color = Color.White
+                                )
+                            }
+
+                            // 모두 미루기 다이얼로그
+                            if (isShowDialog) {
+                                BasicDialog(
+                                    dialogType = DialogMod.TODO_ALL_DELAY,
+                                    showDialog = isShowDialog,
+                                    onDismiss = {
+                                        isShowDialog = false
+                                    },
+                                    onCancel = {
+                                        isShowDialog = false
+                                    },
+                                    onConfirmed = {
+                                        overdueViewModel.delayAllTodoItems()
+                                    },
+                                    title = "",
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
     }
-
 }

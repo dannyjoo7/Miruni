@@ -35,6 +35,7 @@ enum class DialogMod {
     TODO_DELETE,                // 할 일 삭제
     TODO_COMPLETE,              // 할 일 완료
     TODO_CANCEL_COMPLETE,       // 할 일 완료 취소
+    TODO_ALL_DELAY,             // 할 일 모두 미루기
     SCHEDULE_DELETE,            // 일정 삭제
     SCHEDULE_COMPLETE,          // 일정 완료
     SCHEDULE_CANCEL_COMPLETE,   // 일정 완료 취소
@@ -75,6 +76,13 @@ fun BasicDialog(
             dialogContent = "$title \n 항목을 정말로 완료 취소하시겠습니까?"
             cancelButtonText = "취소"
             confirmButtonText = "완료 취소"
+        }
+
+        DialogMod.TODO_ALL_DELAY -> {
+            dialogTitle = "모두 미루기"
+            dialogContent = "모든 항목을 정말로 미루겠습니까??"
+            cancelButtonText = "취소"
+            confirmButtonText = "확인"
         }
 
         DialogMod.SCHEDULE_DELETE -> {

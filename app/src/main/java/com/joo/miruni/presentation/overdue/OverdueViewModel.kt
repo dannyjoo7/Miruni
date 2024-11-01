@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.DelayAllTodoItemUseCase
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCase
@@ -24,6 +25,7 @@ class OverdueViewModel @Inject constructor(
     private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
     private val completeTaskItemUseCase: CompleteTaskItemUseCase,
     private val delayTodoItemUseCase: DelayTodoItemUseCase,
+    private val delayAllTodoItemUseCase: DelayAllTodoItemUseCase,
 ) : ViewModel() {
 
     companion object {
@@ -38,10 +40,6 @@ class OverdueViewModel @Inject constructor(
     private val _overdueTodoItems = MutableLiveData<List<ThingsTodo>>(emptyList())
     val overdueTodoItems: LiveData<List<ThingsTodo>> get() = _overdueTodoItems
 
-    // overdueTodoList 로딩 중인지 판단하는 변수
-    private val _isOverdueTodoListLoading = MutableLiveData(false)
-    val isOverdueTodoListLoading: LiveData<Boolean> get() = _isOverdueTodoListLoading
-
     // 삭제됐는지 여부를 판단하는 변수
     private val _deletedItems = MutableLiveData<Set<Long>>(emptySet())
     val deletedItems: LiveData<Set<Long>> get() = _deletedItems
@@ -49,6 +47,16 @@ class OverdueViewModel @Inject constructor(
     // 확장 여부를 판단하는 변수
     private val _expandedItems = mutableStateOf<Set<Long>>(emptySet())
     val expandedItems: State<Set<Long>> = _expandedItems
+
+    /* 로딩 변수 */
+    // overdueTodoList 로딩 중인지 판단하는 변수
+    private val _isOverdueTodoListLoading = MutableLiveData(false)
+    val isOverdueTodoListLoading: LiveData<Boolean> get() = _isOverdueTodoListLoading
+
+    // 모두 미루기 로딩 중인지 판단하는 변수
+    private val _isDelayAllTodoLoading = MutableLiveData(false)
+    val isDelayAllTodoLoading: LiveData<Boolean> get() = _isDelayAllTodoLoading
+
 
     // todoList 페이징을 위한 마지막 데이터의 deadLine
     private var lastDataDeadLine: LocalDateTime? = null
@@ -95,7 +103,7 @@ class OverdueViewModel @Inject constructor(
         }
     }
 
-    // 할 일 미루기 메소드
+    // 만료된 할 일 미루기 메소드
     fun delayTodoItem(thingsTodo: ThingsTodo) {
         viewModelScope.launch {
             runCatching {
@@ -108,6 +116,23 @@ class OverdueViewModel @Inject constructor(
             }
         }
     }
+
+    // 만료된 할 일 모두 미루기 메소드
+    fun delayAllTodoItems() {
+        viewModelScope.launch {
+            _isDelayAllTodoLoading.value = true
+            runCatching {
+                // TODO deadLine 미룰 때 기기에 저장된 유저가 설정한 값으로 대체 -> 현재 1에서 userSetting 값으로...
+                val itemIds = _overdueTodoItems.value?.map { it.id } ?: emptyList()
+                delayAllTodoItemUseCase.invoke(itemIds, LocalDateTime.now().plusDays(1))
+            }.onSuccess {
+                _isDelayAllTodoLoading.value = false
+            }.onFailure {
+                _isDelayAllTodoLoading.value = false
+            }
+        }
+    }
+
 
     // Task 삭제 메소드
     fun deleteTaskItem(id: Long) {
@@ -155,4 +180,6 @@ class OverdueViewModel @Inject constructor(
     fun collapseAllItems() {
         _expandedItems.value = emptySet()
     }
+
+
 }

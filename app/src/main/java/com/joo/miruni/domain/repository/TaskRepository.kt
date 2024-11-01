@@ -55,6 +55,8 @@ interface TaskRepository {
     // 할 일 미루기
     suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime)
 
+    // 만료된 할 일 전부 미루기
+    suspend fun delayAllTodoEntity(itemIds: List<Long>, delayDateTime: LocalDateTime)
 
     /*
     * 일정

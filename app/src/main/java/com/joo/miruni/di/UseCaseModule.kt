@@ -8,6 +8,8 @@ import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCaseImpl
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.CompleteTaskItemUseCaseImpl
+import com.joo.miruni.domain.usecase.DelayAllTodoItemUseCase
+import com.joo.miruni.domain.usecase.DelayAllTodoItemUseCaseImpl
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
 import com.joo.miruni.domain.usecase.DelayTodoItemUseCaseImpl
 import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
@@ -166,5 +168,14 @@ abstract class UseCaseModule {
     abstract fun bindUpdateScheduleItemUseCase(
         updateScheduleItemUseCaseImpl: UpdateScheduleItemUseCaseImpl,
     ): UpdateScheduleItemUseCase
+
+    /*
+    * OverdueViewModel
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindDelayAllTodoItemUseCase(
+        delayAllTodoItemUseCaseImpl: DelayAllTodoItemUseCaseImpl,
+    ): DelayAllTodoItemUseCase
 }
 
