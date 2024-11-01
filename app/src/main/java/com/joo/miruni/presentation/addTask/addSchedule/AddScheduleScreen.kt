@@ -331,10 +331,14 @@ fun AddScheduleScreen(
                         Column(
                             modifier = Modifier
                                 .weight(0.9f)
-                                .clickable {
-                                    addScheduleViewModel.clickedDateRangePickerBtn()
-                                    keyboardController?.hide()
-                                },
+                                .clickable(
+                                    onClick = {
+                                        addScheduleViewModel.clickedDateRangePickerBtn()
+                                        keyboardController?.hide()
+                                    },
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                ),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
                         ) {

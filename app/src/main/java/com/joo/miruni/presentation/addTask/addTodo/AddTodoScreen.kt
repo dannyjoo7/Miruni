@@ -49,7 +49,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -388,7 +390,6 @@ fun AddTodoScreen(
                                 context = context,
                                 selectedDate = selectDate,
                                 onDateSelected = { date -> addTodoViewModel.selectDate(date) },
-                                onMonthChanged = { month -> addTodoViewModel.changeMonth(month) },
                             )
                         }
 
@@ -475,7 +476,10 @@ fun AddTodoScreen(
                                     onClick = {
                                         addTodoViewModel.clickedAlarmDisplayStartDateText()
                                         keyboardController?.hide()
-                                    }),
+                                    },
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ),
                             fontSize = 16.sp,
                             color = colorResource(R.color.ios_blue),
 
@@ -561,9 +565,8 @@ fun DatePicker(
     context: Context,
     selectedDate: LocalDate?,
     onDateSelected: (LocalDate) -> Unit,
-    onMonthChanged: (Int) -> Unit,
 ) {
-    val currentDate = selectedDate ?: LocalDate.now()
+    var currentDate by remember { mutableStateOf(selectedDate ?: LocalDate.now().plusDays(1)) }
 
     val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
 
@@ -672,7 +675,7 @@ fun DatePicker(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(start = 16.dp)
                 ) {
-                    IconButton(onClick = { onMonthChanged(currentDate.monthValue - 1) }) {
+                    IconButton(onClick = { currentDate = currentDate.minusMonths(1) }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_left),
                             contentDescription = "Previous Month",
@@ -680,7 +683,7 @@ fun DatePicker(
                             tint = colorResource(id = R.color.ios_blue),
                         )
                     }
-                    IconButton(onClick = { onMonthChanged(currentDate.monthValue + 1) }) {
+                    IconButton(onClick = { currentDate = currentDate.plusMonths(1) }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_right),
                             contentDescription = "Next Month",
@@ -698,15 +701,3 @@ fun DatePicker(
 
 
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun AddTodoScreenPreview() {
-//    val previewViewModel = AddTodoViewModel()
-//
-//    // 날짜 미리 설정
-//    previewViewModel.updateSelectedDate(LocalDate.now())
-//
-//    AddTodoScreen(previewViewModel)
-//}
