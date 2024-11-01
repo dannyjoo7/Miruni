@@ -110,36 +110,21 @@ class HomeViewModel @Inject constructor(
                 )
             }.onSuccess { flow ->
                 flow.collect { todoItems ->
-                    val newItems = todoItems.todoEntities.map {
-                        ThingsTodo(
-                            id = it.id,
-                            title = it.title,
-                            deadline = it.deadLine ?: LocalDateTime.now(),
-                            description = it.details ?: "",
-                            isCompleted = it.isComplete,
-                            completeDate = it.completeDate,
-                        )
-                    }
-                    val updatedItems = _thingsTodoItems.value.orEmpty().toMutableList()
-
-                    newItems.forEach { newItem ->
-                        val existingItemIndex = updatedItems.indexOfFirst { it.id == newItem.id }
-                        if (existingItemIndex != -1) {
-                            val existingItem = updatedItems[existingItemIndex]
-                            if (existingItem != newItem) {
-                                updatedItems[existingItemIndex] = newItem
-                            }
-                        } else {
-                            updatedItems.add(newItem)
-                        }
-                    }
                     _thingsTodoItems.value =
-                        updatedItems.distinctBy { it.id }.sortedBy { it.deadline }
+                        todoItems.todoEntities.map {
+                            ThingsTodo(
+                                id = it.id,
+                                title = it.title,
+                                deadline = it.deadLine ?: LocalDateTime.now(),
+                                description = it.details ?: "",
+                                isCompleted = it.isComplete,
+                                completeDate = it.completeDate,
+                            )
+                        }.distinctBy { it.id }.sortedBy { it.deadline }
 
                     lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
                     _isTodoListLoading.value = false
                 }
-
             }.onFailure { exception ->
                 exception.printStackTrace()
                 _isTodoListLoading.value = false

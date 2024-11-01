@@ -32,16 +32,12 @@ interface TaskDao {
     SELECT * FROM tasks 
     WHERE type = :taskType 
     AND deadLine < :currentDateTime 
-    AND (deadLine < :lastDeadLine OR :lastDeadLine IS NULL) 
     AND isComplete = 0
     ORDER BY deadLine ASC 
-    LIMIT :limit
     """
     )
     fun getOverdueTasks(
         currentDateTime: LocalDateTime,
-        lastDeadLine: LocalDateTime? = null,
-        limit: Int = 20,
         taskType: TaskType = TaskType.TODO,
     ): Flow<List<TaskEntity>>
 
