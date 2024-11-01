@@ -219,14 +219,26 @@ class AddTodoViewModel @Inject constructor(
     // 월 변경 처리
     fun changeMonth(month: Int) {
         _selectedDate.value?.let {
-            val newDate = if (month > 12) {
-                LocalDate.of(it.year + 1, 1, 1)
-            } else {
-                LocalDate.of(it.year, month, 1)
+            val currentYear = it.year
+
+            val newDate = when {
+                month < 1 -> {
+                    LocalDate.of(currentYear.minus(1), 12, 1)
+                }
+
+                month > 12 -> {
+                    LocalDate.of(currentYear.plus(1), 1, 1)
+                }
+
+                else -> {
+                    LocalDate.of(currentYear, month, 1)
+                }
             }
+
             _selectedDate.value = newDate
         }
     }
+
 
     // 연도 변경 처리
     fun changeYear(year: Int) {
