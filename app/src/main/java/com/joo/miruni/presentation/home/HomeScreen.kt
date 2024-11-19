@@ -101,6 +101,7 @@ fun HomeScreen(
     val isCompletedViewChecked =
         homeViewModel.settingObserveCompleteVisibility.observeAsState(false)
     val selectDate by homeViewModel.selectDate.observeAsState(LocalDateTime.now())
+    val isFutureDate by homeViewModel.isFutureDate.observeAsState(false)
 
     // FAB 메뉴
     var isAddMenuExpanded by remember { mutableStateOf(false) }
@@ -132,15 +133,19 @@ fun HomeScreen(
                 // 왼쪽 버튼
                 IconButton(
                     onClick = {
-                        homeViewModel.changeDate(DateChange.LEFT)
-                        initialLoad = false
-                    }
+                        if (isFutureDate) {
+                            homeViewModel.changeDate(DateChange.LEFT)
+                            initialLoad = false
+                        }
+                    },
+                    modifier = Modifier.alpha(if (isFutureDate) 1f else 0.25f)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_left),
                         contentDescription = "Previous Date Icon"
                     )
                 }
+
 
                 // 중앙 텍스트 및 아이콘
                 Row(
@@ -232,65 +237,80 @@ fun HomeScreen(
                     .weight(1f)
                     .padding(start = 8.dp, end = 8.dp)
             ) {
-                // 할 일 리스트
-                items(thingsToDoItems.size) { index ->
-                    val thingsToDo = thingsToDoItems[index]
+                if (thingsToDoItems.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillParentMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "할 일이 없습니다",
+                                color = colorResource(R.color.ios_gray),
+                                textAlign = TextAlign.Center,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                } else {
+                    items(thingsToDoItems.size) { index ->
+                        val thingsToDo = thingsToDoItems[index]
 
-                    val isDelete = deletedItems?.contains(thingsToDo.id) ?: false
-                    val isExpanded = homeViewModel.expandedItems.value.contains(thingsToDo.id)
+                        val isDelete = deletedItems?.contains(thingsToDo.id) ?: false
+                        val isExpanded = homeViewModel.expandedItems.value.contains(thingsToDo.id)
 
-                    if (isCompletedViewChecked.value || !thingsToDo.isCompleted) {
-                        ThingsToDoItem(
-                            context = context,
-                            thingsToDo = thingsToDo,
-                            onClicked = {
-                                homeViewModel.toggleItemExpansion(thingsToDo.id)
-                            },
-                            onClickedShowDetail = {
-                                // 상세보기 액티비티로 넘어가기
-                                val intent = Intent(
-                                    context,
-                                    DetailTodoActivity::class.java
-                                ).apply {
-                                    putExtra(
-                                        "TODO_ID",
-                                        thingsToDo.id
-                                    )
-                                }
-                                context.startActivity(intent)
-                                homeViewModel.collapseAllItems()
-                            },
-                            onClickedDelay = {
-                                // 미루기 클릭 시
-                                homeViewModel.delayTodoItem(
-                                    thingsToDo
-                                )
-                            },
-                            onDialogConfirmed = { dialogMod ->
-                                when (dialogMod) {
-                                    DialogMod.TODO_COMPLETE -> {
-                                        homeViewModel.completeTask(thingsToDo.id)
-                                        homeViewModel.collapseAllItems()
+                        if (isCompletedViewChecked.value || !thingsToDo.isCompleted) {
+                            ThingsToDoItem(
+                                context = context,
+                                thingsToDo = thingsToDo,
+                                onClicked = {
+                                    homeViewModel.toggleItemExpansion(thingsToDo.id)
+                                },
+                                onClickedShowDetail = {
+                                    // 상세보기 액티비티로 넘어가기
+                                    val intent = Intent(
+                                        context,
+                                        DetailTodoActivity::class.java
+                                    ).apply {
+                                        putExtra(
+                                            "TODO_ID",
+                                            thingsToDo.id
+                                        )
                                     }
+                                    context.startActivity(intent)
+                                    homeViewModel.collapseAllItems()
+                                },
+                                onClickedDelay = {
+                                    // 미루기 클릭 시
+                                    homeViewModel.delayTodoItem(thingsToDo)
+                                },
+                                onDialogConfirmed = { dialogMod ->
+                                    when (dialogMod) {
+                                        DialogMod.TODO_COMPLETE -> {
+                                            homeViewModel.completeTask(thingsToDo.id)
+                                            homeViewModel.collapseAllItems()
+                                        }
 
-                                    DialogMod.TODO_DELETE -> {
-                                        homeViewModel.deleteTaskItem(thingsToDo.id)
-                                        homeViewModel.collapseAllItems()
-                                    }
+                                        DialogMod.TODO_DELETE -> {
+                                            homeViewModel.deleteTaskItem(thingsToDo.id)
+                                            homeViewModel.collapseAllItems()
+                                        }
 
-                                    DialogMod.TODO_CANCEL_COMPLETE -> {
-                                        homeViewModel.completeCancelTaskItem(thingsToDo.id)
-                                        homeViewModel.collapseAllItems()
-                                    }
+                                        DialogMod.TODO_CANCEL_COMPLETE -> {
+                                            homeViewModel.completeCancelTaskItem(thingsToDo.id)
+                                            homeViewModel.collapseAllItems()
+                                        }
 
-                                    else -> {
-                                        homeViewModel.collapseAllItems()
+                                        else -> {
+                                            homeViewModel.collapseAllItems()
+                                        }
                                     }
-                                }
-                            },
-                            isDelete = isDelete,
-                            isExpanded = isExpanded,
-                        )
+                                },
+                                isDelete = isDelete,
+                                isExpanded = isExpanded,
+                            )
+                        }
                     }
                 }
 
@@ -310,6 +330,7 @@ fun HomeScreen(
                     }
                 }
             }
+
         }
 
 

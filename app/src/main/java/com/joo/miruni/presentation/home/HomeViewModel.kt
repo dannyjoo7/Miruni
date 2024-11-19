@@ -63,6 +63,10 @@ class HomeViewModel @Inject constructor(
     private val _isScheduleListLoading = MutableLiveData(false)
     val isScheduleListLoading: LiveData<Boolean> get() = _isScheduleListLoading
 
+    // 미래일 판단 변수
+    private val _isFutureDate = MutableLiveData(false)
+    val isFutureDate: LiveData<Boolean> get() = _isFutureDate
+
     // 확장 여부를 판단하는 변수
     private val _expandedItems = mutableStateOf<Set<Long>>(emptySet())
     val expandedItems: State<Set<Long>> = _expandedItems
@@ -218,6 +222,7 @@ class HomeViewModel @Inject constructor(
         collapseAllItems()
 
         loadTodoItemsForAlarm()
+        checkFutureDate()
         lastDataDeadLine = null
     }
 
@@ -244,8 +249,21 @@ class HomeViewModel @Inject constructor(
             selectDate.isEqual(today.minusDays(1)) -> "어제"
             selectDate.isEqual(today) -> "오늘"
             selectDate.isEqual(today.plusDays(1)) -> "내일"
-            else -> selectDate.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
+            else -> {
+                if (selectDate.year == today.year) {
+                    selectDate.format(DateTimeFormatter.ofPattern("M월 d일"))
+                } else {
+                    selectDate.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
+                }
+            }
         }
+    }
+
+
+    // 미래일 판단 메소드
+    fun checkFutureDate() {
+        val selectedDate = _selectDate.value
+        _isFutureDate.value = selectedDate != null && selectedDate.isAfter(LocalDateTime.now())
     }
 
     /*
