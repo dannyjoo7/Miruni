@@ -357,7 +357,7 @@ fun AddScheduleScreen(
                                 modifier = Modifier
                                     .size(8.dp),
                                 painter = painterResource(id = R.drawable.ic_vertical_dot),
-                                contentDescription = "complete",
+                                contentDescription = "in",
                                 colorFilter = ColorFilter.tint(dateTextColor),
                             )
                             Text(
