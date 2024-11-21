@@ -432,6 +432,11 @@ fun HomeScreen(
         }
     }
 
+    // 화면 재진입
+    LaunchedEffect(Unit) {
+        homeViewModel.refreshScreen()
+    }
+
 }
 
 // 일정 Item

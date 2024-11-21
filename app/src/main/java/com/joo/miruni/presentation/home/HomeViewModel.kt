@@ -14,6 +14,7 @@ import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
+import com.joo.miruni.domain.usecase.TestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -34,6 +35,7 @@ class HomeViewModel @Inject constructor(
     private val cancelCompleteTaskItemUseCase: CancelCompleteTaskItemUseCase,
     private val delayTodoItemUseCase: DelayTodoItemUseCase,
     private val settingObserveCompletedItemsVisibilityUseCase: SettingObserveCompletedItemsVisibilityUseCase,
+    private val testUseCase: TestUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "HomeViewModel"
@@ -197,6 +199,14 @@ class HomeViewModel @Inject constructor(
     * UI
     * */
 
+    // 화면 초기화 메소드
+    fun refreshScreen() {
+        loadTodoItemsForAlarm()
+        loadInitialScheduleData()
+        loadUserSetting()
+        _selectDate.value = LocalDateTime.now()
+    }
+
     // 날짜 바꾸는 메소드
     fun changeDate(op: DateChange) {
         _thingsTodoItems.value = emptyList()
@@ -259,9 +269,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
     // 미래일 판단 메소드
-    fun checkFutureDate() {
+    private fun checkFutureDate() {
         val selectedDate = _selectDate.value
         _isFutureDate.value = selectedDate != null && selectedDate.isAfter(LocalDateTime.now())
     }
@@ -359,6 +368,20 @@ class HomeViewModel @Inject constructor(
                 }
             }.onFailure { exception ->
                 Log.e(TAG, "Failed to load settings", exception)
+            }
+        }
+    }
+
+
+    // TODO 임시 테스트
+    fun testNoti() {
+        viewModelScope.launch {
+            runCatching {
+                testUseCase.invoke()
+            }.onSuccess {
+
+            }.onFailure { exception ->
+                exception.printStackTrace()
             }
         }
     }
