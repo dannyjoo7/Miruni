@@ -221,7 +221,7 @@ fun NavigationHost(navController: NavHostController) {
         ) { HomeScreen(navController) }
         composable(
             Screen.Overdue.route,
-        ) { OverdueScreen() }
+        ) { OverdueScreen(hiltViewModel()) }
         composable(
             Screen.Calendar.route
         ) { CalendarScreen() }
