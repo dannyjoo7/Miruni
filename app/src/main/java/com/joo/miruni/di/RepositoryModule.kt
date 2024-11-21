@@ -9,6 +9,7 @@ import com.joo.miruni.data.repository.SharedPreferenceRepositoryImpl
 import com.joo.miruni.data.repository.TaskRepositoryImpl
 import com.joo.miruni.domain.repository.SharedPreferenceRepository
 import com.joo.miruni.domain.repository.TaskRepository
+import com.joo.miruni.notifications.AlarmManagerUtil
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -44,14 +45,21 @@ class RepositoryModule {
     @Singleton
     fun provideTaskRepository(
         taskDao: TaskDao,
+        alarmManagerUtil: AlarmManagerUtil,
     ): TaskRepository {
-        return TaskRepositoryImpl(taskDao)
+        return TaskRepositoryImpl(taskDao, alarmManagerUtil)
     }
 
     @Provides
     @Singleton
     fun provideTaskDao(database: AppDatabase): TaskDao {
         return database.taskDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAlarmManagerUtil(@ApplicationContext context: Context): AlarmManagerUtil {
+        return AlarmManagerUtil(context)
     }
 
     @Provides
