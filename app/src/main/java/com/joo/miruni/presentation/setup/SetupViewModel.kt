@@ -19,7 +19,7 @@ class SetupViewModel @Inject constructor(
 ) : ViewModel() {
 
     // 선택된 시간
-    private val _selectedTime = MutableLiveData<LocalTime>(LocalTime.of(9, 0))
+    private val _selectedTime = MutableLiveData<LocalTime>(LocalTime.of(8, 0))
     val selectedTime: LiveData<LocalTime> get() = _selectedTime
 
     // Bool 시간 선택 진행 유뮤
@@ -27,7 +27,7 @@ class SetupViewModel @Inject constructor(
     val showTimePicker: LiveData<Boolean> get() = _showTimePicker
 
     // 초기화 상태
-    private val _isInit = MutableLiveData<Boolean>()
+    private val _isInit = MutableLiveData<Boolean>(false)
     val isInit: LiveData<Boolean> get() = _isInit
 
     init {
@@ -37,7 +37,7 @@ class SetupViewModel @Inject constructor(
     // 알람 시간 저장
     fun saveAlarmTime() {
         viewModelScope.launch {
-            saveAlarmTimeUseCase(_selectedTime.value ?: LocalTime.of(9, 0))
+            saveAlarmTimeUseCase(_selectedTime.value ?: LocalTime.of(8, 0))
             _isInit.value = false
         }
     }
