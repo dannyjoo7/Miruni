@@ -46,8 +46,8 @@ interface TaskDao {
         """
     SELECT * FROM tasks 
     WHERE type = :taskType 
-    AND deadLine >= :selectDate 
-    AND alarmDisplayDate <= :selectDate
+    AND deadLine > :selectDate 
+    AND alarmDisplayDate < :selectDate
     ORDER BY deadLine ASC
     """
     )
