@@ -204,11 +204,11 @@ class AddTodoViewModel @Inject constructor(
         _selectedTime.value = newTime
     }
 
-    // 현재 시간을 5분 단위로 조정
+    // 현재 시간을 5분 단위로 올림 조정
     private fun getCurrentTimeIn5MinIntervals(): LocalTime {
         val now = LocalTime.now()
-        val adjustedMinute = (now.minute / 5) * 5
-        return LocalTime.of(now.hour, adjustedMinute)
+        val adjustedMinute = ((now.minute + 4) / 5) * 5
+        return LocalTime.of(now.hour, adjustedMinute % 60)
     }
 
 
