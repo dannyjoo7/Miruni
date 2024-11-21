@@ -32,6 +32,8 @@ import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCase
 import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCaseImpl
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCaseImpl
+import com.joo.miruni.domain.usecase.TestUseCase
+import com.joo.miruni.domain.usecase.TestUseCaseImpl
 import com.joo.miruni.domain.usecase.UpdateScheduleItemUseCase
 import com.joo.miruni.domain.usecase.UpdateScheduleItemUseCaseImpl
 import com.joo.miruni.domain.usecase.UpdateTodoItemUseCase
@@ -177,5 +179,15 @@ abstract class UseCaseModule {
     abstract fun bindDelayAllTodoItemUseCase(
         delayAllTodoItemUseCaseImpl: DelayAllTodoItemUseCaseImpl,
     ): DelayAllTodoItemUseCase
+
+
+    /*
+    * TEST
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindTestUseCase(
+        testUseCaseImpl: TestUseCaseImpl,
+    ): TestUseCase
 }
 
