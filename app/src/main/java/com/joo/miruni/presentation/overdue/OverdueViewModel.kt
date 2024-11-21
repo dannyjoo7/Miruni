@@ -29,7 +29,7 @@ class OverdueViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        const val TAG = "ExpirationViewModel"
+        const val TAG = "OverdueViewModel"
     }
 
     /*
@@ -73,7 +73,7 @@ class OverdueViewModel @Inject constructor(
     }
 
     // 기한이 지난 할 일 init load
-    private fun loadInitOverdueTasks() {
+    fun loadInitOverdueTasks() {
         getOverdueTodoItemsJob?.cancel()
         getOverdueTodoItemsJob = viewModelScope.launch {
             _isOverdueTodoListLoading.value = true

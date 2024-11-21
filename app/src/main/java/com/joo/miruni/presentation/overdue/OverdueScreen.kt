@@ -63,6 +63,10 @@ fun OverdueScreen(
     // 다이얼로그 show 여부
     var isShowDialog by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        overdueViewModel.loadInitOverdueTasks()
+    }
+
     // 초기 로드 상태 업데이트
     LaunchedEffect(overdueTodoItems) {
         if (overdueTodoItems.isNotEmpty()) {
