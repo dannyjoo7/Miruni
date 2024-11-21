@@ -67,11 +67,6 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".services.ReminderService"
-            android:foregroundServiceType="location" />
-
-
         <receiver
             android:name=".notifications.ReminderBroadcastReceiver"
             tools:ignore="WrongManifestParent" />
