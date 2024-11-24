@@ -11,11 +11,14 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.joo.miruni.R
+import javax.inject.Inject
 
-class NotificationHelper(private val context: Context) {
+class NotificationHelper @Inject constructor(
+    private val context: Context,
+    private val alarmManagerUtil: AlarmManagerUtil,
+) {
     private val channelId = "reminder_channel"
     private val channelName = "Reminder Notifications"
-    private var notificationIdCounter = 0
 
     init {
         createNotificationChannel()
@@ -33,13 +36,17 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    fun sendNotification(title: String, message: String) {
+    fun sendNotification(
+        title: String,
+        message: String,
+        notificationId: Int,
+        alarmType: AlarmType?,
+    ) {
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-
             // 알림 전송
             val notificationBuilder = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(getIcon())
@@ -51,9 +58,34 @@ class NotificationHelper(private val context: Context) {
                 .setColorized(true)
 
             val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.notify(notificationIdCounter++, notificationBuilder.build())
+            notificationManager.notify(notificationId, notificationBuilder.build())
+
+            // 다음 알람 결정
+            val nextAlarmType = when (alarmType) {
+                AlarmType.ONE_HOUR_BEFORE -> AlarmType.TEN_MINUTES_BEFORE
+                AlarmType.TEN_MINUTES_BEFORE -> AlarmType.FIVE_MINUTES_BEFORE
+                AlarmType.FIVE_MINUTES_BEFORE -> AlarmType.NOW
+                AlarmType.NOW -> null
+                else -> null
+            }
+            val nextAlarmTime = calculateAlarmTime(nextAlarmType)
+
+            if (alarmType != null && nextAlarmType != null && nextAlarmTime != null) {
+                alarmManagerUtil.setExactAlarm(nextAlarmTime, notificationId, title, nextAlarmType)
+            }
         } else {
             Log.e("Notification Error", "알림 권한이 부여되지 않았습니다.")
+        }
+    }
+
+    // 시간 계산 메서드
+    private fun calculateAlarmTime(alarmType: AlarmType?): Long? {
+        return when (alarmType) {
+            AlarmType.ONE_HOUR_BEFORE -> System.currentTimeMillis() + 3600000
+            AlarmType.TEN_MINUTES_BEFORE -> System.currentTimeMillis() + 600000
+            AlarmType.FIVE_MINUTES_BEFORE -> System.currentTimeMillis() + 300000
+            AlarmType.NOW -> System.currentTimeMillis() + 300000
+            else -> null
         }
     }
 
