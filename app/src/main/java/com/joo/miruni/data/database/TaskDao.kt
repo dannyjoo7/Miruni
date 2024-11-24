@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 @Dao
 interface TaskDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTask(taskEntity: TaskEntity)
+    suspend fun insertTask(taskEntity: TaskEntity): Long
 
     @Query("SELECT * FROM tasks WHERE startDate BETWEEN :start AND :end")
     suspend fun getTasksForDateRange(start: LocalDate, end: LocalDate): List<TaskEntity>
