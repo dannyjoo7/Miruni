@@ -39,8 +39,9 @@ class TaskRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addTodo(todoEntity: TodoEntity) {
-        taskDao.insertTask(todoEntity.toTaskEntity())
-        scheduleAlarmForTodoItem(todoEntity)
+        val newId = taskDao.insertTask(todoEntity.toTaskEntity())
+        val updatedTodoEntity = todoEntity.copy(id = newId)
+        scheduleAlarmForTodoItem(updatedTodoEntity)
     }
 
     // 날짜로 Task 가져오기
@@ -55,18 +56,18 @@ class TaskRepositoryImpl @Inject constructor(
 
     override suspend fun deleteTaskById(id: Long) {
         taskDao.deleteTaskById(id)
-        cancelAllAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
+        cancelAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
     }
 
     override suspend fun updateTask(taskEntity: TaskEntity) {
         taskDao.updateTask(taskEntity)
-        cancelAllAlarmsForTodoItem(taskEntity.toTodoEntity())
+        cancelAlarmsForTodoItem(taskEntity.toTodoEntity())
         scheduleAlarmForTodoItem(taskEntity.toTodoEntity())
     }
 
     override suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime) {
         taskDao.updateTaskCompletionStatus(id, true, completionTime)
-        cancelAllAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
+        cancelAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
     }
 
     override suspend fun markTaskAsCancelCompleted(id: Long) {
@@ -80,7 +81,7 @@ class TaskRepositoryImpl @Inject constructor(
 
     override suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime) {
         taskDao.delayTask(id, delayDateTime)
-        cancelAllAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
+        cancelAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
         scheduleAlarmForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
     }
 
@@ -117,56 +118,71 @@ class TaskRepositoryImpl @Inject constructor(
 
     // 알람 추가
     private fun scheduleAlarmForTodoItem(todoEntity: TodoEntity) {
-        if (todoEntity.deadLine != null) {
-
+        todoEntity.deadLine?.let { deadLine ->
             val alarmTimeInMillis =
-                todoEntity.deadLine.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                deadLine.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
+            // 알람 시간 계산
             val oneHourBeforeInMillis = alarmTimeInMillis - 3600000 // 1시간 전
             val tenMinutesBeforeInMillis = alarmTimeInMillis - 600000 // 10분 전
             val fiveMinutesBeforeInMillis = alarmTimeInMillis - 300000 // 5분 전
 
+            // 현재 시간
             val nowInMillis = System.currentTimeMillis()
 
             // 알람 설정
-            if (nowInMillis < alarmTimeInMillis) {
-                if (nowInMillis < oneHourBeforeInMillis) {
-                    alarmManagerUtil.setExactAlarm(
-                        oneHourBeforeInMillis,
-                        todoEntity,
-                        AlarmType.ONE_HOUR_BEFORE
-                    )
+            when {
+                nowInMillis < alarmTimeInMillis -> {
+                    // 현재 시간이 마감 시간 이전인 경우
+                    when {
+                        nowInMillis < oneHourBeforeInMillis -> {
+                            // 1시간 전 알람 설정
+                            alarmManagerUtil.setExactAlarm(
+                                oneHourBeforeInMillis,
+                                todoEntity.id.toInt(),
+                                todoEntity.title,
+                                AlarmType.ONE_HOUR_BEFORE
+                            )
+                        }
+                        nowInMillis < tenMinutesBeforeInMillis -> {
+                            // 10분 전 알람 설정
+                            alarmManagerUtil.setExactAlarm(
+                                tenMinutesBeforeInMillis,
+                                todoEntity.id.toInt(),
+                                todoEntity.title,
+                                AlarmType.TEN_MINUTES_BEFORE
+                            )
+                        }
+                        nowInMillis < fiveMinutesBeforeInMillis -> {
+                            // 5분 전 알람 설정
+                            alarmManagerUtil.setExactAlarm(
+                                fiveMinutesBeforeInMillis,
+                                todoEntity.id.toInt(),
+                                todoEntity.title,
+                                AlarmType.FIVE_MINUTES_BEFORE
+                            )
+                        }
+                        else -> {
+                            alarmManagerUtil.setExactAlarm(
+                                alarmTimeInMillis,
+                                todoEntity.id.toInt(),
+                                todoEntity.title,
+                                AlarmType.NOW
+                            )
+                        }
+                    }
                 }
-                if (nowInMillis < tenMinutesBeforeInMillis) {
-                    alarmManagerUtil.setExactAlarm(
-                        tenMinutesBeforeInMillis,
-                        todoEntity,
-                        AlarmType.TEN_MINUTES_BEFORE
-                    )
-                }
-                if (nowInMillis < fiveMinutesBeforeInMillis) {
-                    alarmManagerUtil.setExactAlarm(
-                        fiveMinutesBeforeInMillis,
-                        todoEntity,
-                        AlarmType.FIVE_MINUTES_BEFORE
-                    )
-                }
-                alarmManagerUtil.setExactAlarm(
-                    alarmTimeInMillis,
-                    todoEntity,
-                    AlarmType.NOW
-                )
             }
         }
     }
 
     // 알람 취소
-    private fun cancelAllAlarmsForTodoItem(todoEntity: TodoEntity) {
-        alarmManagerUtil.cancelAllAlarmsForTodoItem(todoEntity)
+    private fun cancelAlarmsForTodoItem(todoEntity: TodoEntity) {
+        alarmManagerUtil.cancelAlarmsForTodoItem(todoEntity)
     }
 
     // TODO 알람 테스트
     override fun test() {
-        alarmManagerUtil.setTestAlarm()
+
     }
 }
