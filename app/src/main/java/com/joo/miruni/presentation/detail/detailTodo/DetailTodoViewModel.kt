@@ -56,7 +56,7 @@ class DetailTodoViewModel @Inject constructor(
     val selectedDate: LiveData<LocalDate?> get() = _selectedDate
 
     // 선택된 시간
-    private val _selectedTime = MutableLiveData<LocalTime>(LocalTime.now())
+    private val _selectedTime = MutableLiveData<LocalTime>()
     val selectedTime: LiveData<LocalTime> get() = _selectedTime
 
     // 선택된 알람 표시 시간
@@ -250,13 +250,6 @@ class DetailTodoViewModel @Inject constructor(
         val newTime = LocalTime.of(adjustedHour, minute)
         _selectedTime.value = newTime
         isModify()
-    }
-
-    // 현재 시간을 5분 단위로 조정
-    private fun getCurrentTimeIn5MinIntervals(): LocalTime {
-        val now = LocalTime.now()
-        val adjustedMinute = (now.minute / 5) * 5
-        return LocalTime.of(now.hour, adjustedMinute)
     }
 
     /*

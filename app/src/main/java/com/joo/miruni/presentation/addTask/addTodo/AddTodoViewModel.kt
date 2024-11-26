@@ -208,9 +208,17 @@ class AddTodoViewModel @Inject constructor(
     private fun getCurrentTimeIn5MinIntervals(): LocalTime {
         val now = LocalTime.now()
         val adjustedMinute = ((now.minute + 4) / 5) * 5
-        return LocalTime.of(now.hour, adjustedMinute % 60)
-    }
 
+        val newHour = if (adjustedMinute >= 60) {
+            (now.hour + 1) % 24
+        } else {
+            now.hour
+        }
+
+        val newMinute = adjustedMinute % 60
+
+        return LocalTime.of(newHour, newMinute)
+    }
 
     /*
     * DatePicker
