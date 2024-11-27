@@ -122,7 +122,7 @@ class AddTodoViewModel @Inject constructor(
     }
 
     // 선택된 날짜 업데이트 메소드
-    fun updateSelectedDate(date: LocalDate?) {
+    fun updateSelectedDate(date: LocalDate) {
         _selectedDate.value = date
     }
 

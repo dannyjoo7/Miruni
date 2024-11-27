@@ -389,7 +389,12 @@ fun AddTodoScreen(
                             DatePicker(
                                 context = context,
                                 selectedDate = selectDate,
-                                onDateSelected = { date -> addTodoViewModel.selectDate(date) },
+                                onDateSelected = { date ->
+                                    addTodoViewModel.selectDate(date)
+                                },
+                                onChangeMonth = { date ->
+                                    addTodoViewModel.updateSelectedDate(date)
+                                }
                             )
                         }
 
@@ -565,8 +570,10 @@ fun DatePicker(
     context: Context,
     selectedDate: LocalDate?,
     onDateSelected: (LocalDate) -> Unit,
+    onChangeMonth: (LocalDate) -> Unit,
 ) {
     var currentDate by remember { mutableStateOf(selectedDate ?: LocalDate.now().plusDays(1)) }
+    val today = LocalDate.now()
 
     val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
 
@@ -576,7 +583,6 @@ fun DatePicker(
         val month = currentDate.monthValue
         val daysInMonth = currentDate.lengthOfMonth()
         val firstDayOfMonth = LocalDate.of(year, month, 1).dayOfWeek.value % 7
-        val today = LocalDate.now()
 
         Column {
             // 주간 헤더
@@ -675,7 +681,15 @@ fun DatePicker(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(start = 16.dp)
                 ) {
-                    IconButton(onClick = { currentDate = currentDate.minusMonths(1) }) {
+                    IconButton(onClick = {
+                        currentDate = currentDate.minusMonths(1)
+                        currentDate = if (currentDate.year == today.year && currentDate.month == today.month) {
+                            today.plusDays(1)
+                        } else {
+                            currentDate.withDayOfMonth(1)
+                        }
+                        onChangeMonth(currentDate)
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_left),
                             contentDescription = "Previous Month",
@@ -683,7 +697,15 @@ fun DatePicker(
                             tint = colorResource(id = R.color.ios_blue),
                         )
                     }
-                    IconButton(onClick = { currentDate = currentDate.plusMonths(1) }) {
+                    IconButton(onClick = {
+                        currentDate = currentDate.plusMonths(1)
+                        currentDate = if (currentDate.year == today.year && currentDate.month == today.month) {
+                            today.plusDays(1)
+                        } else {
+                            currentDate.withDayOfMonth(1)
+                        }
+                        onChangeMonth(currentDate)
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_right),
                             contentDescription = "Next Month",
@@ -698,6 +720,4 @@ fun DatePicker(
             renderCalendar()
         }
     }
-
-
 }
