@@ -16,7 +16,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -108,7 +110,10 @@ class OverdueViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 // TODO deadLine 미룰 때 기기에 저장된 유저가 설정한 값으로 대체 -> 현재 1에서 userSetting 값으로...
-                delayTodoItemUseCase.invoke(thingsTodo.id, LocalDateTime.now().plusDays(1))
+                delayTodoItemUseCase.invoke(
+                    thingsTodo.id,
+                    LocalDate.now().plusDays(1).atTime(getCurrentTimeIn5MinIntervals())
+                )
             }.onSuccess {
 
             }.onFailure {
@@ -124,7 +129,10 @@ class OverdueViewModel @Inject constructor(
             runCatching {
                 // TODO deadLine 미룰 때 기기에 저장된 유저가 설정한 값으로 대체 -> 현재 1에서 userSetting 값으로...
                 val itemIds = _overdueTodoItems.value?.map { it.id } ?: emptyList()
-                delayAllTodoItemUseCase.invoke(itemIds, LocalDateTime.now().plusDays(1))
+                delayAllTodoItemUseCase.invoke(
+                    itemIds,
+                    LocalDate.now().plusDays(1).atTime(getCurrentTimeIn5MinIntervals())
+                )
             }.onSuccess {
                 _isDelayAllTodoLoading.value = false
             }.onFailure {
@@ -133,6 +141,21 @@ class OverdueViewModel @Inject constructor(
         }
     }
 
+    // 현재 시간을 5분 단위로 올림 조정
+    private fun getCurrentTimeIn5MinIntervals(): LocalTime {
+        val now = LocalTime.now()
+        val adjustedMinute = ((now.minute + 4) / 5) * 5
+
+        val newHour = if (adjustedMinute >= 60) {
+            (now.hour + 1) % 24
+        } else {
+            now.hour
+        }
+
+        val newMinute = adjustedMinute % 60
+
+        return LocalTime.of(newHour, newMinute)
+    }
 
     // Task 삭제 메소드
     fun deleteTaskItem(id: Long) {
