@@ -41,14 +41,14 @@ class AlarmManagerUtil @Inject constructor(
     }
 
     // 푸쉬 알람 취소
-    fun cancelAlarmsForTodoItem(todoEntity: TodoEntity) {
+    fun cancelAlarmsForTodoItem(id: Long) {
 
         val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-            putExtra("TODO_ID", todoEntity.id)
+            putExtra("TODO_ID", id)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            todoEntity.id.hashCode(),
+            id.hashCode(),
             intent,
             PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

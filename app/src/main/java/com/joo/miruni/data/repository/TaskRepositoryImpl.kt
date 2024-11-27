@@ -41,7 +41,11 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun addTodo(todoEntity: TodoEntity) {
         val newId = taskDao.insertTask(todoEntity.toTaskEntity())
         val updatedTodoEntity = todoEntity.copy(id = newId)
-        scheduleAlarmForTodoItem(updatedTodoEntity)
+        scheduleAlarmForTodoItem(
+            updatedTodoEntity.id,
+            updatedTodoEntity.title,
+            updatedTodoEntity.deadLine
+        )
     }
 
     // 날짜로 Task 가져오기
@@ -56,23 +60,24 @@ class TaskRepositoryImpl @Inject constructor(
 
     override suspend fun deleteTaskById(id: Long) {
         taskDao.deleteTaskById(id)
-        cancelAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
+        cancelAlarmsForTodoItem(id)
     }
 
     override suspend fun updateTask(taskEntity: TaskEntity) {
         taskDao.updateTask(taskEntity)
-        cancelAlarmsForTodoItem(taskEntity.toTodoEntity())
-        scheduleAlarmForTodoItem(taskEntity.toTodoEntity())
+        cancelAlarmsForTodoItem(taskEntity.id)
+        scheduleAlarmForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
     }
 
     override suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime) {
         taskDao.updateTaskCompletionStatus(id, true, completionTime)
-        cancelAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
+        cancelAlarmsForTodoItem(id)
     }
 
     override suspend fun markTaskAsCancelCompleted(id: Long) {
         taskDao.updateTaskCompletionStatus(id, false, null)
-        scheduleAlarmForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
+        val taskEntity = taskDao.getTaskItemById(id).toTodoEntity()
+        scheduleAlarmForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
     }
 
     override suspend fun getTaskItemById(taskId: Long): TaskEntity {
@@ -81,13 +86,14 @@ class TaskRepositoryImpl @Inject constructor(
 
     override suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime) {
         taskDao.delayTask(id, delayDateTime)
-        cancelAlarmsForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
-        scheduleAlarmForTodoItem(taskDao.getTaskItemById(id).toTodoEntity())
+        cancelAlarmsForTodoItem(id)
+        val taskEntity = taskDao.getTaskItemById(id).toTodoEntity()
+        scheduleAlarmForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
     }
 
     override suspend fun delayAllTodoEntity(itemIds: List<Long>, delayDateTime: LocalDateTime) {
         itemIds.forEach { itemId ->
-            taskDao.delayTask(itemId, delayDateTime)
+            delayTodoEntity(itemId, delayDateTime)
         }
     }
 
@@ -117,8 +123,8 @@ class TaskRepositoryImpl @Inject constructor(
     }
 
     // 알람 추가
-    private fun scheduleAlarmForTodoItem(todoEntity: TodoEntity) {
-        todoEntity.deadLine?.let { deadLine ->
+    private fun scheduleAlarmForTodoItem(id: Long, title: String, deadLine: LocalDateTime?) {
+        if (deadLine != null) {
             val alarmTimeInMillis =
                 deadLine.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
@@ -139,34 +145,37 @@ class TaskRepositoryImpl @Inject constructor(
                             // 1시간 전 알람 설정
                             alarmManagerUtil.setExactAlarm(
                                 oneHourBeforeInMillis,
-                                todoEntity.id.toInt(),
-                                todoEntity.title,
+                                id.toInt(),
+                                title,
                                 AlarmType.ONE_HOUR_BEFORE
                             )
                         }
+
                         nowInMillis < tenMinutesBeforeInMillis -> {
                             // 10분 전 알람 설정
                             alarmManagerUtil.setExactAlarm(
                                 tenMinutesBeforeInMillis,
-                                todoEntity.id.toInt(),
-                                todoEntity.title,
+                                id.toInt(),
+                                title,
                                 AlarmType.TEN_MINUTES_BEFORE
                             )
                         }
+
                         nowInMillis < fiveMinutesBeforeInMillis -> {
                             // 5분 전 알람 설정
                             alarmManagerUtil.setExactAlarm(
                                 fiveMinutesBeforeInMillis,
-                                todoEntity.id.toInt(),
-                                todoEntity.title,
+                                id.toInt(),
+                                title,
                                 AlarmType.FIVE_MINUTES_BEFORE
                             )
                         }
+
                         else -> {
                             alarmManagerUtil.setExactAlarm(
                                 alarmTimeInMillis,
-                                todoEntity.id.toInt(),
-                                todoEntity.title,
+                                id.toInt(),
+                                title,
                                 AlarmType.NOW
                             )
                         }
@@ -177,8 +186,8 @@ class TaskRepositoryImpl @Inject constructor(
     }
 
     // 알람 취소
-    private fun cancelAlarmsForTodoItem(todoEntity: TodoEntity) {
-        alarmManagerUtil.cancelAlarmsForTodoItem(todoEntity)
+    private fun cancelAlarmsForTodoItem(id: Long) {
+        alarmManagerUtil.cancelAlarmsForTodoItem(id)
     }
 
     // TODO 알람 테스트
