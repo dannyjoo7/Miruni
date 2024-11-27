@@ -52,7 +52,7 @@ class DetailTodoViewModel @Inject constructor(
 
 
     // 선택된 날짜
-    private val _selectedDate = MutableLiveData<LocalDate?>(LocalDate.now().plusDays(1))
+    private val _selectedDate = MutableLiveData<LocalDate?>()
     val selectedDate: LiveData<LocalDate?> get() = _selectedDate
 
     // 선택된 시간
@@ -193,19 +193,25 @@ class DetailTodoViewModel @Inject constructor(
     * */
 
     // 시간 포멧
-    fun convertLocalTimeToTime(localTime: LocalTime): Time {
-        val hour = localTime.hour
-        val minute = localTime.minute
+    fun convertLocalTimeToTime(): Time? {
+        val selectedTime = _selectedTime.value
 
-        val format = if (hour < 12) {
-            "오전"
+        if (selectedTime != null) {
+            val hour = selectedTime.hour
+            val minute = selectedTime.minute
+
+            val format = if (hour < 12) {
+                "오전"
+            } else {
+                "오후"
+            }
+
+            val adjustedHour = if (hour % 12 == 0) 12 else hour % 12
+
+            return Time(adjustedHour, minute, format)
         } else {
-            "오후"
+            return null
         }
-
-        val adjustedHour = if (hour % 12 == 0) 12 else hour % 12
-
-        return Time(adjustedHour, minute, format)
     }
 
     // 날짜 Text 포멧

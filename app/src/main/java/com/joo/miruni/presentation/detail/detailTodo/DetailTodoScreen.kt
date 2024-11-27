@@ -414,9 +414,8 @@ fun DetailTodoScreen(
                                     offset = 2,
                                     selectorEffectEnabled = true,
                                     timeFormat = TimeFormat.CLOCK_12H,
-                                    startTime = detailTodoViewModel.selectedTime.value?.let {
-                                        detailTodoViewModel.convertLocalTimeToTime(it)
-                                    } ?: Time(12, 0, "오전"),
+                                    startTime = detailTodoViewModel.convertLocalTimeToTime()
+                                        ?: Time(12, 0, "오전"),
                                     textSize = 19,
                                     onTimeChanged = { hour, minute, format ->
                                         detailTodoViewModel.updateSelectedTime(

@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -29,7 +28,6 @@ class DetailTodoActivity : ComponentActivity() {
         window.statusBarColor = android.graphics.Color.TRANSPARENT
 
         setContent {
-            val navController = rememberNavController()
             DetailTodoScreen(detailTodoViewModel)
         }
     }
