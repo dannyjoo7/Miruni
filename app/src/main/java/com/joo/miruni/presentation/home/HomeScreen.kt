@@ -71,7 +71,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.joo.miruni.R
 import com.joo.miruni.presentation.addTask.addSchedule.AddScheduleActivity
 import com.joo.miruni.presentation.addTask.addTodo.AddTodoActivity
@@ -79,13 +78,13 @@ import com.joo.miruni.presentation.detail.detailSchedule.DetailScheduleActivity
 import com.joo.miruni.presentation.detail.detailTodo.DetailTodoActivity
 import com.joo.miruni.presentation.widget.BasicDialog
 import com.joo.miruni.presentation.widget.DialogMod
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 @Composable
 fun HomeScreen(
-    navController: NavHostController,
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -95,12 +94,14 @@ fun HomeScreen(
     * */
     val thingsToDoItems by homeViewModel.thingsTodoItems.observeAsState(emptyList())
     val scheduleItems by homeViewModel.scheduleItems.observeAsState(emptyList())
+    val deletedItems by homeViewModel.deletedItems.observeAsState()
+
+    val selectDate by homeViewModel.selectDate.observeAsState(LocalDateTime.now())
+
     val isTodoListLoading by homeViewModel.isTodoListLoading.observeAsState(false)
     val isScheduleListLoading by homeViewModel.isScheduleListLoading.observeAsState(false)
-    val deletedItems by homeViewModel.deletedItems.observeAsState()
     val isCompletedViewChecked =
         homeViewModel.settingObserveCompleteVisibility.observeAsState(false)
-    val selectDate by homeViewModel.selectDate.observeAsState(LocalDateTime.now())
     val isFutureDate by homeViewModel.isFutureDate.observeAsState(false)
 
     // FAB 메뉴
@@ -118,7 +119,6 @@ fun HomeScreen(
 
     // 무한 스크롤
     val lazyListState = rememberLazyListState()
-
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -259,57 +259,62 @@ fun HomeScreen(
 
                         val isDelete = deletedItems?.contains(thingsToDo.id) ?: false
                         val isExpanded = homeViewModel.expandedItems.value.contains(thingsToDo.id)
+                        val isOverdue =
+                            LocalDateTime.now().isAfter(thingsToDo.deadline) || LocalDateTime.now()
+                                .isEqual(thingsToDo.deadline)
 
-                        if (isCompletedViewChecked.value || !thingsToDo.isCompleted) {
-                            ThingsToDoItem(
-                                context = context,
-                                thingsToDo = thingsToDo,
-                                onClicked = {
-                                    homeViewModel.toggleItemExpansion(thingsToDo.id)
-                                },
-                                onClickedShowDetail = {
-                                    // 상세보기 액티비티로 넘어가기
-                                    val intent = Intent(
-                                        context,
-                                        DetailTodoActivity::class.java
-                                    ).apply {
-                                        putExtra(
-                                            "TODO_ID",
-                                            thingsToDo.id
-                                        )
-                                    }
-                                    context.startActivity(intent)
-                                    homeViewModel.collapseAllItems()
-                                },
-                                onClickedDelay = {
-                                    // 미루기 클릭 시
-                                    homeViewModel.delayTodoItem(thingsToDo)
-                                },
-                                onDialogConfirmed = { dialogMod ->
-                                    when (dialogMod) {
-                                        DialogMod.TODO_COMPLETE -> {
-                                            homeViewModel.completeTask(thingsToDo.id)
-                                            homeViewModel.collapseAllItems()
+                        if (!isOverdue){
+                            if (isCompletedViewChecked.value || !thingsToDo.isCompleted) {
+                                ThingsToDoItem(
+                                    context = context,
+                                    thingsToDo = thingsToDo,
+                                    onClicked = {
+                                        homeViewModel.toggleItemExpansion(thingsToDo.id)
+                                    },
+                                    onClickedShowDetail = {
+                                        // 상세보기 액티비티로 넘어가기
+                                        val intent = Intent(
+                                            context,
+                                            DetailTodoActivity::class.java
+                                        ).apply {
+                                            putExtra(
+                                                "TODO_ID",
+                                                thingsToDo.id
+                                            )
                                         }
+                                        context.startActivity(intent)
+                                        homeViewModel.collapseAllItems()
+                                    },
+                                    onClickedDelay = {
+                                        // 미루기 클릭 시
+                                        homeViewModel.delayTodoItem(thingsToDo)
+                                    },
+                                    onDialogConfirmed = { dialogMod ->
+                                        when (dialogMod) {
+                                            DialogMod.TODO_COMPLETE -> {
+                                                homeViewModel.completeTask(thingsToDo.id)
+                                                homeViewModel.collapseAllItems()
+                                            }
 
-                                        DialogMod.TODO_DELETE -> {
-                                            homeViewModel.deleteTaskItem(thingsToDo.id)
-                                            homeViewModel.collapseAllItems()
-                                        }
+                                            DialogMod.TODO_DELETE -> {
+                                                homeViewModel.deleteTaskItem(thingsToDo.id)
+                                                homeViewModel.collapseAllItems()
+                                            }
 
-                                        DialogMod.TODO_CANCEL_COMPLETE -> {
-                                            homeViewModel.completeCancelTaskItem(thingsToDo.id)
-                                            homeViewModel.collapseAllItems()
-                                        }
+                                            DialogMod.TODO_CANCEL_COMPLETE -> {
+                                                homeViewModel.completeCancelTaskItem(thingsToDo.id)
+                                                homeViewModel.collapseAllItems()
+                                            }
 
-                                        else -> {
-                                            homeViewModel.collapseAllItems()
+                                            else -> {
+                                                homeViewModel.collapseAllItems()
+                                            }
                                         }
-                                    }
-                                },
-                                isDelete = isDelete,
-                                isExpanded = isExpanded,
-                            )
+                                    },
+                                    isDelete = isDelete,
+                                    isExpanded = isExpanded,
+                                )
+                            }
                         }
                     }
                 }
@@ -546,7 +551,8 @@ fun ThingsToDoItem(
     var dialogMod by remember { mutableStateOf(DialogMod.TODO_DELETE) }         // dialog mod
 
     val isComplete = thingsToDo.isCompleted
-    val isOverdue = LocalDateTime.now().isAfter(thingsToDo.deadline)
+    val isOverdue = LocalDateTime.now().isAfter(thingsToDo.deadline) || LocalDateTime.now()
+        .isEqual(thingsToDo.deadline)
 
     /*
     * 애니매이션
@@ -624,21 +630,14 @@ fun ThingsToDoItem(
                             // 마감일
                             Text(
                                 text = run {
-                                    val minutesRemaining = ChronoUnit.MINUTES.between(
-                                        LocalDateTime.now(),
-                                        thingsToDo.deadline
-                                    )
-                                    val hoursRemaining = ChronoUnit.HOURS.between(
-                                        LocalDateTime.now(),
-                                        thingsToDo.deadline
-                                    )
-                                    val daysRemaining = ChronoUnit.DAYS.between(
-                                        LocalDateTime.now(),
-                                        thingsToDo.deadline
-                                    )
+                                    val duration = Duration.between(LocalDateTime.now(), thingsToDo.deadline)
+
+                                    val minutesRemaining = duration.toMinutes().plus(1)
+                                    val hoursRemaining = duration.toHours()
+                                    val daysRemaining = duration.toDays()
 
                                     when {
-                                        minutesRemaining < 0 -> "기한 만료"
+                                        minutesRemaining <= 1 -> "기한 만료"
                                         minutesRemaining < 60 -> "${minutesRemaining}분 후"
                                         hoursRemaining < 24 -> "${hoursRemaining}시간 후"
                                         daysRemaining < 7 -> "${daysRemaining}일 후"
