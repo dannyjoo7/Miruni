@@ -67,9 +67,7 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name=".notifications.ReminderBroadcastReceiver"
-            tools:ignore="WrongManifestParent" />
+        <receiver android:name=".notifications.ReminderBroadcastReceiver" />
     </application>
 
 </manifest>
