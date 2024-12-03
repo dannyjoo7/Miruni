@@ -18,9 +18,10 @@
 
     <!-- 아이폰 파란 색상 -->
     <color name="ios_blue">#FF007AFF</color>
+    <!-- 짙은 아이폰 파란 색상 -->
+    <color name="ios_dark_blue">#FF0051FF</color>
     <!-- 아이폰 옅은 파란 색상 -->
     <color name="ios_light_blue">#FFD9E8F8</color>
-
     <!-- 아이폰 옅은 초록 색상 -->
     <color name="ios_light_green">#FF35C759</color>
 
