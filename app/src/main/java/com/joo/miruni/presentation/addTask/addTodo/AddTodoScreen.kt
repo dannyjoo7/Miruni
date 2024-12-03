@@ -45,6 +45,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -620,7 +621,13 @@ fun DatePicker(
                                         },
                                         shape = RoundedCornerShape(50.dp)
                                     )
-                                    .clickable {
+                                    .clickable(
+                                        indication = ripple(
+                                            bounded = true,
+                                            color = colorResource(R.color.ios_gray),
+                                        ),
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
                                         onDateSelected(LocalDate.of(year, month, dayOfMonth))
                                     },
                                 contentAlignment = Alignment.Center
@@ -684,10 +691,10 @@ fun DatePicker(
                     IconButton(onClick = {
                         currentDate = currentDate.minusMonths(1)
                         currentDate = if (currentDate.year == today.year && currentDate.month == today.month) {
-                            today.plusDays(1)
-                        } else {
-                            currentDate.withDayOfMonth(1)
-                        }
+                                today.plusDays(1)
+                            } else {
+                                currentDate.withDayOfMonth(1)
+                            }
                         onChangeMonth(currentDate)
                     }) {
                         Icon(
@@ -699,11 +706,12 @@ fun DatePicker(
                     }
                     IconButton(onClick = {
                         currentDate = currentDate.plusMonths(1)
-                        currentDate = if (currentDate.year == today.year && currentDate.month == today.month) {
-                            today.plusDays(1)
-                        } else {
-                            currentDate.withDayOfMonth(1)
-                        }
+                        currentDate =
+                            if (currentDate.year == today.year && currentDate.month == today.month) {
+                                today.plusDays(1)
+                            } else {
+                                currentDate.withDayOfMonth(1)
+                            }
                         onChangeMonth(currentDate)
                     }) {
                         Icon(
