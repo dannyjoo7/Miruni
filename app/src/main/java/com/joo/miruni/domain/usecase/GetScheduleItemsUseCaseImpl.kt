@@ -1,6 +1,6 @@
 package com.joo.miruni.domain.usecase
 
-import com.joo.miruni.domain.model.ScheduleItemsEntity
+import com.joo.miruni.domain.model.ScheduleItemsModel
 import com.joo.miruni.domain.model.toScheduleItemsEntity
 import com.joo.miruni.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +15,7 @@ class GetScheduleItemsUseCaseImpl @Inject constructor(
     override suspend fun invoke(
         selectDate: LocalDate,
         lastStartDate: LocalDate?,
-    ): Flow<ScheduleItemsEntity> {
+    ): Flow<ScheduleItemsModel> {
         return taskRepository.getSchedules(selectDate, lastStartDate)
             .map { taskItemsEntity ->
                 taskItemsEntity.toScheduleItemsEntity()

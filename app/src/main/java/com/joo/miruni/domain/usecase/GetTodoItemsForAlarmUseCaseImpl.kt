@@ -1,6 +1,6 @@
 package com.joo.miruni.domain.usecase
 
-import com.joo.miruni.domain.model.TodoItemsEntity
+import com.joo.miruni.domain.model.TodoItemsModel
 import com.joo.miruni.domain.model.toTodoItemsEntity
 import com.joo.miruni.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +14,7 @@ class GetTodoItemsForAlarmUseCaseImpl @Inject constructor(
 
     override suspend fun invoke(
         selectDate: LocalDateTime,
-    ): Flow<TodoItemsEntity> {
+    ): Flow<TodoItemsModel> {
         return taskRepository.getTasksForAlarmByDate(selectDate)
             .map { taskItemsEntity ->
                 taskItemsEntity.toTodoItemsEntity()

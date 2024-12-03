@@ -10,12 +10,12 @@ import java.time.LocalDate
 * TaskEntity to TodoEntity*/
 
 // TaskItemsEntity to TodoItemsEntity
-fun TaskItemsEntity.toTodoItemsEntity() = TodoItemsEntity(
+fun TaskItemsEntity.toTodoItemsEntity() = TodoItemsModel(
     todoEntities = taskItemsEntity.map { it.toTodoEntity() } // 각 TaskEntity를 TodoEntity로 변환
 )
 
 // TaskEntity to TodoEntity
-fun TaskEntity.toTodoEntity() = TodoEntity(
+fun TaskEntity.toTodoEntity() = TodoModel(
     id = id,
     title = title,
     details = details,
@@ -31,7 +31,7 @@ fun TaskEntity.toTodoEntity() = TodoEntity(
 * */
 
 // TodoEntity to TaskEntity
-fun TodoEntity.toTaskEntity() = TaskEntity(
+fun TodoModel.toTaskEntity() = TaskEntity(
     id = id,
     title = title,
     details = details,
@@ -49,7 +49,7 @@ fun TodoEntity.toTaskEntity() = TaskEntity(
 * */
 
 // AddTodo
-fun TodoItem.toTodoEntity() = TodoEntity(
+fun TodoItem.toTodoEntity() = TodoModel(
     id = 0,
     title = todoText,
     details = descriptionText,
@@ -61,7 +61,7 @@ fun TodoItem.toTodoEntity() = TodoEntity(
 )
 
 // Modify
-fun com.joo.miruni.presentation.detail.detailTodo.TodoItem.toTodoEntity() = TodoEntity(
+fun com.joo.miruni.presentation.detail.detailTodo.TodoItem.toTodoEntity() = TodoModel(
     id = id!!,
     title = todoText,
     details = descriptionText,

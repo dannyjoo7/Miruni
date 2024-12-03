@@ -4,17 +4,21 @@ import com.joo.miruni.data.entities.TaskType
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class TodoEntity(
+data class ScheduleModel(
     val id: Long,
     val title: String,
     val details: String?,
-    val deadLine: LocalDateTime?,
-    val alarmDisplayDate: LocalDate,
-    val type: TaskType,
+
+    val startDate: LocalDate?,
+    val endDate: LocalDate?,
+
+    val alarmDisplayDate: LocalDate?,
     val isComplete: Boolean,
     val completeDate: LocalDateTime?,
+
+    val type: TaskType,
 )
 
-data class TodoItemsEntity(
-    val todoEntities: List<TodoEntity>,
+data class ScheduleItemsModel(
+    val scheduleEntities: List<ScheduleModel>,
 )

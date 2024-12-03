@@ -11,12 +11,12 @@ import com.joo.miruni.presentation.addTask.addSchedule.ScheduleItem
 * */
 
 // TaskItemsEntity to TodoItemsEntity
-fun TaskItemsEntity.toScheduleItemsEntity() = ScheduleItemsEntity(
+fun TaskItemsEntity.toScheduleItemsEntity() = ScheduleItemsModel(
     scheduleEntities = taskItemsEntity.map { it.toScheduleEntity() }
 )
 
 // TaskEntity to ScheduleEntity
-fun TaskEntity.toScheduleEntity() = ScheduleEntity(
+fun TaskEntity.toScheduleEntity() = ScheduleModel(
     id = id,
     title = title,
     details = details,
@@ -33,7 +33,7 @@ fun TaskEntity.toScheduleEntity() = ScheduleEntity(
 * */
 
 // TodoEntity to TaskEntity
-fun ScheduleEntity.toTaskEntity() = TaskEntity(
+fun ScheduleModel.toTaskEntity() = TaskEntity(
     id = id,
     title = title,
     details = details,
@@ -51,7 +51,7 @@ fun ScheduleEntity.toTaskEntity() = TaskEntity(
 * */
 
 // AddSchedule
-fun ScheduleItem.toScheduleEntity() = ScheduleEntity(
+fun ScheduleItem.toScheduleEntity() = ScheduleModel(
     id = id,
     title = title,
     details = descriptionText,

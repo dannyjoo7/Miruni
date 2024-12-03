@@ -1,9 +1,7 @@
 package com.joo.miruni.domain.usecase
 
-import com.joo.miruni.domain.model.ScheduleEntity
-import com.joo.miruni.domain.model.TodoEntity
+import com.joo.miruni.domain.model.ScheduleModel
 import com.joo.miruni.domain.model.toScheduleEntity
-import com.joo.miruni.domain.model.toTodoEntity
 import com.joo.miruni.domain.repository.TaskRepository
 import javax.inject.Inject
 
@@ -13,7 +11,7 @@ class GetScheduleItemByIDUseCaseImpl @Inject constructor(
 
     override suspend fun invoke(
         taskId: Long,
-    ): ScheduleEntity {
+    ): ScheduleModel {
         return taskRepository.getTaskItemById(taskId).toScheduleEntity()
     }
 }
