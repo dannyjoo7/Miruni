@@ -3,6 +3,7 @@ package com.joo.miruni.presentation.widget
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -113,7 +115,14 @@ fun DateRangePicker(
                                         },
                                         shape = RoundedCornerShape(50.dp)
                                     )
-                                    .clickable(enabled = !isBeforeStartDate) {
+                                    .clickable(
+                                        enabled = !isBeforeStartDate,
+                                        indication = ripple(
+                                            bounded = true,
+                                            color = colorResource(R.color.ios_gray),
+                                        ),
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
                                         when {
                                             // 시작일 선택
                                             selectedStartDate == null -> {
@@ -123,7 +132,7 @@ fun DateRangePicker(
                                             selectedEndDate == null -> {
                                                 // 종료일이 시작일보다 이전인 경우
                                                 if (currentDay.isBefore(selectedStartDate)) {
-                                                    onDateSelected(currentDay, null) // 시작일로 재선택
+                                                    onDateSelected(currentDay, null)
                                                 } else {
                                                     // 정상 종료일 선택
                                                     onDateSelected(selectedStartDate, currentDay)
