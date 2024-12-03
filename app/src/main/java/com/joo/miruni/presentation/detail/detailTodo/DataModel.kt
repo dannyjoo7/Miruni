@@ -1,6 +1,6 @@
 package com.joo.miruni.presentation.detail.detailTodo
 
-import com.joo.miruni.domain.model.TodoEntity
+import com.joo.miruni.domain.model.TodoModel
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -18,7 +18,7 @@ data class TodoItem(
     val isComplete: Boolean,
 )
 
-fun TodoEntity.toTodoItem() = TodoItem(
+fun TodoModel.toTodoItem() = TodoItem(
     id = id,
     todoText = title,
     descriptionText = details,
