@@ -263,7 +263,7 @@ fun HomeScreen(
                             LocalDateTime.now().isAfter(thingsToDo.deadline) || LocalDateTime.now()
                                 .isEqual(thingsToDo.deadline)
 
-                        if (!isOverdue){
+                        if (!isOverdue) {
                             if (isCompletedViewChecked.value || !thingsToDo.isCompleted) {
                                 ThingsToDoItem(
                                     context = context,
@@ -627,20 +627,21 @@ fun ThingsToDoItem(
                                     .padding(start = 2.dp)
                             )
 
-                            // 마감일
+                            // 남은 시간
                             Text(
                                 text = run {
-                                    val duration = Duration.between(LocalDateTime.now(), thingsToDo.deadline)
+                                    val duration =
+                                        Duration.between(LocalDateTime.now(), thingsToDo.deadline)
 
                                     val minutesRemaining = duration.toMinutes().plus(1)
                                     val hoursRemaining = duration.toHours()
                                     val daysRemaining = duration.toDays()
 
                                     when {
-                                        minutesRemaining <= 1 -> "기한 만료"
-                                        minutesRemaining < 60 -> "${minutesRemaining}분 후"
-                                        hoursRemaining < 24 -> "${hoursRemaining}시간 후"
-                                        daysRemaining < 7 -> "${daysRemaining}일 후"
+                                        minutesRemaining < 0 -> "기한 만료"
+                                        minutesRemaining <= 60 -> "${minutesRemaining}분 후"
+                                        hoursRemaining <= 24 -> "${hoursRemaining}시간 후"
+                                        daysRemaining <= 7 -> "${daysRemaining}일 후"
                                         else -> thingsToDo.deadline.format(
                                             DateTimeFormatter.ofPattern(
                                                 "yyyy.MM.dd"
