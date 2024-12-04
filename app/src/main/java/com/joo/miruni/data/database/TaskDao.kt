@@ -1,7 +1,6 @@
 package com.joo.miruni.data.database
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -17,8 +16,18 @@ interface TaskDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(taskEntity: TaskEntity): Long
 
-    @Query("SELECT * FROM tasks WHERE startDate BETWEEN :start AND :end")
-    suspend fun getTasksForDateRange(start: LocalDate, end: LocalDate): List<TaskEntity>
+    // 날짜 범위로 Task 찾기
+    @Query("""
+        SELECT * FROM tasks 
+        WHERE 
+            (type = 'SCHEDULE' AND startDate BETWEEN :start AND :end) OR 
+            (type = 'SCHEDULE' AND endDate BETWEEN :start AND :end) OR 
+            (type = 'TODO' AND deadLine BETWEEN :start AND :end)
+    """)
+    fun getTasksForDateRange(
+        start: LocalDate,
+        end: LocalDate
+    ): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE alarmDisplayDate BETWEEN :start AND :end")
     suspend fun getTasksForAlarmDisplayDateRange(start: LocalDate, end: LocalDate): List<TaskEntity>
@@ -85,8 +94,9 @@ interface TaskDao {
         """
     SELECT * FROM tasks 
     WHERE type = :taskType 
-    AND (startDate IS NOT NULL AND startDate >= :selectDate)
-    AND (endDate IS NULL OR endDate >= :selectDate)
+    AND (startDate IS NOT NULL AND startDate >= :selectDate OR 
+         (endDate IS NULL OR endDate >= :selectDate) OR 
+         (startDate <= :selectDate AND (endDate IS NULL OR endDate >= :selectDate)))
     AND (startDate > :lastStartDate OR :lastStartDate IS NULL) 
     ORDER BY startDate ASC  
     LIMIT :limit
@@ -95,7 +105,8 @@ interface TaskDao {
     fun getScheduleTasksPaginated(
         selectDate: LocalDate,
         lastStartDate: LocalDate? = null,
-        limit: Int = 5,
+        limit: Int = 12,
         taskType: TaskType = TaskType.SCHEDULE,
     ): Flow<List<TaskEntity>>
+
 }
