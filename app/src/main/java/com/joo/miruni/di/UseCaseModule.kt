@@ -22,6 +22,8 @@ import com.joo.miruni.domain.usecase.GetScheduleItemByIDUseCase
 import com.joo.miruni.domain.usecase.GetScheduleItemByIDUseCaseImpl
 import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
 import com.joo.miruni.domain.usecase.GetScheduleItemsUseCaseImpl
+import com.joo.miruni.domain.usecase.GetTasksForDateRangeUseCase
+import com.joo.miruni.domain.usecase.GetTasksForDateRangeUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCaseImpl
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
@@ -180,6 +182,14 @@ abstract class UseCaseModule {
         delayAllTodoItemUseCaseImpl: DelayAllTodoItemUseCaseImpl,
     ): DelayAllTodoItemUseCase
 
+    /*
+    * CalendarViewModel
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindGetTasksForDateRangeUseCase(
+        getTasksForDateRangeUseCaseImpl: GetTasksForDateRangeUseCaseImpl,
+    ): GetTasksForDateRangeUseCase
 
     /*
     * TEST
