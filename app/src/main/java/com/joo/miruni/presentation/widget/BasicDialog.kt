@@ -214,7 +214,7 @@ fun BasicDialog(
                         ) {
                             Text(
                                 text = cancelButtonText,
-                                color = Color.Red,
+                                color = Color.Black,
                                 textAlign = TextAlign.Center
                             )
                         }

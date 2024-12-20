@@ -2,9 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- for alarm -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+    <!-- for lock -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name=".Miruni"
@@ -19,6 +24,16 @@
         tools:targetApi="31">
 
         <activity
+            android:name=".presentation.unlock.UnlockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showOnLockScreen="true"
+            android:taskAffinity="com.joo.miruni.unlock"
+            android:theme="@style/Theme.Miruni" />
+
+
+        <activity
             android:name=".presentation.setup.SetupActivity"
             android:exported="true">
             <intent-filter>
@@ -29,11 +44,7 @@
 
         <activity
             android:name=".presentation.main.MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="true" />
 
         <activity
             android:name=".presentation.addTask.addTodo.AddTodoActivity"
@@ -67,7 +78,10 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".notifications.ReminderBroadcastReceiver" />
+        <service
+            android:name=".service.ForegroundService"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 
 </manifest>
