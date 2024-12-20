@@ -297,8 +297,13 @@ class HomeViewModel @Inject constructor(
                             startDate = it.startDate,
                             endDate = it.endDate,
                             description = it.details,
-                            daysBefore = ChronoUnit.DAYS.between(LocalDate.now(), it.startDate)
-                                .toInt(),
+                            daysBefore = when {
+                                it.startDate != null && it.startDate.isEqual(LocalDate.now()) -> 0
+                                it.startDate != null && it.endDate != null &&
+                                        (it.startDate.isBefore(LocalDate.now()) && it.endDate.isAfter(LocalDate.now())) -> 0
+                                it.startDate != null && it.startDate.isAfter(LocalDate.now()) -> ChronoUnit.DAYS.between(LocalDate.now(), it.startDate).toInt() // 시작일이 미래인 경우
+                                else -> 0
+                            },
                             isComplete = it.isComplete,
                             completeDate = it.completeDate,
                         )
@@ -333,8 +338,17 @@ class HomeViewModel @Inject constructor(
                                 startDate = it.startDate,
                                 endDate = it.endDate,
                                 description = it.details,
-                                daysBefore = ChronoUnit.DAYS.between(LocalDate.now(), it.startDate)
-                                    .toInt(),
+                                daysBefore = when {
+                                    it.startDate != null && it.startDate.isEqual(LocalDate.now()) -> 0
+                                    (it.startDate != null && it.endDate != null) && it.startDate.isBefore(
+                                        LocalDate.now()
+                                    ) && it.endDate.isAfter(
+                                        LocalDate.now()
+                                    ) -> 0
+
+                                    else -> ChronoUnit.DAYS.between(LocalDate.now(), it.startDate)
+                                        .toInt()
+                                },
                                 isComplete = it.isComplete,
                                 completeDate = it.completeDate,
                             )
