@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -105,6 +106,13 @@ fun BasicDialog(
             cancelButtonText = "취소"
             confirmButtonText = "완료 취소"
         }
+
+        else -> {
+            dialogTitle = "title"
+            dialogContent = " "
+            cancelButtonText = " "
+            confirmButtonText = " "
+        }
     }
 
     if (showDialog) {
@@ -165,7 +173,7 @@ fun BasicDialog(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    onCancel()
+                                    onConfirmed()
                                     onDismiss()
                                 }
                                 .padding(8.dp),
@@ -173,8 +181,8 @@ fun BasicDialog(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = cancelButtonText,
-                                color = Color.Red,
+                                text = confirmButtonText,
+                                color = colorResource(R.color.ios_blue),
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -197,7 +205,7 @@ fun BasicDialog(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    onConfirmed()
+                                    onCancel()
                                     onDismiss()
                                 }
                                 .padding(8.dp),
@@ -205,8 +213,8 @@ fun BasicDialog(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = confirmButtonText,
-                                color = colorResource(R.color.ios_blue),
+                                text = cancelButtonText,
+                                color = Color.Red,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -215,4 +223,18 @@ fun BasicDialog(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BasicDialogPreview() {
+    // 미리보기용 다이얼로그
+    BasicDialog(
+        dialogType = DialogMod.TODO_COMPLETE,
+        showDialog = true,
+        onDismiss = { },
+        onCancel = { },
+        onConfirmed = { },
+        title = "일정 제목"
+    )
 }
