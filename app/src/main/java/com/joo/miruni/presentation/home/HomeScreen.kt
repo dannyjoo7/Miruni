@@ -229,7 +229,6 @@ fun HomeScreen(
                 }
             }
 
-
             // 할 일
             LazyColumn(
                 state = lazyListState,
@@ -335,9 +334,7 @@ fun HomeScreen(
                     }
                 }
             }
-
         }
-
 
         // 플로팅 버튼 + 메뉴
         Box(
@@ -441,12 +438,15 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         homeViewModel.refreshScreen()
     }
-
 }
 
 // 일정 Item
 @Composable
-fun ScheduleItem(context: Context, schedule: Schedule) {
+fun ScheduleItem(
+    context: Context,
+    schedule: Schedule,
+    isClickable: Boolean = true,
+) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
 
     val isDDayAnimation by rememberInfiniteTransition(label = "D-Day").animateFloat(
@@ -473,16 +473,18 @@ fun ScheduleItem(context: Context, schedule: Schedule) {
                 interactionSource = remember { MutableInteractionSource() }
             ) {
                 // 클릭 시 일정 상세보기
-                val intent = Intent(
-                    context,
-                    DetailScheduleActivity::class.java
-                ).apply {
-                    putExtra(
-                        "SCHEDULE_ID",
-                        schedule.id
-                    )
+                if (isClickable) {
+                    val intent = Intent(
+                        context,
+                        DetailScheduleActivity::class.java
+                    ).apply {
+                        putExtra(
+                            "SCHEDULE_ID",
+                            schedule.id
+                        )
+                    }
+                    context.startActivity(intent)
                 }
-                context.startActivity(intent)
             },
         shape = RoundedCornerShape(4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -543,6 +545,7 @@ fun ThingsToDoItem(
     onClickedShowDetail: () -> Unit,
     onClickedDelay: () -> Unit,
     onDialogConfirmed: (DialogMod) -> Unit,
+    isClickable: Boolean = true,
 ) {
 
     var isOpenThingsTodoMenu by remember { mutableStateOf(false) }        // MenuIcon 터치 여부
@@ -569,7 +572,7 @@ fun ThingsToDoItem(
     AnimatedVisibility(
         visible = !isDelete,
         enter = fadeIn(animationSpec = tween(durationMillis = 0)),
-        exit = fadeOut(animationSpec = tween(durationMillis = 500))
+        exit = fadeOut(animationSpec = tween(durationMillis = 500)),
     ) {
         Box(
             modifier = Modifier
@@ -588,7 +591,7 @@ fun ThingsToDoItem(
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
                         // 클릭 시 확장
-                        onClicked()
+                        if (isClickable) onClicked()
                     },
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -633,12 +636,12 @@ fun ThingsToDoItem(
                                     val duration =
                                         Duration.between(LocalDateTime.now(), thingsToDo.deadline)
 
-                                    val minutesRemaining = duration.toMinutes().plus(1)
+                                    val minutesRemaining = duration.toMinutes()
                                     val hoursRemaining = duration.toHours()
                                     val daysRemaining = duration.toDays()
 
                                     when {
-                                        minutesRemaining < 0 -> "기한 만료"
+                                        minutesRemaining <= 0 -> "기한 만료"
                                         minutesRemaining <= 60 -> "${minutesRemaining}분 후"
                                         hoursRemaining <= 24 -> "${hoursRemaining}시간 후"
                                         daysRemaining <= 7 -> "${daysRemaining}일 후"
@@ -662,7 +665,9 @@ fun ThingsToDoItem(
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
-                                        isOpenThingsTodoMenu = !isOpenThingsTodoMenu
+                                        if (isClickable) {
+                                            isOpenThingsTodoMenu = !isOpenThingsTodoMenu
+                                        }
                                     }
                                     .background(Color.Transparent)
                                     .padding(8.dp)
@@ -907,7 +912,7 @@ fun ThingsToDoItem(
                 }
             }
 
-            // 알림 중요도 표시 등
+            // 알림 중요도 표시등
             if (isComplete) {
                 Box(
                     modifier = Modifier
