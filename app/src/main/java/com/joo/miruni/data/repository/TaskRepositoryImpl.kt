@@ -9,12 +9,10 @@ import com.joo.miruni.domain.model.toTaskEntity
 import com.joo.miruni.domain.model.toTodoEntity
 import com.joo.miruni.domain.repository.TaskRepository
 import com.joo.miruni.service.notification.ReminderManagerUtil
-import com.joo.miruni.service.notification.ReminderType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 
@@ -129,66 +127,7 @@ class TaskRepositoryImpl @Inject constructor(
 
     // 알람 추가
     private fun scheduleReminderForTodoItem(id: Long, title: String, deadLine: LocalDateTime?) {
-        if (deadLine != null) {
-            val reminderTimeInMillis =
-                deadLine.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli()
-
-            // 알람 시간 계산
-            val oneHourBeforeInMillis = reminderTimeInMillis - 3600000 // 1시간 전
-            val tenMinutesBeforeInMillis = reminderTimeInMillis - 600000 // 10분 전
-            val fiveMinutesBeforeInMillis = reminderTimeInMillis - 300000 // 5분 전
-
-            // 현재 시간
-            val nowInMillis =
-                System.currentTimeMillis() - (System.currentTimeMillis() % (60 * 1000))
-
-            // 알람 설정
-            when {
-                nowInMillis < reminderTimeInMillis -> {
-                    // 현재 시간이 마감 시간 이전인 경우
-                    when {
-                        nowInMillis < oneHourBeforeInMillis -> {
-                            // 1시간 전 알람 설정
-                            reminderManagerUtil.setExactAlarm(
-                                oneHourBeforeInMillis,
-                                id.toInt(),
-                                title,
-                                ReminderType.ONE_HOUR_BEFORE
-                            )
-                        }
-
-                        nowInMillis < tenMinutesBeforeInMillis -> {
-                            // 10분 전 알람 설정
-                            reminderManagerUtil.setExactAlarm(
-                                tenMinutesBeforeInMillis,
-                                id.toInt(),
-                                title,
-                                ReminderType.TEN_MINUTES_BEFORE
-                            )
-                        }
-
-                        nowInMillis < fiveMinutesBeforeInMillis -> {
-                            // 5분 전 알람 설정
-                            reminderManagerUtil.setExactAlarm(
-                                fiveMinutesBeforeInMillis,
-                                id.toInt(),
-                                title,
-                                ReminderType.FIVE_MINUTES_BEFORE
-                            )
-                        }
-
-                        else -> {
-                            reminderManagerUtil.setExactAlarm(
-                                reminderTimeInMillis,
-                                id.toInt(),
-                                title,
-                                ReminderType.NOW
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        reminderManagerUtil.setInitAlarm(deadLine, id, title)
     }
 
     // 알람 취소
