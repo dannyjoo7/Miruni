@@ -1,11 +1,13 @@
 package com.joo.miruni.presentation.addTask.addSchedule
 
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,8 +19,14 @@ class AddScheduleActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // 상태바 설정
-        WindowCompat.setDecorFitsSystemWindows(window, false) // 엣지 투 엣지 모드
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                Color.WHITE, Color.WHITE
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                Color.WHITE, Color.WHITE
+            )
+        )
 
         setContent {
             val navController = rememberNavController()

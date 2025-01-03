@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,8 +44,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // 상태바 설정
-        window.statusBarColor = Color.WHITE
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                Color.WHITE, Color.WHITE
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                Color.WHITE, Color.WHITE
+            )
+        )
 
         requestPermissions()
 
