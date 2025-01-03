@@ -3,7 +3,6 @@ package com.joo.miruni.presentation.unlock
 import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
@@ -30,12 +29,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -48,8 +45,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.joo.miruni.R
 import com.joo.miruni.presentation.home.ScheduleItem
 import com.joo.miruni.presentation.home.ThingsToDoItem
-import com.joo.miruni.presentation.ui.theme.MiruniTheme
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 @Composable
@@ -65,6 +62,7 @@ fun UnlockScreen(
     val selectDate by unlockViewModel.selectDate.observeAsState(LocalDate.now())
     val thingsToDoItems by unlockViewModel.thingsTodoItems.observeAsState(emptyList())
     val scheduleItems by unlockViewModel.scheduleItems.observeAsState(emptyList())
+    val currentTime by unlockViewModel.curTime.observeAsState()
 
     val isTodoListLoading by unlockViewModel.isTodoListLoading.observeAsState(false)
     val isScheduleListLoading by unlockViewModel.isScheduleListLoading.observeAsState(false)
@@ -96,7 +94,7 @@ fun UnlockScreen(
                 .background(Color.White)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 // 헤더
                 Row(
@@ -125,6 +123,22 @@ fun UnlockScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = currentTime?.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                            ?: "알 수 없음",
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 // 일정
@@ -265,7 +279,7 @@ fun UnlockScreen(
                     )
             ) {
                 Text(
-                    text = "왼쪽으로 밀어서 잠금 해제",
+                    text = "오른쪽으로 밀어서 잠금 해제",
                     color = colorResource(R.color.ios_gray),
                     modifier = Modifier.align(Alignment.Center),
                     fontSize = 16.sp

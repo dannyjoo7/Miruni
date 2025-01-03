@@ -14,6 +14,7 @@ import com.joo.miruni.presentation.home.Schedule
 import com.joo.miruni.presentation.home.ThingsTodo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -39,6 +40,10 @@ class UnlockViewModel @Inject constructor(
     private val _selectDate = MutableLiveData<LocalDate>(LocalDate.now())
     val selectDate: LiveData<LocalDate> get() = _selectDate
 
+    // 현재 시간
+    private val _curTime = MutableLiveData<LocalDateTime>(LocalDateTime.now())
+    val curTime: LiveData<LocalDateTime> get() = _curTime
+
     // 할 일 Item list
     private val _thingsTodoItems = MutableLiveData<List<ThingsTodo>>(emptyList())
     val thingsTodoItems: LiveData<List<ThingsTodo>> get() = _thingsTodoItems
@@ -55,28 +60,9 @@ class UnlockViewModel @Inject constructor(
     private val _isScheduleListLoading = MutableLiveData(false)
     val isScheduleListLoading: LiveData<Boolean> get() = _isScheduleListLoading
 
-    // 미래일 판단 변수
-    private val _isFutureDate = MutableLiveData(false)
-    val isFutureDate: LiveData<Boolean> get() = _isFutureDate
-
-    // 확장 여부를 판단하는 변수
-    private val _expandedItems = mutableStateOf<Set<Long>>(emptySet())
-    val expandedItems: State<Set<Long>> = _expandedItems
-
-    // 삭제됐는지 여부를 판단하는 변수
-    private val _deletedItems = MutableLiveData<Set<Long>>(emptySet())
-    val deletedItems: LiveData<Set<Long>> get() = _deletedItems
-
     // 완료 항목 값
     private val _settingObserveCompleteVisibility = MutableLiveData<Boolean>(false)
     val settingObserveCompleteVisibility: LiveData<Boolean> get() = _settingObserveCompleteVisibility
-
-    // 스크롤 끝인지 판단하는 변수
-    private val _isEndOfScroll = MutableLiveData<Boolean>(false)
-    val isEndOfScroll: LiveData<Boolean> get() = _isEndOfScroll
-
-    // todoList 페이징을 위한 마지막 데이터의 deadLine
-    private var lastDataDeadLine: LocalDateTime? = null
 
     // scheduleList 페이징을 위한 마지막 데이터의 startDate
     private var lastStartDate: LocalDate? = null
@@ -88,6 +74,7 @@ class UnlockViewModel @Inject constructor(
         loadTodoItemsForAlarm()
         loadInitialScheduleData()
         loadUserSetting()
+        startUpdatingTime()
     }
 
 
@@ -118,7 +105,6 @@ class UnlockViewModel @Inject constructor(
                             )
                         }.distinctBy { it.id }.sortedBy { it.deadline }
 
-                    lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
                     _isTodoListLoading.value = false
                 }
             }.onFailure { exception ->
@@ -143,6 +129,16 @@ class UnlockViewModel @Inject constructor(
                 } else {
                     date.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
                 }
+            }
+        }
+    }
+
+    // 시간 업데이트
+    private fun startUpdatingTime() {
+        viewModelScope.launch {
+            while (true) {
+                _curTime.postValue(LocalDateTime.now())
+                delay(1000)
             }
         }
     }
