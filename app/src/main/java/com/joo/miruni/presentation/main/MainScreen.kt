@@ -65,7 +65,6 @@ fun MainScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-
             // 메뉴
             ModalDrawerSheet {
                 Column(

@@ -1,10 +1,14 @@
 package com.joo.miruni.presentation.unlock
 
 import android.app.Activity
+import android.content.Intent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,10 +24,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,7 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,9 +55,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.joo.miruni.R
 import com.joo.miruni.presentation.home.ScheduleItem
 import com.joo.miruni.presentation.home.ThingsToDoItem
+import com.joo.miruni.presentation.main.MainActivity
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
+
 
 @Composable
 fun UnlockScreen(
@@ -79,8 +91,12 @@ fun UnlockScreen(
     // 무한 스크롤
     val lazyListState = rememberLazyListState()
 
-    // 드래그 오프셋
+    // 드래그
     val dragOffset = remember { mutableFloatStateOf(0f) }
+
+    // 화면 너비 가져오기
+    val screenWidth = LocalConfiguration.current.screenWidthDp * LocalDensity.current.density
+    val halfScreenWidth = screenWidth / 2
 
     Scaffold(
         modifier = Modifier
@@ -259,32 +275,87 @@ fun UnlockScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .height(200.dp)
                     .background(Color.Transparent)
-                    .offset { IntOffset(dragOffset.floatValue.roundToInt(), 0) }
-                    .draggable(
-                        state = rememberDraggableState { delta ->
-                            dragOffset.floatValue += delta
-                        },
-                        orientation = Orientation.Horizontal,
-                        onDragStarted = {
-                        },
-                        onDragStopped = {
-                            if (dragOffset.floatValue > 200) {
-                                (context as? Activity)?.finish()
-                            }
-                            dragOffset.floatValue = 0f
-                        }
-                    )
+                    .padding(16.dp)
+                    .align(Alignment.BottomCenter),
+                contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = "오른쪽으로 밀어서 잠금 해제",
-                    color = colorResource(R.color.ios_gray),
-                    modifier = Modifier.align(Alignment.Center),
-                    fontSize = 16.sp
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "앱 열기",
+                        color = colorResource(R.color.ios_gray_calander_font),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "잠금 해제",
+                        color = colorResource(R.color.ios_gray_calander_font),
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.End
+                    )
+                }
+
+                // 드래그 가능한 버튼
+                Card(
+                    modifier = Modifier
+                        .offset { IntOffset(dragOffset.floatValue.roundToInt(), 0) }
+                        .size(width = 70.dp, height = 40.dp)
+                        .draggable(
+                            state = rememberDraggableState { delta ->
+                                dragOffset.floatValue += delta
+                            },
+                            orientation = Orientation.Horizontal,
+                            onDragStarted = {},
+                            onDragStopped = {
+                                when {
+                                    dragOffset.floatValue > halfScreenWidth - 150 -> {
+                                        // 오른쪽으로 스와이프
+                                        (context as? Activity)?.finish()
+                                    }
+
+                                    dragOffset.floatValue < -halfScreenWidth + 150 -> {
+                                        // 왼쪽으로 스와이프
+                                        val intent =
+                                            Intent(context, MainActivity::class.java).apply {
+                                                flags =
+                                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                            }
+                                        context.startActivity(intent)
+                                        (context as? Activity)?.finish()
+                                    }
+                                }
+                                // 드래그 끝난 후 초기화
+                                dragOffset.floatValue = 0f
+                            }
+                        )
+                        .clickable(
+                            indication = ripple(
+                                bounded = true,
+                                color = colorResource(R.color.ios_gray),
+                            ),
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {},
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(colorResource(R.color.ios_light_gray))
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_swap_arrows),
+                            contentDescription = "Unlock or Start App Button",
+                        )
+                    }
+                }
             }
+
+
         }
     }
 }
