@@ -13,6 +13,7 @@ data class TodoModel(
     val type: TaskType,
     val isComplete: Boolean,
     val completeDate: LocalDateTime?,
+    val isPinned: Boolean,
 )
 
 data class TodoItemsModel(

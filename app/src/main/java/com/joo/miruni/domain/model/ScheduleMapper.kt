@@ -26,6 +26,7 @@ fun TaskEntity.toScheduleEntity() = ScheduleModel(
     isComplete = isComplete,
     completeDate = completeDate,
     type = type,
+    isPinned = isPinned
 )
 
 /*
@@ -43,7 +44,8 @@ fun ScheduleModel.toTaskEntity() = TaskEntity(
     alarmDisplayDate = null,
     isComplete = isComplete,
     completeDate = completeDate,
-    type = type
+    type = type,
+    isPinned = isPinned
 )
 
 /*
@@ -61,4 +63,5 @@ fun ScheduleItem.toScheduleEntity() = ScheduleModel(
     isComplete = false,
     completeDate = null,
     type = TaskType.SCHEDULE,
+    isPinned = isPinned
 )

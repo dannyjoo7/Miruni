@@ -24,4 +24,5 @@ fun TaskEntity.toTaskModel() = TaskModel(
     isComplete = isComplete,
     completeDate = completeDate,
     type = type,
+    isPinned = isPinned
 )

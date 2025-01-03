@@ -17,6 +17,7 @@ data class ScheduleModel(
     val completeDate: LocalDateTime?,
 
     val type: TaskType,
+    val isPinned: Boolean,
 )
 
 data class ScheduleItemsModel(

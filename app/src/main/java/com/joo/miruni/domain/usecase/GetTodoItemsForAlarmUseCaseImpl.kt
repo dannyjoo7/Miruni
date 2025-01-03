@@ -1,7 +1,7 @@
 package com.joo.miruni.domain.usecase
 
 import com.joo.miruni.domain.model.TodoItemsModel
-import com.joo.miruni.domain.model.toTodoItemsEntity
+import com.joo.miruni.domain.model.toTodoItemsModel
 import com.joo.miruni.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -17,7 +17,7 @@ class GetTodoItemsForAlarmUseCaseImpl @Inject constructor(
     ): Flow<TodoItemsModel> {
         return taskRepository.getTasksForAlarmByDate(selectDate)
             .map { taskItemsEntity ->
-                taskItemsEntity.toTodoItemsEntity()
+                taskItemsEntity.toTodoItemsModel()
             }
     }
 }

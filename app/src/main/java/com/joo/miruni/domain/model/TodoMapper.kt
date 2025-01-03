@@ -10,12 +10,12 @@ import java.time.LocalDate
 * TaskEntity to TodoEntity*/
 
 // TaskItemsEntity to TodoItemsEntity
-fun TaskItemsEntity.toTodoItemsEntity() = TodoItemsModel(
-    todoEntities = taskItemsEntity.map { it.toTodoEntity() } // 각 TaskEntity를 TodoEntity로 변환
+fun TaskItemsEntity.toTodoItemsModel() = TodoItemsModel(
+    todoEntities = taskItemsEntity.map { it.toTodoModel() }
 )
 
 // TaskEntity to TodoEntity
-fun TaskEntity.toTodoEntity() = TodoModel(
+fun TaskEntity.toTodoModel() = TodoModel(
     id = id,
     title = title,
     details = details,
@@ -24,6 +24,7 @@ fun TaskEntity.toTodoEntity() = TodoModel(
     isComplete = isComplete,
     completeDate = completeDate,
     type = type,
+    isPinned = isPinned
 )
 
 /*
@@ -41,7 +42,8 @@ fun TodoModel.toTaskEntity() = TaskEntity(
     alarmDisplayDate = alarmDisplayDate,
     isComplete = isComplete,
     completeDate = completeDate,
-    type = type
+    type = type,
+    isPinned = isPinned
 )
 
 /*
@@ -49,25 +51,14 @@ fun TodoModel.toTaskEntity() = TaskEntity(
 * */
 
 // AddTodo
-fun TodoItem.toTodoEntity() = TodoModel(
-    id = 0,
-    title = todoText,
+fun TodoItem.toTodoModel() = TodoModel(
+    id = id,
+    title = title,
     details = descriptionText,
     deadLine = selectedDate,
     alarmDisplayDate = adjustedDate,
     isComplete = false,
     completeDate = null,
     type = TaskType.TODO,
-)
-
-// Modify
-fun com.joo.miruni.presentation.detail.detailTodo.TodoItem.toTodoEntity() = TodoModel(
-    id = id!!,
-    title = todoText,
-    details = descriptionText,
-    deadLine = selectedDate,
-    alarmDisplayDate = adjustedDate!!,
-    isComplete = isComplete,
-    completeDate = null,
-    type = TaskType.TODO,
+    isPinned = isPinned
 )

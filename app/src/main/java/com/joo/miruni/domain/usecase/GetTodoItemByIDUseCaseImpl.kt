@@ -1,7 +1,7 @@
 package com.joo.miruni.domain.usecase
 
 import com.joo.miruni.domain.model.TodoModel
-import com.joo.miruni.domain.model.toTodoEntity
+import com.joo.miruni.domain.model.toTodoModel
 import com.joo.miruni.domain.repository.TaskRepository
 import javax.inject.Inject
 
@@ -12,7 +12,7 @@ class GetTodoItemByIDUseCaseImpl @Inject constructor(
     override suspend fun invoke(
         taskId: Long,
     ): TodoModel {
-        return taskRepository.getTaskItemById(taskId).toTodoEntity()
+        return taskRepository.getTaskItemById(taskId).toTodoModel()
     }
 }
 
