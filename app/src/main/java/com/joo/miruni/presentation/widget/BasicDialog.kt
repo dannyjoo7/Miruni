@@ -40,6 +40,7 @@ enum class DialogMod {
     SCHEDULE_DELETE,            // 일정 삭제
     SCHEDULE_COMPLETE,          // 일정 완료
     SCHEDULE_CANCEL_COMPLETE,   // 일정 완료 취소
+    PERMISSION,                 // 권한 요청
 }
 
 // 대화상자
@@ -105,6 +106,13 @@ fun BasicDialog(
             dialogContent = "$title \n 항목을 정말로 완료 취소하시겠습니까?"
             cancelButtonText = "취소"
             confirmButtonText = "완료 취소"
+        }
+
+        DialogMod.PERMISSION -> {
+            dialogTitle = "권한 허용"
+            dialogContent = "${title}\n 리마인드 서비스를 위해\n꼭 필요한 권한입니다\n권한을 허용해주세요"
+            cancelButtonText = "취소"
+            confirmButtonText = "확인"
         }
 
         else -> {
@@ -230,7 +238,7 @@ fun BasicDialog(
 fun BasicDialogPreview() {
     // 미리보기용 다이얼로그
     BasicDialog(
-        dialogType = DialogMod.TODO_COMPLETE,
+        dialogType = DialogMod.PERMISSION,
         showDialog = true,
         onDismiss = { },
         onCancel = { },
