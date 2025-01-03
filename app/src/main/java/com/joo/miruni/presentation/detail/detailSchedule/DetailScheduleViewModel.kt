@@ -91,15 +91,16 @@ class DetailScheduleViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 getScheduleItemByIDUseCase(scheduleId)
-            }.onSuccess { scheduleEntity ->
+            }.onSuccess { scheduleModel ->
                 // ScheduleItem으로 변환
                 _scheduleItem.value = ScheduleItem(
-                    id = scheduleEntity.id,
-                    title = scheduleEntity.title,
-                    descriptionText = scheduleEntity.details ?: "",
-                    startDate = scheduleEntity.startDate,
-                    endDate = scheduleEntity.endDate,
-                    isComplete = scheduleEntity.isComplete
+                    id = scheduleModel.id,
+                    title = scheduleModel.title,
+                    descriptionText = scheduleModel.details ?: "",
+                    startDate = scheduleModel.startDate,
+                    endDate = scheduleModel.endDate,
+                    isComplete = scheduleModel.isComplete,
+                    isPinned = scheduleModel.isPinned
                 )
 
                 val curScheduleItem = _scheduleItem.value
@@ -214,7 +215,9 @@ class DetailScheduleViewModel @Inject constructor(
                     descriptionText = _descriptionText.value ?: "",
                     startDate = _selectedStartDate.value ?: LocalDate.now().plusDays(1),
                     endDate = _selectedEndDate.value ?: LocalDate.now().plusDays(1),
-                    isComplete = _scheduleItem.value?.isComplete ?: false
+                    isComplete = _scheduleItem.value?.isComplete ?: false,
+                    isPinned = _scheduleItem.value?.isPinned ?: false
+
                 )
                 runCatching {
                     updateScheduleItemUseCase(scheduleItem)

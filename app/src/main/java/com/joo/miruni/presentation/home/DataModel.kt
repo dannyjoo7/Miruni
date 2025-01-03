@@ -12,6 +12,7 @@ data class Schedule(
     val daysBefore: Int,
     val isComplete: Boolean,
     val completeDate: LocalDateTime?,
+    val isPinned: Boolean,
 )
 
 data class ThingsTodo(
@@ -21,6 +22,7 @@ data class ThingsTodo(
     val description: String? = null,
     val isCompleted: Boolean = false,
     val completeDate: LocalDateTime?,
+    val isPinned: Boolean,
 )
 
 enum class DateChange {

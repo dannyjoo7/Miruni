@@ -263,7 +263,8 @@ class AddTodoViewModel @Inject constructor(
         if (validateTodoItem()) {
             viewModelScope.launch {
                 val todoItem = TodoItem(
-                    todoText = _todoText.value ?: "",
+                    id = 0,
+                    title = _todoText.value ?: "",
                     descriptionText = _descriptionText.value ?: "",
                     selectedDate = combineDateAndTime(
                         _selectedDate.value ?: LocalDate.now().plusDays(1),
@@ -272,7 +273,8 @@ class AddTodoViewModel @Inject constructor(
                     adjustedDate = calculateAdjustedDate(
                         _selectedDate.value ?: LocalDate.now(),
                         _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
-                    )
+                    ),
+                    isPinned = false,
                 )
 
                 runCatching {

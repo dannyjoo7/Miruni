@@ -92,7 +92,8 @@ class OverdueViewModel @Inject constructor(
                             deadline = it.deadLine ?: LocalDateTime.now(),
                             description = it.details ?: "",
                             isCompleted = it.isComplete,
-                            completeDate = it.completeDate
+                            completeDate = it.completeDate,
+                            isPinned = it.isPinned
                         )
                     }
                     lastDataDeadLine = _overdueTodoItems.value?.lastOrNull()?.deadline

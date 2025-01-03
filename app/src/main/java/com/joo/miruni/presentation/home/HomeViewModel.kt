@@ -125,6 +125,7 @@ class HomeViewModel @Inject constructor(
                                 description = it.details ?: "",
                                 isCompleted = it.isComplete,
                                 completeDate = it.completeDate,
+                                isPinned = it.isPinned
                             )
                         }.distinctBy { it.id }.sortedBy { it.deadline }
 
@@ -306,6 +307,7 @@ class HomeViewModel @Inject constructor(
                             },
                             isComplete = it.isComplete,
                             completeDate = it.completeDate,
+                            isPinned = it.isPinned
                         )
                     }.sortedBy { it.startDate }
                     lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
@@ -351,6 +353,7 @@ class HomeViewModel @Inject constructor(
                                 },
                                 isComplete = it.isComplete,
                                 completeDate = it.completeDate,
+                                isPinned = it.isPinned
                             )
                         }.filterNot { newSchedule ->
                             _scheduleItems.value?.any { existingSchedule ->

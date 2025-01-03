@@ -1,7 +1,6 @@
 package com.joo.miruni.presentation.addTask.addSchedule
 
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 data class AlarmDisplayDuration(
     val amount: Int?,
@@ -15,4 +14,5 @@ data class ScheduleItem(
     val startDate: LocalDate?,
     val endDate: LocalDate?,
     val isComplete: Boolean,
+    val isPinned: Boolean,
 )

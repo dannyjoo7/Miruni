@@ -160,7 +160,8 @@ class AddScheduleViewModel @Inject constructor(
                     descriptionText = _descriptionText.value ?: "",
                     startDate = _selectedStartDate.value ?: LocalDate.now().plusDays(1),
                     endDate = _selectedEndDate.value ?: LocalDate.now().plusDays(1),
-                    isComplete = false
+                    isComplete = false,
+                    isPinned = false
                 )
                 runCatching {
                     addScheduleItemUseCase(scheduleItem)

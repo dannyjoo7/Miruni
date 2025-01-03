@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCase
 import com.joo.miruni.domain.usecase.UpdateTodoItemUseCase
+import com.joo.miruni.presentation.addTask.addTodo.AlarmDisplayDuration
+import com.joo.miruni.presentation.addTask.addTodo.TodoItem
+import com.joo.miruni.presentation.addTask.addTodo.toTodoItem
 import com.joo.miruni.presentation.widget.Time
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -98,21 +101,21 @@ class DetailTodoViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 getTodoItemByIDUseCase(todoId)
-            }.onSuccess { todoEntity ->
+            }.onSuccess { todoModel ->
                 // TodoItem으로 변환
-                _todoItem.value = todoEntity.toTodoItem()
+                _todoItem.value = todoModel.toTodoItem()
 
                 // 속성 매칭
-                _todoText.value = todoEntity.title
-                _descriptionText.value = todoEntity.details
+                _todoText.value = todoModel.title
+                _descriptionText.value = todoModel.details
                 _selectedDate.value =
-                    todoEntity.deadLine?.toLocalDate() ?: LocalDate.now().plusDays(1)
-                _selectedTime.value = todoEntity.deadLine?.toLocalTime() ?: LocalTime.now()
+                    todoModel.deadLine?.toLocalDate() ?: LocalDate.now().plusDays(1)
+                _selectedTime.value = todoModel.deadLine?.toLocalTime() ?: LocalTime.now()
 
                 // 알람 표시 날짜 계산 후 사용 예시
                 val (amount, unit) = calculateDistanceOfDateUnit(
-                    todoEntity.deadLine?.toLocalDate() ?: LocalDate.now(),
-                    todoEntity.alarmDisplayDate
+                    todoModel.deadLine?.toLocalDate() ?: LocalDate.now(),
+                    todoModel.alarmDisplayDate
                 )
                 _selectedAlarmDisplayDate.value = AlarmDisplayDuration(amount, unit)
 
@@ -306,8 +309,8 @@ class DetailTodoViewModel @Inject constructor(
 
             // TodoItem 생성
             val todoItem = TodoItem(
-                id = _todoItem.value!!.id, // null 체크 후 !! 연산자 사용
-                todoText = _todoText.value ?: "",
+                id = _todoItem.value!!.id,
+                title = _todoText.value ?: "",
                 descriptionText = _descriptionText.value ?: "",
                 selectedDate = combineDateAndTime(
                     _selectedDate.value ?: LocalDate.now().plusDays(1),
@@ -317,7 +320,7 @@ class DetailTodoViewModel @Inject constructor(
                     _selectedDate.value ?: LocalDate.now(),
                     _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
                 ),
-                isComplete = _todoItem.value!!.isComplete
+                isPinned = _todoItem.value?.isPinned ?: false
             )
 
             runCatching {

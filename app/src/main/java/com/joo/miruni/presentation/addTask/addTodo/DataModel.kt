@@ -1,5 +1,6 @@
 package com.joo.miruni.presentation.addTask.addTodo
 
+import com.joo.miruni.domain.model.TodoModel
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -9,8 +10,19 @@ data class AlarmDisplayDuration(
 )
 
 data class TodoItem(
-    val todoText: String,
+    val id: Long,
+    val title: String,
     val descriptionText: String,
     val selectedDate: LocalDateTime,
-    val adjustedDate: LocalDate,    // 알림 표시 시작일
+    val adjustedDate: LocalDate,
+    val isPinned: Boolean,
+)
+
+fun TodoModel.toTodoItem() = TodoItem(
+    id = id,
+    title = title,
+    descriptionText = details.orEmpty(),
+    selectedDate = deadLine ?: LocalDateTime.now(),
+    adjustedDate = alarmDisplayDate,
+    isPinned = isPinned
 )
