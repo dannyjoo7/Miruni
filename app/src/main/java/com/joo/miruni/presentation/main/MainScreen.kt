@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -100,8 +102,7 @@ fun MainScreen(
 
                             // 스위치
                             Switch(
-                                modifier = Modifier
-                                    .padding(end = 8.dp),
+                                modifier = Modifier.padding(end = 8.dp),
                                 checked = isCompletedViewChecked.value,
                                 onCheckedChange = {
                                     mainViewModel.setCompletedItemsVisibility()
@@ -125,36 +126,28 @@ fun MainScreen(
         Scaffold(
             topBar = {
                 Column {
-                    TopAppBar(
-                        title = { Text(text = "") },
-                        navigationIcon = {
-                            Box(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) {
-                                        scope.launch { drawerState.open() }
-                                    }
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_menu),
-                                    contentDescription = "menu",
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.White
-                        )
+                    TopAppBar(title = { Text(text = "") }, navigationIcon = {
+                        Box(modifier = Modifier
+                            .padding(16.dp)
+                            .clickable(indication = null,
+                                interactionSource = remember { MutableInteractionSource() }) {
+                                scope.launch { drawerState.open() }
+                            }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_menu),
+                                contentDescription = "menu",
+                            )
+                        }
+                    }, colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White
+                    )
                     )
                     HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
                 }
             },
             bottomBar = {
                 BottomNavigationBar(
-                    navController,
-                    mainViewModel.bottomNavItems
+                    navController, mainViewModel.bottomNavItems
                 )
             },
             content = { contentPadding ->
@@ -178,23 +171,20 @@ fun BottomNavigationBar(
 
     Column {
         HorizontalDivider(
-            thickness = 0.5.dp,
-            color = Color.Gray
+            thickness = 0.5.dp, color = Color.Gray
         )
 
         NavigationBar(
-            containerColor = Color.White,
-            contentColor = Color.White
+            containerColor = Color.White, contentColor = Color.White
         ) {
             items.forEach { item ->
                 NavigationBarItem(
                     icon = {
                         Icon(
-                            painterResource(item.iconResId),
-                            contentDescription = item.label
+                            painterResource(item.iconResId), contentDescription = item.label
                         )
                     },
-                    label = { },
+                    label = { Text(item.label) },
                     selected = currentDestination == item.screen.route,
                     onClick = {
                         navController.navigate(item.screen.route) {
@@ -202,8 +192,18 @@ fun BottomNavigationBar(
                             launchSingleTop = true
                             restoreState = true
                         }
-                    }
+                    },
+                    modifier = Modifier.clickable(indication = ripple(
+                        bounded = true,
+                        color = colorResource(R.color.ios_gray),
+                    ),
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = {
+
+                        }
+                    )
                 )
+
             }
         }
     }
