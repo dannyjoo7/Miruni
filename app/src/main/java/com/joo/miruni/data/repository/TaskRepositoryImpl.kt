@@ -6,7 +6,7 @@ import com.joo.miruni.data.entities.TaskItemsEntity
 import com.joo.miruni.domain.model.ScheduleModel
 import com.joo.miruni.domain.model.TodoModel
 import com.joo.miruni.domain.model.toTaskEntity
-import com.joo.miruni.domain.model.toTodoEntity
+import com.joo.miruni.domain.model.toTodoModel
 import com.joo.miruni.domain.repository.TaskRepository
 import com.joo.miruni.service.notification.ReminderManagerUtil
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +44,7 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun addTodo(todoModel: TodoModel) {
         val newId = taskDao.insertTask(todoModel.toTaskEntity())
         val updatedTodoEntity = todoModel.copy(id = newId)
-        scheduleReminderForTodoItem(
+        setAlarmForTodoItem(
             updatedTodoEntity.id,
             updatedTodoEntity.title,
             updatedTodoEntity.deadLine
@@ -69,7 +69,7 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun updateTask(taskEntity: TaskEntity) {
         taskDao.updateTask(taskEntity)
         cancelAlarmsForTodoItem(taskEntity.id)
-        scheduleReminderForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
+        setAlarmForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
     }
 
     override suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime) {
@@ -79,8 +79,8 @@ class TaskRepositoryImpl @Inject constructor(
 
     override suspend fun markTaskAsCancelCompleted(id: Long) {
         taskDao.updateTaskCompletionStatus(id, false, null)
-        val taskEntity = taskDao.getTaskItemById(id).toTodoEntity()
-        scheduleReminderForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
+        val taskEntity = taskDao.getTaskItemById(id).toTodoModel()
+        setAlarmForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
     }
 
     override suspend fun getTaskItemById(taskId: Long): TaskEntity {
@@ -90,8 +90,8 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun delayTodoEntity(id: Long, delayDateTime: LocalDateTime) {
         taskDao.delayTask(id, delayDateTime)
         cancelAlarmsForTodoItem(id)
-        val taskEntity = taskDao.getTaskItemById(id).toTodoEntity()
-        scheduleReminderForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
+        val taskEntity = taskDao.getTaskItemById(id).toTodoModel()
+        setAlarmForTodoItem(taskEntity.id, taskEntity.title, taskEntity.deadLine)
     }
 
     override suspend fun delayAllTodoEntity(itemIds: List<Long>, delayDateTime: LocalDateTime) {
@@ -126,7 +126,7 @@ class TaskRepositoryImpl @Inject constructor(
     }
 
     // 알람 추가
-    private fun scheduleReminderForTodoItem(id: Long, title: String, deadLine: LocalDateTime?) {
+    private fun setAlarmForTodoItem(id: Long, title: String, deadLine: LocalDateTime?) {
         reminderManagerUtil.setInitAlarm(deadLine, id, title)
     }
 
