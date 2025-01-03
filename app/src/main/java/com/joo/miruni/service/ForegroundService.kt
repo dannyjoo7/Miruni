@@ -2,6 +2,7 @@ package com.joo.miruni.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.IntentFilter
@@ -11,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.joo.miruni.R
+import com.joo.miruni.presentation.main.MainActivity
 import com.joo.miruni.service.notification.ReminderManagerUtil
 import com.joo.miruni.service.notification.ReminderType
 import com.joo.miruni.service.unlock.UnlockReceiver
@@ -37,6 +39,7 @@ class ForegroundService : Service() {
         startForegroundService()
     }
 
+    // 서비스 시작
     private fun startForegroundService() {
         createNotificationChannel()
 
@@ -52,6 +55,7 @@ class ForegroundService : Service() {
         startForeground(SERVICE_ID, notification)
     }
 
+    // 채널 생성
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
@@ -107,6 +111,17 @@ class ForegroundService : Service() {
             null -> "알림"
         }
 
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            id.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(getIcon())
             .setColor(ContextCompat.getColor(this, R.color.ios_gray_calander_font))
@@ -116,6 +131,7 @@ class ForegroundService : Service() {
             .setAutoCancel(true)
             .setColorized(true)
             .setOngoing(false)
+            .setContentIntent(pendingIntent)
             .build()
 
         val notificationManager = NotificationManagerCompat.from(this)
@@ -140,7 +156,7 @@ class ForegroundService : Service() {
         val nextAlarmTime = calculateAlarmTime(nextReminderType, reminderTime)
 
         if (nextReminderType != null && nextAlarmTime != null) {
-            reminderManagerUtil.setExactAlarm(nextAlarmTime, id.toInt(), title, nextReminderType)
+            reminderManagerUtil.setNextAlarm(nextAlarmTime, id, title, nextReminderType)
         } else {
             reminderManagerUtil.cancelAlarmsForTodoItem(id)
         }
