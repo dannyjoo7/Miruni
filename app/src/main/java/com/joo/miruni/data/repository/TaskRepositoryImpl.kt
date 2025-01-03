@@ -111,6 +111,11 @@ class TaskRepositoryImpl @Inject constructor(
             }
     }
 
+    // 고정 토글 메소드
+    override suspend fun togglePinStatus(id: Long) {
+        taskDao.togglePinStatus(id)
+    }
+
     override suspend fun addSchedule(scheduleModel: ScheduleModel) {
         taskDao.insertTask(scheduleModel.toTaskEntity())
     }

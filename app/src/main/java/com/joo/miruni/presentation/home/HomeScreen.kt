@@ -12,9 +12,11 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,8 +62,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -310,6 +315,9 @@ fun HomeScreen(
                                             }
                                         }
                                     },
+                                    onLongClicked = {
+                                        homeViewModel.togglePinStatus(thingsToDo.id)
+                                    },
                                     isDelete = isDelete,
                                     isExpanded = isExpanded,
                                 )
@@ -535,6 +543,7 @@ fun ScheduleItem(
 }
 
 // 할 일 Item
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ThingsToDoItem(
     context: Context,
@@ -542,11 +551,14 @@ fun ThingsToDoItem(
     isDelete: Boolean,
     isExpanded: Boolean,
     onClicked: () -> Unit,
+    onLongClicked: () -> Unit,
     onClickedShowDetail: () -> Unit,
     onClickedDelay: () -> Unit,
     onDialogConfirmed: (DialogMod) -> Unit,
     isClickable: Boolean = true,
 ) {
+    // 햅틱
+    val haptics = LocalHapticFeedback.current
 
     var isOpenThingsTodoMenu by remember { mutableStateOf(false) }        // MenuIcon 터치 여부
 
@@ -554,6 +566,7 @@ fun ThingsToDoItem(
     var dialogMod by remember { mutableStateOf(DialogMod.TODO_DELETE) }         // dialog mod
 
     val isComplete = thingsToDo.isCompleted
+    val isPinned = thingsToDo.isPinned
     val isOverdue = LocalDateTime.now().isAfter(thingsToDo.deadline) || LocalDateTime.now()
         .isEqual(thingsToDo.deadline)
 
@@ -583,16 +596,26 @@ fun ThingsToDoItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(4.dp)
-                    .clickable(
+                    .combinedClickable(
                         indication = ripple(
                             bounded = true,
                             color = colorResource(R.color.ios_gray),
                         ),
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        // 클릭 시 확장
-                        if (isClickable) onClicked()
-                    },
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = {
+                            // 클릭 시
+                            if (isClickable) {
+                                onClicked()
+                            }
+                        },
+                        onLongClick = {
+                            // 길게 클릭 시
+                            if (isClickable) {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onLongClicked()
+                            }
+                        },
+                    ),
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 colors = CardDefaults.cardColors(
@@ -953,27 +976,41 @@ fun ThingsToDoItem(
                     )
                 }
             } else {
+                val now = LocalDateTime.now()
+                val minutesRemaining = ChronoUnit.MINUTES.between(now, thingsToDo.deadline)
+
+                // 남은 시간에 따른 색
+                val backgroundColor = when {
+                    minutesRemaining < 720 -> Color.Red.copy(alpha = flashAnimation)    // 12시간 이내
+                    minutesRemaining < 1440 -> Color.Red                                // 24시간 이내
+                    minutesRemaining < 2880 -> colorResource(R.color.orange)            // 2일 이내
+                    minutesRemaining < 4320 -> colorResource(R.color.yellow)            // 3일 이내
+                    else -> Color.Green                                                 // 7일 이내
+                }
+
                 Box(
                     modifier = Modifier
                         .size(12.dp)
                         .background(
-                            color = run {
-                                val now = LocalDateTime.now()
-                                val minutesRemaining =
-                                    ChronoUnit.MINUTES.between(now, thingsToDo.deadline)
-
-                                when {
-                                    minutesRemaining < 720 -> Color.Red.copy(alpha = flashAnimation)    // 12시간 이내
-                                    minutesRemaining < 1440 -> Color.Red                                // 24시간 이내
-                                    minutesRemaining < 2880 -> colorResource(R.color.orange)            // 2일 이내
-                                    minutesRemaining < 4320 -> colorResource(R.color.yellow)            // 3일 이내
-                                    else -> Color.Green                                                 // 7일 이내
-                                }
+                            color = if (!isPinned) {
+                                backgroundColor
+                            } else {
+                                Color.Transparent
                             },
                             shape = RoundedCornerShape(90.dp)
                         )
                         .align(Alignment.TopStart)
-                )
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_pin),
+                        contentDescription = "Pin whether",
+                        colorFilter = if (isPinned) {
+                            ColorFilter.tint(backgroundColor)
+                        } else {
+                            ColorFilter.tint(Color.Transparent)
+                        },
+                    )
+                }
             }
         }
     }

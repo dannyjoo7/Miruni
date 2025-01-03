@@ -245,6 +245,7 @@ fun UnlockScreen(
                                     onClickedShowDetail = { },
                                     onClickedDelay = { },
                                     onDialogConfirmed = { },
+                                    onLongClicked = { },
                                     isDelete = false,
                                     isExpanded = false,
                                     isClickable = false,

@@ -45,6 +45,9 @@ interface TaskRepository {
         currentDateTime: LocalDateTime,
     ): Flow<TaskItemsEntity>
 
+    // 고정 여부 토글
+    suspend fun togglePinStatus(id: Long)
+
     /*
     * 할 일
     * */

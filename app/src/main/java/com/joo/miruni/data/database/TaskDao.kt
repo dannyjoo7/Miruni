@@ -17,16 +17,18 @@ interface TaskDao {
     suspend fun insertTask(taskEntity: TaskEntity): Long
 
     // 날짜 범위로 Task 찾기
-    @Query("""
+    @Query(
+        """
         SELECT * FROM tasks 
         WHERE 
             (type = 'SCHEDULE' AND startDate BETWEEN :start AND :end) OR 
             (type = 'SCHEDULE' AND endDate BETWEEN :start AND :end) OR 
             (type = 'TODO' AND deadLine BETWEEN :start AND :end)
-    """)
+    """
+    )
     fun getTasksForDateRange(
         start: LocalDate,
-        end: LocalDate
+        end: LocalDate,
     ): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE alarmDisplayDate BETWEEN :start AND :end")
@@ -109,4 +111,7 @@ interface TaskDao {
         taskType: TaskType = TaskType.SCHEDULE,
     ): Flow<List<TaskEntity>>
 
+    // 고정 상태 업데이트
+    @Query("UPDATE tasks SET isPinned = NOT isPinned WHERE id = :id")
+    suspend fun togglePinStatus(id: Long)
 }

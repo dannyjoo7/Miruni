@@ -36,6 +36,8 @@ import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCa
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCaseImpl
 import com.joo.miruni.domain.usecase.TestUseCase
 import com.joo.miruni.domain.usecase.TestUseCaseImpl
+import com.joo.miruni.domain.usecase.TogglePinStatusUseCase
+import com.joo.miruni.domain.usecase.TogglePinStatusUseCaseImpl
 import com.joo.miruni.domain.usecase.UpdateScheduleItemUseCase
 import com.joo.miruni.domain.usecase.UpdateScheduleItemUseCaseImpl
 import com.joo.miruni.domain.usecase.UpdateTodoItemUseCase
@@ -144,6 +146,12 @@ abstract class UseCaseModule {
     abstract fun bindGetOverDueTodoItemsForAlarmUseCase(
         getOverDueTodoItemsForAlarmUseCaseImpl: GetOverDueTodoItemsForAlarmUseCaseImpl,
     ): GetOverDueTodoItemsForAlarmUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindTogglePinStatusUseCase(
+        togglePinStatusUseCaseImpl: TogglePinStatusUseCaseImpl,
+    ): TogglePinStatusUseCase
 
 
     /*

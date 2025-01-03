@@ -15,6 +15,7 @@ import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
 import com.joo.miruni.domain.usecase.TestUseCase
+import com.joo.miruni.domain.usecase.TogglePinStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -35,6 +36,7 @@ class HomeViewModel @Inject constructor(
     private val cancelCompleteTaskItemUseCase: CancelCompleteTaskItemUseCase,
     private val delayTodoItemUseCase: DelayTodoItemUseCase,
     private val settingObserveCompletedItemsVisibilityUseCase: SettingObserveCompletedItemsVisibilityUseCase,
+    private val togglePinStatusUseCase: TogglePinStatusUseCase,
     private val testUseCase: TestUseCase,
 ) : ViewModel() {
     companion object {
@@ -127,7 +129,9 @@ class HomeViewModel @Inject constructor(
                                 completeDate = it.completeDate,
                                 isPinned = it.isPinned
                             )
-                        }.distinctBy { it.id }.sortedBy { it.deadline }
+                        }.distinctBy { it.id }
+                            .sortedWith(compareByDescending<ThingsTodo> { it.isPinned }.thenBy { it.deadline })
+
 
                     lastDataDeadLine = _thingsTodoItems.value?.lastOrNull()?.deadline
                     _isTodoListLoading.value = false
@@ -195,6 +199,18 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    // 고정 메소드
+    fun togglePinStatus(taskId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                togglePinStatusUseCase.invoke(taskId)
+            }.onSuccess {
+
+            }.onFailure {
+
+            }
+        }
+    }
 
     /*
     * UI
@@ -301,8 +317,14 @@ class HomeViewModel @Inject constructor(
                             daysBefore = when {
                                 it.startDate != null && it.startDate.isEqual(LocalDate.now()) -> 0
                                 it.startDate != null && it.endDate != null &&
-                                        (it.startDate.isBefore(LocalDate.now()) && it.endDate.isAfter(LocalDate.now())) -> 0
-                                it.startDate != null && it.startDate.isAfter(LocalDate.now()) -> ChronoUnit.DAYS.between(LocalDate.now(), it.startDate).toInt() // 시작일이 미래인 경우
+                                        (it.startDate.isBefore(LocalDate.now()) && it.endDate.isAfter(
+                                            LocalDate.now()
+                                        )) -> 0
+
+                                it.startDate != null && it.startDate.isAfter(LocalDate.now()) -> ChronoUnit.DAYS.between(
+                                    LocalDate.now(),
+                                    it.startDate
+                                ).toInt() // 시작일이 미래인 경우
                                 else -> 0
                             },
                             isComplete = it.isComplete,
