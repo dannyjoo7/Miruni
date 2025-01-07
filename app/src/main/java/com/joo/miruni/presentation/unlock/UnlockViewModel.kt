@@ -183,7 +183,8 @@ class UnlockViewModel @Inject constructor(
                             completeDate = it.completeDate,
                             isPinned = it.isPinned
                         )
-                    }.sortedBy { it.startDate }
+                    }
+                        .sortedWith(compareByDescending<Schedule> { it.isPinned }.thenBy { it.startDate })
                     lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
                     _isScheduleListLoading.value = false
                 }
@@ -233,7 +234,9 @@ class UnlockViewModel @Inject constructor(
                             _scheduleItems.value?.any { existingSchedule ->
                                 existingSchedule.id == newSchedule.id
                             } == true
-                        })?.sortedBy { it.startDate } ?: emptyList()
+                        })
+                            ?.sortedWith(compareByDescending<Schedule> { it.isPinned }.thenBy { it.startDate })
+                            ?: emptyList()
                     lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
                     _isScheduleListLoading.value = false
                 }

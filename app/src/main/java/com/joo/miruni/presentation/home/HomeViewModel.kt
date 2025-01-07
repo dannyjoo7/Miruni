@@ -324,14 +324,19 @@ class HomeViewModel @Inject constructor(
                                 it.startDate != null && it.startDate.isAfter(LocalDate.now()) -> ChronoUnit.DAYS.between(
                                     LocalDate.now(),
                                     it.startDate
-                                ).toInt() // 시작일이 미래인 경우
+                                ).toInt()
+
                                 else -> 0
                             },
                             isComplete = it.isComplete,
                             completeDate = it.completeDate,
                             isPinned = it.isPinned
                         )
-                    }.sortedBy { it.startDate }
+                    }
+                        .sortedWith(compareByDescending<Schedule> { it.isPinned }.thenBy { it.startDate })
+
+                    Log.d(TAG, "처음 ${_scheduleItems.value}")
+
                     lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
                     _isScheduleListLoading.value = false
                 }
@@ -381,7 +386,12 @@ class HomeViewModel @Inject constructor(
                             _scheduleItems.value?.any { existingSchedule ->
                                 existingSchedule.id == newSchedule.id
                             } == true
-                        })?.sortedBy { it.startDate } ?: emptyList()
+                        })
+                            ?.sortedWith(compareByDescending<Schedule> { it.isPinned }.thenBy { it.startDate })
+                            ?: emptyList()
+
+                    Log.d(TAG, "추가 ${_scheduleItems.value}")
+
                     lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
                     _isScheduleListLoading.value = false
                 }
