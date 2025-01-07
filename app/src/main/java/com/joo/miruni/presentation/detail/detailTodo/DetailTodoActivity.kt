@@ -1,10 +1,13 @@
 package com.joo.miruni.presentation.detail.detailTodo
 
 
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,7 +28,14 @@ class DetailTodoActivity : ComponentActivity() {
         }
 
         // 상태바 설정
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                Color.WHITE, Color.WHITE
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                Color.WHITE, Color.WHITE
+            )
+        )
 
         setContent {
             DetailTodoScreen(detailTodoViewModel)
