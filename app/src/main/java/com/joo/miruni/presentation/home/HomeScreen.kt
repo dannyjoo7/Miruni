@@ -27,9 +27,11 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -192,11 +194,16 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 6.dp)
                 ) { page ->
-                    val startIndex = page * 3
-                    val endIndex = minOf(startIndex + 3, scheduleItems.size)
+                    // 완료된 항목 필터 리스트
+                    val filteredScheduleItems = scheduleItems.filter {
+                        isCompletedViewChecked.value || !it.isComplete
+                    }
 
-                    if (startIndex < scheduleItems.size) {
-                        val scheduleGroup = scheduleItems.subList(startIndex, endIndex)
+                    val startIndex = page * 3
+                    val endIndex = minOf(startIndex + 3, filteredScheduleItems.size)
+
+                    if (startIndex < filteredScheduleItems.size) {
+                        val scheduleGroup = filteredScheduleItems.subList(startIndex, endIndex)
 
                         Column(
                             modifier = Modifier
@@ -206,9 +213,13 @@ fun HomeScreen(
                             for (i in scheduleGroup.indices step 3) {
                                 Row {
                                     for (j in i until minOf(i + 3, scheduleGroup.size)) {
-                                        if (isCompletedViewChecked.value || !scheduleGroup[j].isComplete) {
-                                            ScheduleItem(context, scheduleGroup[j])
-                                        }
+                                        ScheduleItem(
+                                            context = context,
+                                            schedule = scheduleGroup[j],
+                                            onLongClicked = {
+                                                homeViewModel.togglePinStatus(scheduleGroup[j].id)
+                                            }
+                                        )
                                     }
                                     // 로딩바
                                     if (isScheduleListLoading && page == pageCount - 1) {
@@ -229,10 +240,9 @@ fun HomeScreen(
                             homeViewModel.loadMoreScheduleData()
                         }
                     }
-
-
                 }
             }
+
 
             // 할 일
             LazyColumn(
@@ -449,12 +459,18 @@ fun HomeScreen(
 }
 
 // 일정 Item
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ScheduleItem(
     context: Context,
     schedule: Schedule,
+    onLongClicked: () -> Unit,
     isClickable: Boolean = true,
 ) {
+    // 햅틱
+    val haptics = LocalHapticFeedback.current
+
+    // 화면 크기
     val screenWidth = LocalConfiguration.current.screenWidthDp
 
     val isDDayAnimation by rememberInfiniteTransition(label = "D-Day").animateFloat(
@@ -468,32 +484,41 @@ fun ScheduleItem(
 
     Card(
         modifier = Modifier
-            .width((screenWidth / 3).dp)
+            .widthIn(max = (screenWidth / 3).dp, min = (screenWidth / 3).dp)
+            .heightIn(max = 80.dp, min = 80.dp)
             .padding(
                 horizontal = 6.dp,
                 vertical = 4.dp,
             )
-            .clickable(
+            .combinedClickable(
                 indication = ripple(
                     bounded = true,
                     color = colorResource(R.color.ios_gray),
                 ),
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                // 클릭 시 일정 상세보기
-                if (isClickable) {
-                    val intent = Intent(
-                        context,
-                        DetailScheduleActivity::class.java
-                    ).apply {
-                        putExtra(
-                            "SCHEDULE_ID",
-                            schedule.id
-                        )
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = {
+                    // 클릭 시
+                    if (isClickable) {
+                        val intent = Intent(
+                            context,
+                            DetailScheduleActivity::class.java
+                        ).apply {
+                            putExtra(
+                                "SCHEDULE_ID",
+                                schedule.id
+                            )
+                        }
+                        context.startActivity(intent)
                     }
-                    context.startActivity(intent)
-                }
-            },
+                },
+                onLongClick = {
+                    // 길게 클릭 시
+                    if (isClickable) {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onLongClicked()
+                    }
+                },
+            ),
         shape = RoundedCornerShape(4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
@@ -536,6 +561,14 @@ fun ScheduleItem(
                     text = schedule.title,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            if (schedule.isPinned) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_pin_inversion),
+                    contentDescription = "Pin whether",
+                    modifier = Modifier.size(8.dp)
                 )
             }
         }
@@ -1002,7 +1035,7 @@ fun ThingsToDoItem(
                         .align(Alignment.TopStart)
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_pin),
+                        painter = painterResource(id = R.drawable.ic_pin_inversion),
                         contentDescription = "Pin whether",
                         colorFilter = if (isPinned) {
                             ColorFilter.tint(backgroundColor)

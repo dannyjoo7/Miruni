@@ -141,6 +141,7 @@ fun UnlockScreen(
                     }
                 }
 
+                // 시간
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -165,11 +166,16 @@ fun UnlockScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 6.dp)
                     ) { page ->
-                        val startIndex = page * 3
-                        val endIndex = minOf(startIndex + 3, scheduleItems.size)
+                        // 완료된 항목 필터 리스트
+                        val filteredScheduleItems = scheduleItems.filter {
+                            isCompletedViewChecked.value || !it.isComplete
+                        }
 
-                        if (startIndex < scheduleItems.size) {
-                            val scheduleGroup = scheduleItems.subList(startIndex, endIndex)
+                        val startIndex = page * 3
+                        val endIndex = minOf(startIndex + 3, filteredScheduleItems.size)
+
+                        if (startIndex < filteredScheduleItems.size) {
+                            val scheduleGroup = filteredScheduleItems.subList(startIndex, endIndex)
 
                             Column(
                                 modifier = Modifier
@@ -179,13 +185,12 @@ fun UnlockScreen(
                                 for (i in scheduleGroup.indices step 3) {
                                     Row {
                                         for (j in i until minOf(i + 3, scheduleGroup.size)) {
-                                            if (isCompletedViewChecked.value || !scheduleGroup[j].isComplete) {
-                                                ScheduleItem(
-                                                    context = context,
-                                                    schedule = scheduleGroup[j],
-                                                    isClickable = false
-                                                )
-                                            }
+                                            ScheduleItem(
+                                                context = context,
+                                                schedule = scheduleGroup[j],
+                                                onLongClicked = { },
+                                                isClickable = false
+                                            )
                                         }
                                         // 로딩바
                                         if (isScheduleListLoading && page == pageCount - 1) {
@@ -206,7 +211,6 @@ fun UnlockScreen(
                                 unlockViewModel.loadMoreScheduleData()
                             }
                         }
-
                     }
                 }
 
@@ -282,7 +286,11 @@ fun UnlockScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = 8.dp
+                        ),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -303,7 +311,7 @@ fun UnlockScreen(
                 Card(
                     modifier = Modifier
                         .offset { IntOffset(dragOffset.floatValue.roundToInt(), 0) }
-                        .size(width = 70.dp, height = 40.dp)
+                        .size(width = 72.dp, height = 72.dp)
                         .draggable(
                             state = rememberDraggableState { delta ->
                                 dragOffset.floatValue += delta
