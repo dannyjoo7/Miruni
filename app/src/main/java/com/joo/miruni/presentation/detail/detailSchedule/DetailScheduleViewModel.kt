@@ -21,8 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailScheduleViewModel @Inject constructor(
-    private val updateScheduleItemUseCase: UpdateScheduleItemUseCase,
     private val getScheduleItemByIDUseCase: GetScheduleItemByIDUseCase,
+    private val updateScheduleItemUseCase: UpdateScheduleItemUseCase,
     private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
     private val completeTaskItemUseCase: CompleteTaskItemUseCase,
     private val cancelCompleteTaskItemUseCase: CancelCompleteTaskItemUseCase,

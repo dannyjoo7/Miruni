@@ -5,6 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCase
 import com.joo.miruni.domain.usecase.UpdateTodoItemUseCase
 import com.joo.miruni.presentation.addTask.addTodo.AlarmDisplayDuration
@@ -25,6 +28,9 @@ import kotlin.math.absoluteValue
 class DetailTodoViewModel @Inject constructor(
     private val getTodoItemByIDUseCase: GetTodoItemByIDUseCase,
     private val updateTodoItemUseCase: UpdateTodoItemUseCase,
+    private val deleteTaskItemUseCase: DeleteTaskItemUseCase,
+    private val completeTaskItemUseCase: CompleteTaskItemUseCase,
+    private val cancelCompleteTaskItemUseCase: CancelCompleteTaskItemUseCase,
 ) : ViewModel() {
     companion object {
         const val TAG = "DetailTodoViewModel"
@@ -320,6 +326,7 @@ class DetailTodoViewModel @Inject constructor(
                     _selectedDate.value ?: LocalDate.now(),
                     _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
                 ),
+                isComplete = _todoItem.value?.isComplete ?: false,
                 isPinned = _todoItem.value?.isPinned ?: false
             )
 
@@ -377,6 +384,49 @@ class DetailTodoViewModel @Inject constructor(
     // 항목이 수정됨
     private fun isModify() {
         _isModified.value = true
+    }
+
+    /*
+   * Bottom Bar
+   * */
+
+    // 일정 삭제
+    fun deleteTodoItem(todoId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                deleteTaskItemUseCase.invoke(todoId)
+            }.onSuccess {
+
+            }.onFailure {
+
+            }
+        }
+    }
+
+    // 일정 완료
+    fun completeTodoItem(todoId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                completeTaskItemUseCase.invoke(todoId, LocalDateTime.now())
+            }.onSuccess {
+
+            }.onFailure {
+
+            }
+        }
+    }
+
+    // 일정 완료 취소
+    fun completeCancelTodoItem(todoId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                cancelCompleteTaskItemUseCase.invoke(todoId)
+            }.onSuccess {
+
+            }.onFailure {
+
+            }
+        }
     }
 }
 

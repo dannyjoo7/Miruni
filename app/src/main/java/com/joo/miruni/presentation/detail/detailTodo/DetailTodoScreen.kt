@@ -9,6 +9,7 @@ import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -47,26 +48,31 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.joo.miruni.R
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.material.timepicker.TimeFormat
+import com.joo.miruni.R
 import com.joo.miruni.presentation.widget.AlarmDisplayDatePicker
+import com.joo.miruni.presentation.widget.BasicDialog
+import com.joo.miruni.presentation.widget.DialogMod
 import com.joo.miruni.presentation.widget.Time
 import com.joo.miruni.presentation.widget.WheelTimePicker
 import java.time.LocalDate
@@ -90,6 +96,8 @@ fun DetailTodoScreen(
     /*
     * Live Data
     *  */
+    val todoItem by detailTodoViewModel.todoItem.observeAsState()
+
     val todoText by detailTodoViewModel.todoText.observeAsState("")
     val descriptionText by detailTodoViewModel.descriptionText.observeAsState("")
 
@@ -107,6 +115,12 @@ fun DetailTodoScreen(
 
     val isTodoTextEmpty by detailTodoViewModel.isTodoTextEmpty.observeAsState(false)
     val isTodoAddedSuccess by detailTodoViewModel.isTodoUpdate.observeAsState(false)
+
+    /*
+    * UI
+    * */
+    var showDialog by remember { mutableStateOf(false) }               // dialog 보여짐 여부
+    var dialogMod by remember { mutableStateOf(DialogMod.TODO_DELETE) }      // dialog mod
 
     /*
     * 애니매이션
@@ -197,6 +211,64 @@ fun DetailTodoScreen(
                     containerColor = Color.White
                 )
             )
+        },
+        bottomBar = {
+            if (isModified == false) {
+                Row(
+                    modifier = Modifier
+                        .padding(vertical = 18.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // 삭제 아이콘
+                    Image(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .weight(1f)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                dialogMod = DialogMod.TODO_DELETE
+                                showDialog = true
+                            },
+                        painter = painterResource(id = R.drawable.ic_trash_can),
+                        contentDescription = "delete todo",
+                        colorFilter = ColorFilter.tint(colorResource(id = R.color.ios_red)),
+                    )
+                    // 완료 아이콘
+                    Image(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .weight(1f)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                if (todoItem == null) {
+                                    showDialog = false
+                                } else {
+                                    dialogMod = if (todoItem?.isComplete == true) {
+                                        DialogMod.TODO_CANCEL_COMPLETE
+                                    } else {
+                                        DialogMod.TODO_COMPLETE
+                                    }
+                                    showDialog = true
+                                }
+                            },
+                        painter = painterResource(
+                            id = if (todoItem?.isComplete == true) {
+                                R.drawable.ic_calendar_uncheck
+                            } else {
+                                R.drawable.ic_calendar_check
+                            }
+                        ),
+                        contentDescription = "complete todo",
+                        colorFilter = ColorFilter.tint(colorResource(id = R.color.ios_blue)),
+                    )
+                }
+            }
         },
         containerColor = Color.White
     ) { contentPadding ->
@@ -554,6 +626,47 @@ fun DetailTodoScreen(
                     }
                 }
 
+            }
+
+            // 다이얼로그
+            Column {
+                // 다이얼로그
+                BasicDialog(
+                    dialogType = dialogMod,
+                    showDialog = showDialog,
+                    onDismiss = {
+                        showDialog = false
+                    },
+                    onCancel = {
+                        showDialog = false
+                    },
+                    onConfirmed = {
+                        when (dialogMod) {
+                            DialogMod.TODO_DELETE -> {
+                                detailTodoViewModel.deleteTodoItem(todoItem?.id ?: 0)
+                                (context as? Activity)?.finish()
+                            }
+
+                            DialogMod.TODO_COMPLETE -> {
+                                detailTodoViewModel.completeTodoItem(todoItem?.id ?: 0)
+                                (context as? Activity)?.finish()
+                            }
+
+                            DialogMod.TODO_CANCEL_COMPLETE -> {
+                                detailTodoViewModel.completeCancelTodoItem(
+                                    todoItem?.id ?: 0
+                                )
+                                (context as? Activity)?.finish()
+                            }
+
+                            else -> {
+                                showDialog = false
+                            }
+                        }
+                        showDialog = false
+                    },
+                    title = todoItem?.title ?: "알 수 없음",
+                )
             }
         }
     }

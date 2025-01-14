@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -23,10 +23,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,7 +34,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -211,74 +207,59 @@ fun DetailScheduleScreen(
         containerColor = Color.White,
         bottomBar = {
             if (isModified == false) {
-                HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 48.dp),
-                    horizontalArrangement = Arrangement.Center,
+                        .padding(vertical = 18.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column(
+                    // 삭제 아이콘
+                    Image(
                         modifier = Modifier
-                            .padding(4.dp)
-                            .weight(1f),
-                    ) {
-                        // 삭제 버튼
-                        Button(
-                            onClick = {
+                            .size(40.dp)
+                            .weight(1f)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
                                 dialogMod = DialogMod.SCHEDULE_DELETE
                                 showDialog = true
                             },
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = "삭제",
-                                textAlign = TextAlign.Center,
-                                color = colorResource(R.color.ios_red)
-                            )
-                        }
-                    }
-
-                    VerticalDivider(
-                        modifier = Modifier.fillMaxHeight(),
-                        color = Color.Gray,
-                        thickness = 0.5.dp
+                        painter = painterResource(id = R.drawable.ic_trash_can),
+                        contentDescription = "delete schedule",
+                        colorFilter = ColorFilter.tint(colorResource(id = R.color.ios_red)),
                     )
-
-                    Column(
+                    // 완료 아이콘
+                    Image(
                         modifier = Modifier
-                            .padding(4.dp)
-                            .weight(1f),
-                    ) {
-                        Button(
-                            onClick = {
-                                dialogMod =
-                                    if (scheduleItem?.isComplete == false) {
-                                        DialogMod.SCHEDULE_COMPLETE
-                                    } else {
+                            .size(30.dp)
+                            .weight(1f)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                if (scheduleItem == null) {
+                                    showDialog = false
+                                } else {
+                                    dialogMod = if (scheduleItem?.isComplete == true) {
                                         DialogMod.SCHEDULE_CANCEL_COMPLETE
+                                    } else {
+                                        DialogMod.SCHEDULE_COMPLETE
                                     }
-                                showDialog = true
+                                    showDialog = true
+                                }
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = if (scheduleItem?.isComplete == false) "완료" else "완료 취소",
-                                textAlign = TextAlign.Center,
-                                color = colorResource(R.color.ios_blue)
-                            )
-                        }
-
-                    }
+                        painter = painterResource(
+                            id = if (scheduleItem?.isComplete == true) {
+                                R.drawable.ic_calendar_uncheck
+                            } else {
+                                R.drawable.ic_calendar_check
+                            }
+                        ),
+                        contentDescription = "complete schedule",
+                        colorFilter = ColorFilter.tint(colorResource(id = R.color.ios_blue)),
+                    )
                 }
             }
         }
@@ -288,6 +269,7 @@ fun DetailScheduleScreen(
                 .padding(contentPadding)
                 .padding(16.dp)
                 .verticalScroll(scrollState)
+                .fillMaxSize()
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
