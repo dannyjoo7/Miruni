@@ -190,9 +190,16 @@ fun BasicDialog(
                         ) {
                             Text(
                                 text = confirmButtonText,
-                                color = colorResource(R.color.ios_blue),
-                                textAlign = TextAlign.Center
+                                color = when (dialogType) {
+                                    DialogMod.TODO_DELETE, DialogMod.SCHEDULE_DELETE -> {
+                                        colorResource(R.color.ios_red)
+                                    }
+
+                                    else -> colorResource(R.color.ios_blue)
+                                },
+                                textAlign = TextAlign.Center,
                             )
+
                         }
 
                         // 구분선
