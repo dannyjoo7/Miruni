@@ -30,10 +30,18 @@ import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
 import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCaseImpl
 import com.joo.miruni.domain.usecase.SaveAlarmTimeUseCase
 import com.joo.miruni.domain.usecase.SaveAlarmTimeUseCaseImpl
+import com.joo.miruni.domain.usecase.SettingActiveUnlockScreenUseCase
+import com.joo.miruni.domain.usecase.SettingActiveUnlockScreenUseCaseImpl
 import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCase
 import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCaseImpl
+import com.joo.miruni.domain.usecase.SettingGetCompletedItemsVisibilityStateUseCase
+import com.joo.miruni.domain.usecase.SettingGetCompletedItemsVisibilityStateUseCaseImpl
+import com.joo.miruni.domain.usecase.SettingGetUnlockStateUseCase
+import com.joo.miruni.domain.usecase.SettingGetUnlockStateUseCaseImpl
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
 import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCaseImpl
+import com.joo.miruni.domain.usecase.SettingObserveUnlockStateUseCase
+import com.joo.miruni.domain.usecase.SettingObserveUnlockStateUseCaseImpl
 import com.joo.miruni.domain.usecase.TestUseCase
 import com.joo.miruni.domain.usecase.TestUseCaseImpl
 import com.joo.miruni.domain.usecase.TogglePinStatusUseCase
@@ -75,6 +83,18 @@ abstract class UseCaseModule {
     abstract fun bindSettingCompletedItemsVisibilityUseCase(
         settingCompletedItemsVisibilityUseCaseImpl: SettingCompletedItemsVisibilityUseCaseImpl,
     ): SettingCompletedItemsVisibilityUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingActiveUnlockScreenUseCase(
+        settingActiveUnlockScreenUseCaseImpl: SettingActiveUnlockScreenUseCaseImpl,
+    ): SettingActiveUnlockScreenUseCase
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingGetCompletedItemsVisibilityStateUseCaseImpl(
+        settingGetCompletedItemsVisibilityStateUseCaseImpl: SettingGetCompletedItemsVisibilityStateUseCaseImpl,
+    ): SettingGetCompletedItemsVisibilityStateUseCase
 
     /*
     * Add TodoItem
@@ -143,6 +163,12 @@ abstract class UseCaseModule {
 
     @Binds
     @Singleton
+    abstract fun bindSettingObserveUnlockStateUseCase(
+        settingObserveUnlockStateUseCaseImpl: SettingObserveUnlockStateUseCaseImpl,
+    ): SettingObserveUnlockStateUseCase
+
+    @Binds
+    @Singleton
     abstract fun bindGetOverDueTodoItemsForAlarmUseCase(
         getOverDueTodoItemsForAlarmUseCaseImpl: GetOverDueTodoItemsForAlarmUseCaseImpl,
     ): GetOverDueTodoItemsForAlarmUseCase
@@ -198,6 +224,15 @@ abstract class UseCaseModule {
     abstract fun bindGetTasksForDateRangeUseCase(
         getTasksForDateRangeUseCaseImpl: GetTasksForDateRangeUseCaseImpl,
     ): GetTasksForDateRangeUseCase
+
+    /*
+    * UnlockReceiver
+    * */
+    @Binds
+    @Singleton
+    abstract fun bindSettingGetUnlockStateUseCaseImpl(
+        settingGetUnlockStateUseCaseImpl: SettingGetUnlockStateUseCaseImpl,
+    ): SettingGetUnlockStateUseCase
 
     /*
     * TEST

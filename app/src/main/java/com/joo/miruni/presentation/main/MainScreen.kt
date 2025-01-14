@@ -59,6 +59,9 @@ fun MainScreen(
     val isCompletedViewChecked = mainViewModel.settingObserveCompleteVisibility.observeAsState(
         false
     )
+    val isActiveUnlockScreenChecked = mainViewModel.settingObserveUnlockState.observeAsState(
+        false
+    )
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -77,6 +80,7 @@ fun MainScreen(
                             .fillMaxSize()
                             .padding(16.dp)
                     ) {
+                        // 앱 제목
                         Row {
                             Text(
                                 text = "미루니",
@@ -86,7 +90,7 @@ fun MainScreen(
                             )
                         }
 
-
+                        // 메뉴 항목 1
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -105,6 +109,38 @@ fun MainScreen(
                                 checked = isCompletedViewChecked.value,
                                 onCheckedChange = {
                                     mainViewModel.setCompletedItemsVisibility()
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedIconColor = Color.White,
+                                    checkedTrackColor = Color(0xFF35C759),
+                                    checkedBorderColor = Color(0xFF35C759),
+                                    checkedThumbColor = Color.White,
+                                    uncheckedThumbColor = Color.White,
+                                    uncheckedTrackColor = Color.LightGray,
+                                    uncheckedBorderColor = Color.White,
+                                ),
+                            )
+                        }
+
+                        // 메뉴 항목 2
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "잠금 화면 표시 기능",
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp)
+                                    .weight(1f),
+                                fontSize = 16.sp,
+                            )
+
+                            // 스위치
+                            Switch(
+                                modifier = Modifier.padding(end = 8.dp),
+                                checked = isActiveUnlockScreenChecked.value,
+                                onCheckedChange = {
+                                    mainViewModel.setActiveUnlockScreen()
                                 },
                                 colors = SwitchDefaults.colors(
                                     checkedIconColor = Color.White,

@@ -3,9 +3,17 @@ package com.joo.miruni.service.unlock
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.joo.miruni.domain.usecase.SettingGetUnlockStateUseCase
 import com.joo.miruni.presentation.unlock.UnlockActivity
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class UnlockReceiver : BroadcastReceiver() {
+
+    @Inject
+    lateinit var settingGetUnlockStateUseCase: SettingGetUnlockStateUseCase
+
     companion object {
         private const val TAG = "UnlockReceiver"
         private const val CHANNEL_ID = "unlock_channel"
@@ -14,7 +22,9 @@ class UnlockReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_USER_PRESENT) {
+        val isAble = settingGetUnlockStateUseCase.invoke()
+
+        if (intent.action == Intent.ACTION_USER_PRESENT && isAble) {
             startUnlockActivity(context)
         }
     }
