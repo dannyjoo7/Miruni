@@ -274,6 +274,7 @@ class AddTodoViewModel @Inject constructor(
                         _selectedDate.value ?: LocalDate.now(),
                         _selectedAlarmDisplayDate.value ?: AlarmDisplayDuration(1, "주")
                     ),
+                    isComplete = false,
                     isPinned = false,
                 )
 

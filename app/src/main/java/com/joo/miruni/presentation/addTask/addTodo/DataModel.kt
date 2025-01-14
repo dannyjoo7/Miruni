@@ -15,6 +15,7 @@ data class TodoItem(
     val descriptionText: String,
     val selectedDate: LocalDateTime,
     val adjustedDate: LocalDate,
+    val isComplete: Boolean,
     val isPinned: Boolean,
 )
 
@@ -24,5 +25,6 @@ fun TodoModel.toTodoItem() = TodoItem(
     descriptionText = details.orEmpty(),
     selectedDate = deadLine ?: LocalDateTime.now(),
     adjustedDate = alarmDisplayDate,
+    isComplete = isComplete,
     isPinned = isPinned
 )
