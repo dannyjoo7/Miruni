@@ -805,7 +805,7 @@ fun ThingsToDoItem(
                             }
                         }
 
-                        // 설명칸 비었으면 무시
+                        // 설명칸
                         if (!thingsToDo.description.isNullOrEmpty()) {
                             Text(
                                 text = thingsToDo.description,
@@ -875,7 +875,7 @@ fun ThingsToDoItem(
                         // 추가 정보와 구분선
                         if (isExpanded) {
                             HorizontalDivider(
-                                thickness = 1.dp, color = Color.Gray.copy(alpha = 0.5f),
+                                thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.5f),
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -908,7 +908,7 @@ fun ThingsToDoItem(
                                 // 구분선
                                 Spacer(modifier = Modifier.width(12.dp))
                                 VerticalDivider(
-                                    thickness = 1.dp,
+                                    thickness = 0.8.dp,
                                     color = Color.Gray.copy(alpha = 0.5f),
                                     modifier = Modifier.height(24.dp)
                                 )
