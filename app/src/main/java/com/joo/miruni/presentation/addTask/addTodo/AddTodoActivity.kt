@@ -20,7 +20,8 @@ class AddTodoActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // 데이터 꺼내기
-        val selectedDate: LocalDate? = intent.getStringExtra("SELECT_DATE")?.let { LocalDate.parse(it) }
+        val selectedDate: LocalDate? =
+            intent.getStringExtra("SELECT_DATE")?.let { LocalDate.parse(it) }
 
         initModel(selectedDate)
 
@@ -36,12 +37,12 @@ class AddTodoActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            AddTodoScreen(addTodoViewModel, selectedDate)
+            AddTodoScreen(addTodoViewModel)
         }
     }
 
-    private fun initModel(selectedDate: LocalDate?){
-        if (selectedDate != null){
+    private fun initModel(selectedDate: LocalDate?) {
+        if (selectedDate != null) {
             addTodoViewModel.setSelectedDate(selectedDate)
         }
     }
