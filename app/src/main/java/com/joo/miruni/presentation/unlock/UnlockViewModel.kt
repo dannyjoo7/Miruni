@@ -1,8 +1,6 @@
 package com.joo.miruni.presentation.unlock
 
 import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -36,13 +34,9 @@ class UnlockViewModel @Inject constructor(
     * Live Date
     * */
 
-    // 선택된 날짜
-    private val _selectDate = MutableLiveData<LocalDate>(LocalDate.now())
-    val selectDate: LiveData<LocalDate> get() = _selectDate
-
     // 현재 시간
-    private val _curTime = MutableLiveData<LocalDateTime>(LocalDateTime.now())
-    val curTime: LiveData<LocalDateTime> get() = _curTime
+    private val _curDateTime = MutableLiveData<LocalDateTime>(LocalDateTime.now())
+    val curDateTime: LiveData<LocalDateTime> get() = _curDateTime
 
     // 할 일 Item list
     private val _thingsTodoItems = MutableLiveData<List<ThingsTodo>>(emptyList())
@@ -89,7 +83,7 @@ class UnlockViewModel @Inject constructor(
             _isTodoListLoading.value = true
             runCatching {
                 getTodoItemsForAlarmUseCase.invoke(
-                    _selectDate.value?.atStartOfDay() ?: LocalDateTime.now()
+                    _curDateTime.value ?: LocalDateTime.now()
                 )
             }.onSuccess { flow ->
                 flow.collect { todoItems ->
@@ -104,7 +98,8 @@ class UnlockViewModel @Inject constructor(
                                 completeDate = it.completeDate,
                                 isPinned = it.isPinned
                             )
-                        }.distinctBy { it.id }.sortedBy { it.deadline }
+                        }.distinctBy { it.id }
+                            .sortedWith(compareByDescending<ThingsTodo> { it.isPinned }.thenBy { it.deadline })
 
                     _isTodoListLoading.value = false
                 }
@@ -138,7 +133,7 @@ class UnlockViewModel @Inject constructor(
     private fun startUpdatingTime() {
         viewModelScope.launch {
             while (true) {
-                _curTime.postValue(LocalDateTime.now())
+                _curDateTime.postValue(LocalDateTime.now())
                 delay(1000)
             }
         }
@@ -154,7 +149,7 @@ class UnlockViewModel @Inject constructor(
             _isScheduleListLoading.value = true
             runCatching {
                 getScheduleItemsForAlarmUseCase.invoke(
-                    _selectDate.value ?: LocalDate.now(),
+                    _curDateTime.value?.toLocalDate() ?: LocalDate.now(),
                     null
                 )
             }.onSuccess { flow ->
@@ -202,7 +197,7 @@ class UnlockViewModel @Inject constructor(
             _isScheduleListLoading.value = true
             runCatching {
                 getScheduleItemsForAlarmUseCase.invoke(
-                    _selectDate.value ?: LocalDate.now(),
+                    _curDateTime.value?.toLocalDate() ?: LocalDate.now(),
                     lastStartDate
                 )
             }.onSuccess { flow ->

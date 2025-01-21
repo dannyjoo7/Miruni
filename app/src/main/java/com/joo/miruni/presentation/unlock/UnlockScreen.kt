@@ -71,10 +71,9 @@ fun UnlockScreen(
     * Live Data
     * */
 
-    val selectDate by unlockViewModel.selectDate.observeAsState(LocalDate.now())
     val thingsToDoItems by unlockViewModel.thingsTodoItems.observeAsState(emptyList())
     val scheduleItems by unlockViewModel.scheduleItems.observeAsState(emptyList())
-    val currentTime by unlockViewModel.curTime.observeAsState()
+    val currentDateTime by unlockViewModel.curDateTime.observeAsState()
 
     val isTodoListLoading by unlockViewModel.isTodoListLoading.observeAsState(false)
     val isScheduleListLoading by unlockViewModel.isScheduleListLoading.observeAsState(false)
@@ -127,7 +126,9 @@ fun UnlockScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = unlockViewModel.formatSelectedDate(selectDate),
+                            text = unlockViewModel.formatSelectedDate(
+                                currentDateTime?.toLocalDate() ?: LocalDate.now()
+                            ),
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
@@ -150,7 +151,7 @@ fun UnlockScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = currentTime?.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                        text = currentDateTime?.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
                             ?: "알 수 없음",
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Bold,
@@ -280,7 +281,7 @@ fun UnlockScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Transparent)
+                    .background(colorResource(R.color.white))
                     .padding(16.dp)
                     .align(Alignment.BottomCenter),
                 contentAlignment = Alignment.Center,
