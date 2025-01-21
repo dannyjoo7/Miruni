@@ -325,6 +325,12 @@ class AddTodoViewModel @Inject constructor(
     }
 
 
+    /*
+    * 초기화
+    * */
+    fun setSelectedDate(date: LocalDate) {
+        _selectedDate.value = date
+    }
 }
 
 

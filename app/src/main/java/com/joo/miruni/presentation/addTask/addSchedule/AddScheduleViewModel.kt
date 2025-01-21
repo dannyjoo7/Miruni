@@ -221,6 +221,13 @@ class AddScheduleViewModel @Inject constructor(
         _isTitleTextEmpty.value = false
         _isDateEmpty.value = false
     }
+
+    /*
+    * 초기화
+    * */
+    fun setSelectedDate(date: LocalDate) {
+        _selectedStartDate.value = date
+    }
 }
 
 

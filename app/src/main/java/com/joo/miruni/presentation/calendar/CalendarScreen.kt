@@ -1,6 +1,7 @@
 package com.joo.miruni.presentation.calendar
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,20 +12,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -35,18 +43,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.joo.miruni.R
 import com.joo.miruni.data.entities.TaskType
+import com.joo.miruni.presentation.addTask.addSchedule.AddScheduleActivity
+import com.joo.miruni.presentation.addTask.addTodo.AddTodoActivity
+import com.joo.miruni.presentation.detail.detailSchedule.DetailScheduleActivity
+import com.joo.miruni.presentation.detail.detailTodo.DetailTodoActivity
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -57,23 +71,37 @@ fun CalendarScreen(
 ) {
     val context = LocalContext.current
 
+    /*
+    * Live Date
+    * */
     val selectDate by calendarViewModel.selectedDate.observeAsState()
     val selectedDateTaskList by calendarViewModel.selectedDateTaskList.observeAsState(emptyList())
     val taskPresenceList by calendarViewModel.taskPresenceList.observeAsState(emptyList())
+
+    // FAB 메뉴
+    var isAddMenuExpanded by remember { mutableStateOf(false) }
+
+    // 스크린 넓이
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+
+    // 폴딩 여부
+    val isFolded = screenWidth < 600
 
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item {
-                Row(
+        // 펼쳐짐
+        if (!isFolded) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
                     modifier = Modifier
-                        .padding(vertical = 4.dp),
+                        .padding(16.dp)
+                        .weight(1f)
                 ) {
                     DatePickerForTask(
                         context = context,
@@ -83,13 +111,153 @@ fun CalendarScreen(
                         onMonthChange = { date -> calendarViewModel.monthChange(date) },
                     )
                 }
-                HorizontalDivider(color = colorResource(id = R.color.ios_gray), thickness = 0.5.dp)
-            }
 
-            // 태스크 리스트 아이템
-            items(selectedDateTaskList.size) { index ->
-                val task = selectedDateTaskList[index]
-                TaskWidget(task)
+                VerticalDivider()
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 태스크 리스트 아이템
+                    items(selectedDateTaskList.size) { index ->
+                        val task = selectedDateTaskList[index]
+                        TaskWidget(task)
+                    }
+                }
+            }
+        }
+        // 닫힘
+        else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp),
+                    ) {
+                        DatePickerForTask(
+                            context = context,
+                            selectedDate = selectDate,
+                            taskPresenceList = taskPresenceList,
+                            onDateSelected = { date -> calendarViewModel.selectDate(date) },
+                            onMonthChange = { date -> calendarViewModel.monthChange(date) },
+                        )
+                    }
+                    HorizontalDivider(
+                        color = colorResource(id = R.color.ios_gray),
+                        thickness = 0.5.dp
+                    )
+                }
+
+                // 태스크 리스트 아이템
+                items(selectedDateTaskList.size) { index ->
+                    val task = selectedDateTaskList[index]
+                    TaskWidget(task)
+                }
+            }
+        }
+
+        // 플로팅 버튼 + 메뉴
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            // FAB
+            FloatingActionButton(
+                onClick = { isAddMenuExpanded = !isAddMenuExpanded },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.BottomEnd),
+                shape = CircleShape,
+                containerColor = Color.Transparent,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
+            ) {
+                Icon(
+                    modifier = Modifier.size(68.dp),
+                    painter = painterResource(id = R.drawable.ic_add),
+                    contentDescription = "Add Item",
+                    tint = Color.Black,
+                )
+
+                // 메뉴
+                DropdownMenu(
+                    expanded = isAddMenuExpanded,
+                    onDismissRequest = { isAddMenuExpanded = false },
+                    offset = DpOffset(x = (-72).dp, y = (48).dp),
+                    containerColor = Color.Transparent,
+                    tonalElevation = 0.dp,
+                    shadowElevation = 0.dp,
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = colorResource(R.color.gray_menu),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        tonalElevation = 4.dp,
+                        shadowElevation = 4.dp,
+                    ) {
+                        Column {
+                            Text(
+                                text = "할 일",
+                                modifier = Modifier
+                                    .clickable(
+                                        indication = ripple(
+                                            bounded = true,
+                                            color = colorResource(R.color.ios_gray),
+                                        ),
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        // 할 일 추가
+                                        val intent = Intent(context, AddTodoActivity::class.java)
+                                            .apply {
+                                                putExtra(
+                                                    "SELECT_DATE",
+                                                    selectDate.toString()
+                                                )
+                                            }
+                                        context.startActivity(intent)
+                                        isAddMenuExpanded = false
+                                    }
+                                    .padding(16.dp)
+                                    .defaultMinSize(60.dp)
+                            )
+                            HorizontalDivider(
+                                thickness = 0.5.dp,
+                                color = Color.Black.copy(alpha = 0.2f)
+                            )
+                            Text(
+                                text = "일정",
+                                modifier = Modifier
+                                    .clickable(
+                                        indication = ripple(
+                                            bounded = true,
+                                            color = colorResource(R.color.ios_gray),
+                                        ),
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        // 일정 추가
+                                        val intent =
+                                            Intent(context, AddScheduleActivity::class.java).apply {
+                                                putExtra(
+                                                    "SELECT_DATE",
+                                                    selectDate.toString()
+                                                )
+                                            }
+                                        context.startActivity(intent)
+                                        isAddMenuExpanded = false
+                                    }
+                                    .padding(16.dp)
+                                    .defaultMinSize(60.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -195,12 +363,9 @@ fun DatePickerForTask(
         }
     }
 
-
     Card(
         modifier = Modifier
-            .padding(16.dp)
-            .wrapContentWidth()
-            .widthIn(max = 600.dp, min = 400.dp),
+            .wrapContentSize(),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
@@ -276,6 +441,8 @@ fun DatePickerForTask(
 @Composable
 fun TaskWidget(taskItem: TaskItem) {
 
+    val context = LocalContext.current
+
     // 날짜 포멧
     fun formatDate(date: LocalDate?): String {
         val currentYear = LocalDate.now().year
@@ -305,15 +472,48 @@ fun TaskWidget(taskItem: TaskItem) {
     }
 
 
-
     Box(
         modifier = Modifier
-            .padding(8.dp)
             .background(color = Color.Transparent, shape = RoundedCornerShape(8.dp))
             .fillMaxWidth()
+            .clickable(
+                indication = ripple(
+                    bounded = true,
+                    color = colorResource(R.color.ios_gray),
+                ),
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                val intent = when (taskItem.type) {
+                    TaskType.SCHEDULE -> {
+                        Intent(
+                            context,
+                            DetailScheduleActivity::class.java
+                        ).apply {
+                            putExtra(
+                                "SCHEDULE_ID",
+                                taskItem.id
+                            )
+                        }
+                    }
+
+                    TaskType.TODO -> {
+                        Intent(
+                            context,
+                            DetailTodoActivity::class.java
+                        ).apply {
+                            putExtra(
+                                "TODO_ID",
+                                taskItem.id
+                            )
+                        }
+                    }
+                }
+                context.startActivity(intent)
+            }
     ) {
         Column(
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier
+                .padding(12.dp)
         ) {
             // 제목, 항목
             Row(
@@ -338,6 +538,25 @@ fun TaskWidget(taskItem: TaskItem) {
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(end = 4.dp)
                             )
+                            if (taskItem.isComplete) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_check),
+                                        contentDescription = "complete",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(
+                                                color = Color.Green,
+                                                shape = RoundedCornerShape(90.dp)
+                                            )
+                                            .padding(2.dp),
+                                        colorFilter = ColorFilter.tint(Color.White),
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -435,11 +654,11 @@ fun PreviewTaskWidget() {
         endDate = LocalDate.now(),
         title = "일정",
         details = "일정 세부 사항",
-        isComplete = false,
+        isComplete = true,
         completeDate = null,
         type = TaskType.SCHEDULE
     )
 
-    TaskWidget(taskItem = sampleTodoItem)
+    TaskWidget(taskItem = sampleScheduleItem)
 //    TaskWidget(taskItem = sampleScheduleItem)
 }
