@@ -18,29 +18,26 @@ _*(상단에 프로젝트의 아이덴티티를 보여주는 로고 또는 대�
 * **할 일 및 일정 간편 등록:** 직관적인 UI를 통해 새로운 할 일과 일정을 손쉽게 추가할 수 있습니다.
 * **잠금 해제 시 할 일 요약 화면:** 스마트폰 잠금 해제 시마다 현재 진행 중인 할 일과 일정을 한눈에 요약하여 보여줍니다. 
 * **앱 내부 캘린더 연동:** 앱 내에서 제공되는 캘린더를 통해 할 일 및 일정을 체계적으로 관리하고, 시각적으로 확인하며 추가 등록할 수 있습니다.
-* **기한 지난 일 확인 기능:** 완료하지 못하고 기한이 지난 할 일들을 별도로 확인하여, 놓친 일들을 파악하고 다시 계획할 수 있도록 돕습니다.
+* **기한 지난 일 확인 기능:** 완료하지 못하고 기한이 지난 할 일들을 별도로 확인하여, 놓친 일들을 파악하고 다시 계획할 수 있도록 합니다.
 
 ## 🛠️ 기술 스택 및 라이브러리
 
-- Clean architecture & MVVM
-- Hilt
-- Compose
-- Forground Service
-- RomDB
-- Flow
+* **Clean Architecture & MVVM**: 앱의 유지보수성과 확장성을 극대화
+* **Hilt**: 의존성 주입의 간편한 처리
+* **Jetpack Compose**: 직관적이고 반응성 높은 사용자 인터페이스를 구현
+* **Foreground Service**
+* **RoomDB**: 로컬 데이터를 효율적이고 안정적으로 관리
+* **Flow**: 실시간 UI 업데이트와 리소스 최적화
 
 
 ## 📸 스크린샷
 
-
-![메인 잠금 화면](![Image](https://github.com/user-attachments/assets/c344fe1b-f353-4210-9860-147d439e2701))
-
-![기한이 지난 일](https://github.com/user-attachments/assets/9bd7aaeb-adf0-40ae-8f1a-412a3b5facb4)
-
-![메인 화면](https://github.com/user-attachments/assets/8e7e7e71-d188-40f3-93a2-894988c5d624)
-
-![캘린더 화면](https://github.com/user-attachments/assets/17a74bc1-c2f5-4920-b780-e887397d8173)
-
-![일정 추가 화면](https://github.com/user-attachments/assets/6fe3d48a-ceaa-4282-a869-f476144e0ca8)
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+    <img src="https://github.com/user-attachments/assets/0992dc91-4efc-4cd7-8ebc-6c20867b9c2a" alt="메인 잠금 화면" width="100" height="180"/>
+    <img src="https://github.com/user-attachments/assets/5da03103-6a60-4c27-a9a6-bf3ffd7705cd" alt="기한이 지난 일" width="100" height="180"/>
+    <img src="https://github.com/user-attachments/assets/64568918-2e53-43eb-a6be-c455d52ecde2" alt="메인 화면" width="100" height="180"/>
+    <img src="https://github.com/user-attachments/assets/970be0e1-0412-40aa-91ca-5e6715f6d6fc" alt="캘린더 화면" width="100" height="180"/>
+    <img src="https://github.com/user-attachments/assets/f091eee7-06aa-4ed3-a2c1-920190da0451" alt="일정 추가 화면" width="100" height="180"/>
+</div>
 
 ---
