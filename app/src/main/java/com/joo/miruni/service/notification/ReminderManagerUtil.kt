@@ -59,13 +59,13 @@ class ReminderManagerUtil @Inject constructor(
                 }
             }
 
-            Log.d(TAG, "리마인더 날짜 시간 : $reminderTime")
-
+            // 서비스 호출 등록
             val intent = Intent(context, ForegroundService::class.java).apply {
                 putExtra("TODO_ID", id)
                 putExtra("TODO_TITLE", title)
                 putExtra("REMINDER_TYPE", reminderType)
                 putExtra("REMINDER_TIME", reminderTime)
+                putExtra("DEADLINE_TIME", deadLineTime)
             }
 
             val pendingIntent = PendingIntent.getService(
@@ -87,9 +87,10 @@ class ReminderManagerUtil @Inject constructor(
 
     // 다음 알람 설정
     fun setNextAlarm(
-        reminderTime: Long,
         id: Long,
         title: String,
+        deadLineTime: Long,
+        reminderTime: Long,
         reminderType: ReminderType,
     ) {
         val intent = Intent(context, ForegroundService::class.java).apply {
@@ -97,6 +98,7 @@ class ReminderManagerUtil @Inject constructor(
             putExtra("TODO_TITLE", title)
             putExtra("REMINDER_TYPE", reminderType)
             putExtra("REMINDER_TIME", reminderTime)
+            putExtra("DEADLINE_TIME", deadLineTime)
         }
 
         val pendingIntent = PendingIntent.getService(

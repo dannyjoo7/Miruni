@@ -7,15 +7,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
-import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
-import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
-import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
+import com.joo.miruni.domain.usecase.task.CancelCompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.CompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.todo.DelayTodoItemUseCase
+import com.joo.miruni.domain.usecase.task.DeleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.schedule.GetScheduleItemsUseCase
+import com.joo.miruni.domain.usecase.task.todo.GetTodoItemsForAlarmUseCase
+import com.joo.miruni.domain.usecase.setting.SettingObserveCompletedItemsVisibilityUseCase
 import com.joo.miruni.domain.usecase.TestUseCase
-import com.joo.miruni.domain.usecase.TogglePinStatusUseCase
+import com.joo.miruni.domain.usecase.task.TogglePinStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -334,8 +334,6 @@ class HomeViewModel @Inject constructor(
                         )
                     }
                         .sortedWith(compareByDescending<Schedule> { it.isPinned }.thenBy { it.startDate })
-
-                    Log.d(TAG, "처음 ${_scheduleItems.value}")
 
                     lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
                     _isScheduleListLoading.value = false

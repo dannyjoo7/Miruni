@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joo.miruni.data.entities.TaskType
-import com.joo.miruni.domain.usecase.GetTasksForDateRangeUseCase
+import com.joo.miruni.domain.usecase.task.GetTasksForDateRangeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -30,8 +30,8 @@ open class CalendarViewModel @Inject constructor(
     val selectedDate: LiveData<LocalDate?> get() = _selectedDate
 
     // task 존재 여부 리스트
-    private val _taskPresenceList = MutableLiveData<List<Boolean>>()
-    val taskPresenceList: LiveData<List<Boolean>> get() = _taskPresenceList
+    private val _taskExistList = MutableLiveData<List<Boolean>>()
+    val taskExistList: LiveData<List<Boolean>> get() = _taskExistList
 
     // task List
     private val _taskList = MutableLiveData<List<TaskItem>>()
@@ -68,7 +68,7 @@ open class CalendarViewModel @Inject constructor(
             val currentDate = _curDate.value ?: LocalDate.now()
 
             val startDate = LocalDate.of(currentDate.year, currentDate.monthValue, 1)
-            val endDate = startDate.plusMonths(1).minusDays(1)
+            val endDate = startDate.plusMonths(1)
 
             runCatching {
                 getTasksForDateRange.invoke(startDate, endDate)
@@ -88,7 +88,7 @@ open class CalendarViewModel @Inject constructor(
                                 type = it.type
                             )
                         }
-                    checkTaskPresenceForMonth()
+                    checkTaskExistForMonth()
                     setSelectedDateTaskList()
                 }
             }.onFailure { exception ->
@@ -98,12 +98,12 @@ open class CalendarViewModel @Inject constructor(
     }
 
     // 해당 날짜에 Task 존재 여부를 확인하는 메소드
-    private fun checkTaskPresenceForMonth() {
+    private fun checkTaskExistForMonth() {
         val currentDate = _curDate.value ?: LocalDate.now()
         val endDate =
             LocalDate.of(currentDate.year, currentDate.monthValue, 1).plusMonths(1).minusDays(1)
 
-        _taskPresenceList.value = (1..endDate.dayOfMonth).map { day ->
+        _taskExistList.value = (1..endDate.dayOfMonth).map { day ->
             val dateToCheck =
                 LocalDate.of(currentDate.year, currentDate.monthValue, day)
 

@@ -6,10 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joo.miruni.R
-import com.joo.miruni.domain.usecase.SettingActiveUnlockScreenUseCase
-import com.joo.miruni.domain.usecase.SettingCompletedItemsVisibilityUseCase
-import com.joo.miruni.domain.usecase.SettingGetCompletedItemsVisibilityStateUseCase
-import com.joo.miruni.domain.usecase.SettingGetUnlockStateUseCase
+import com.joo.miruni.domain.usecase.setting.SettingActiveUnlockScreenUseCase
+import com.joo.miruni.domain.usecase.setting.SettingCompletedItemsVisibilityUseCase
+import com.joo.miruni.domain.usecase.setting.SettingGetCompletedItemsVisibilityStateUseCase
+import com.joo.miruni.domain.usecase.setting.SettingGetUnlockStateUseCase
 import com.joo.miruni.presentation.BottomNavItem
 import com.joo.miruni.presentation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel

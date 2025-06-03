@@ -108,12 +108,12 @@ fun OverdueScreen(
                     )
                 }
             }
-            // 모두 삭제 진행 상태 중일시
+            // 모두 미루기 진행 상태 중일시
             else if (isDelayAllTodoLoading) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(color = colorResource(R.color.ios_divider)),
+                        .background(color = Color.Transparent),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

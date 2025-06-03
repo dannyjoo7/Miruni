@@ -5,11 +5,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.GetTodoItemByIDUseCase
-import com.joo.miruni.domain.usecase.UpdateTodoItemUseCase
+import com.joo.miruni.domain.usecase.task.CancelCompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.CompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.DeleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.todo.GetTodoItemByIDUseCase
+import com.joo.miruni.domain.usecase.task.todo.UpdateTodoItemUseCase
 import com.joo.miruni.presentation.addTask.addTodo.AlarmDisplayDuration
 import com.joo.miruni.presentation.addTask.addTodo.TodoItem
 import com.joo.miruni.presentation.addTask.addTodo.toTodoItem

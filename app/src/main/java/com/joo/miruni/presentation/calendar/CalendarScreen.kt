@@ -76,16 +76,13 @@ fun CalendarScreen(
     * */
     val selectDate by calendarViewModel.selectedDate.observeAsState()
     val selectedDateTaskList by calendarViewModel.selectedDateTaskList.observeAsState(emptyList())
-    val taskPresenceList by calendarViewModel.taskPresenceList.observeAsState(emptyList())
+    val taskExistList by calendarViewModel.taskExistList.observeAsState(emptyList())
 
     // FAB 메뉴
     var isAddMenuExpanded by remember { mutableStateOf(false) }
 
-    // 스크린 넓이
-    val screenWidth = LocalConfiguration.current.screenWidthDp
-
     // 폴딩 여부
-    val isFolded = screenWidth < 600
+    val isFolded = LocalConfiguration.current.screenWidthDp < 600
 
     Box(
         modifier = Modifier
@@ -106,7 +103,7 @@ fun CalendarScreen(
                     DatePickerForTask(
                         context = context,
                         selectedDate = selectDate,
-                        taskPresenceList = taskPresenceList,
+                        taskExistList = taskExistList,
                         onDateSelected = { date -> calendarViewModel.selectDate(date) },
                         onMonthChange = { date -> calendarViewModel.monthChange(date) },
                     )
@@ -143,7 +140,7 @@ fun CalendarScreen(
                         DatePickerForTask(
                             context = context,
                             selectedDate = selectDate,
-                            taskPresenceList = taskPresenceList,
+                            taskExistList = taskExistList,
                             onDateSelected = { date -> calendarViewModel.selectDate(date) },
                             onMonthChange = { date -> calendarViewModel.monthChange(date) },
                         )
@@ -268,7 +265,7 @@ fun CalendarScreen(
 fun DatePickerForTask(
     context: Context,
     selectedDate: LocalDate?,
-    taskPresenceList: List<Boolean>,
+    taskExistList: List<Boolean>,
     onDateSelected: (LocalDate) -> Unit,
     onMonthChange: (LocalDate) -> Unit,
 ) {
@@ -307,8 +304,8 @@ fun DatePickerForTask(
                         if (dayOfMonth in 1..daysInMonth) {
                             val isSelected = selectedDate?.dayOfMonth == dayOfMonth
                             val isToday = LocalDate.of(year, month, dayOfMonth).isEqual(today)
-                            val hasTask = if (dayOfMonth - 1 in taskPresenceList.indices) {
-                                taskPresenceList[dayOfMonth - 1]
+                            val hasTask = if (dayOfMonth - 1 in taskExistList.indices) {
+                                taskExistList[dayOfMonth - 1]
                             } else {
                                 false
                             }
@@ -395,11 +392,12 @@ fun DatePickerForTask(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(start = 16.dp)
                 ) {
+                    // < 버튼
                     IconButton(onClick = {
                         currentDate = currentDate.minusMonths(1)
                         currentDate =
                             if (currentDate.year == today.year && currentDate.month == today.month) {
-                                today.plusDays(1)
+                                today
                             } else {
                                 currentDate.withDayOfMonth(1)
                             }
@@ -412,11 +410,13 @@ fun DatePickerForTask(
                             tint = colorResource(id = R.color.ios_blue),
                         )
                     }
+
+                    // > 버튼
                     IconButton(onClick = {
                         currentDate = currentDate.plusMonths(1)
                         currentDate =
                             if (currentDate.year == today.year && currentDate.month == today.month) {
-                                today.plusDays(1)
+                                today
                             } else {
                                 currentDate.withDayOfMonth(1)
                             }

@@ -33,14 +33,17 @@ import com.joo.miruni.R
 
 
 enum class DialogMod {
-    TODO_DELETE,                // 할 일 삭제
-    TODO_COMPLETE,              // 할 일 완료
-    TODO_CANCEL_COMPLETE,       // 할 일 완료 취소
-    TODO_ALL_DELAY,             // 할 일 모두 미루기
-    SCHEDULE_DELETE,            // 일정 삭제
-    SCHEDULE_COMPLETE,          // 일정 완료
-    SCHEDULE_CANCEL_COMPLETE,   // 일정 완료 취소
-    PERMISSION,                 // 권한 요청
+    TODO_DELETE,                                // 할 일 삭제
+    TODO_COMPLETE,                              // 할 일 완료
+    TODO_CANCEL_COMPLETE,                       // 할 일 완료 취소
+    TODO_ALL_DELAY,                             // 할 일 모두 미루기
+    SCHEDULE_DELETE,                            // 일정 삭제
+    SCHEDULE_COMPLETE,                          // 일정 완료
+    SCHEDULE_CANCEL_COMPLETE,                   // 일정 완료 취소
+
+    POST_NOTIFICATION_PERMISSION,               // 알림 권한 요청
+    FOREGROUND_SERVICE_PERMISSION,                     // 포그라운드 서비스 권한 요청
+    BATTERY_SETTING_PERMISSION,                 // 배터리 최적화 요청
 }
 
 // 대화상자
@@ -108,9 +111,23 @@ fun BasicDialog(
             confirmButtonText = "완료 취소"
         }
 
-        DialogMod.PERMISSION -> {
-            dialogTitle = "권한 허용"
-            dialogContent = "${title}\n 리마인드 서비스를 위해\n꼭 필요한 권한입니다\n권한을 허용해주세요"
+        DialogMod.POST_NOTIFICATION_PERMISSION -> {
+            dialogTitle = "알림 권한 허용"
+            dialogContent = "리마인드 서비스를 위해\n꼭 필요한 권한입니다\n권한을 허용해주세요"
+            cancelButtonText = "취소"
+            confirmButtonText = "확인"
+        }
+
+        DialogMod.BATTERY_SETTING_PERMISSION -> {
+            dialogTitle = "배터리 설정"
+            dialogContent = "원할한 서비스를 위해\n제한 없음으로\n설정해주세요"
+            cancelButtonText = "취소"
+            confirmButtonText = "확인"
+        }
+
+        DialogMod.FOREGROUND_SERVICE_PERMISSION -> {
+            dialogTitle = "정확한 알람 권한 설정"
+            dialogContent = "정확한 시간에 알람을\n받으려면 설정에서\n권한을 허용해주세요"
             cancelButtonText = "취소"
             confirmButtonText = "확인"
         }
@@ -245,7 +262,7 @@ fun BasicDialog(
 fun BasicDialogPreview() {
     // 미리보기용 다이얼로그
     BasicDialog(
-        dialogType = DialogMod.PERMISSION,
+        dialogType = DialogMod.FOREGROUND_SERVICE_PERMISSION,
         showDialog = true,
         onDismiss = { },
         onCancel = { },

@@ -74,6 +74,7 @@ class TaskRepositoryImpl @Inject constructor(
 
     override suspend fun markTaskAsCompleted(id: Long, completionTime: LocalDateTime) {
         taskDao.updateTaskCompletionStatus(id, true, completionTime)
+        taskDao.cancelPinStatus(id)
         cancelAlarmsForTodoItem(id)
     }
 

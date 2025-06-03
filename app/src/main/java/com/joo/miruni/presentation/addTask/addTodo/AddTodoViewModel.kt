@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joo.miruni.domain.usecase.AddTodoItemUseCase
+import com.joo.miruni.domain.usecase.task.todo.AddTodoItemUseCase
 import com.joo.miruni.presentation.widget.Time
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

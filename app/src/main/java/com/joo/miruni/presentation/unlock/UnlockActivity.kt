@@ -6,6 +6,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
 import com.joo.miruni.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,5 +32,4 @@ class UnlockActivity : ComponentActivity() {
             }
         })
     }
-
 }

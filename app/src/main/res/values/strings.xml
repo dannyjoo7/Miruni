@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Miruni</string>
+    <string name="lock_screen_description">잠금화면</string>
+    <string name="title_activity_task_launch">TaskLaunchActivity</string>
 </resources>

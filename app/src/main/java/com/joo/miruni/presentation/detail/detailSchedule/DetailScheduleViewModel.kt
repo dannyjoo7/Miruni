@@ -5,11 +5,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joo.miruni.domain.usecase.CancelCompleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.GetScheduleItemByIDUseCase
-import com.joo.miruni.domain.usecase.UpdateScheduleItemUseCase
+import com.joo.miruni.domain.usecase.task.CancelCompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.CompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.DeleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.schedule.GetScheduleItemByIDUseCase
+import com.joo.miruni.domain.usecase.task.schedule.UpdateScheduleItemUseCase
 import com.joo.miruni.presentation.addTask.addSchedule.AddScheduleViewModel
 import com.joo.miruni.presentation.addTask.addSchedule.ScheduleItem
 import com.joo.miruni.presentation.detail.detailTodo.DetailTodoViewModel

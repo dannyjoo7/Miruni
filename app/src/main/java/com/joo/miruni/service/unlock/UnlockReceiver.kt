@@ -3,7 +3,7 @@ package com.joo.miruni.service.unlock
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.joo.miruni.domain.usecase.SettingGetUnlockStateUseCase
+import com.joo.miruni.domain.usecase.setting.SettingGetUnlockStateUseCase
 import com.joo.miruni.presentation.unlock.UnlockActivity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -22,9 +22,11 @@ class UnlockReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        val isAble = settingGetUnlockStateUseCase.invoke()
 
-        if (intent.action == Intent.ACTION_USER_PRESENT && isAble) {
+        // 옵션 여부 확인
+        val isUnlockServiceAble = settingGetUnlockStateUseCase.invoke()
+
+        if (isUnlockServiceAble && intent.action == Intent.ACTION_USER_PRESENT) {
             startUnlockActivity(context)
         }
     }

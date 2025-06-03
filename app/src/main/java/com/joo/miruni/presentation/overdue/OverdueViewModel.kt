@@ -6,11 +6,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joo.miruni.domain.usecase.CompleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.DelayAllTodoItemUseCase
-import com.joo.miruni.domain.usecase.DelayTodoItemUseCase
-import com.joo.miruni.domain.usecase.DeleteTaskItemUseCase
-import com.joo.miruni.domain.usecase.GetOverDueTodoItemsForAlarmUseCase
+import com.joo.miruni.domain.usecase.task.CompleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.todo.DelayAllTodoItemUseCase
+import com.joo.miruni.domain.usecase.task.todo.DelayTodoItemUseCase
+import com.joo.miruni.domain.usecase.task.DeleteTaskItemUseCase
+import com.joo.miruni.domain.usecase.task.todo.GetOverDueTodoItemsForAlarmUseCase
 import com.joo.miruni.presentation.home.ThingsTodo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job

@@ -60,16 +60,21 @@ fun WheelTimePicker(
 
     var selectedTime by remember { mutableStateOf(startTime) }
 
-    val formats = listOf("오전", "오후", )
+    val formats = listOf("오전", "오후")
 
     val hours = mutableListOf<Int>().apply {
-        for (hour in 0..if (timeFormat == TimeFormat.CLOCK_24H) 23 else 11) {
-            add(hour)
-        }
         if (timeFormat == TimeFormat.CLOCK_12H) {
+            for (hour in 1..11) {
+                add(hour)
+            }
             add(12)
+        } else {
+            for (hour in 0..23) {
+                add(hour)
+            }
         }
     }
+
 
     val minutes = mutableListOf<Int>().apply {
         for (minute in 0..59 step 5) {

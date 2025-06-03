@@ -31,9 +31,11 @@ interface TaskDao {
         end: LocalDate,
     ): Flow<List<TaskEntity>>
 
+    // 알람 표시일 기준으로 가져오기
     @Query("SELECT * FROM tasks WHERE alarmDisplayDate BETWEEN :start AND :end")
     suspend fun getTasksForAlarmDisplayDateRange(start: LocalDate, end: LocalDate): List<TaskEntity>
 
+    //
     @Query("SELECT * FROM tasks")
     suspend fun getAllTasks(): List<TaskEntity>
 
@@ -114,4 +116,13 @@ interface TaskDao {
     // 고정 상태 업데이트
     @Query("UPDATE tasks SET isPinned = NOT isPinned WHERE id = :id")
     suspend fun togglePinStatus(id: Long)
+
+    // 고정 상태 활성화
+    @Query("UPDATE tasks SET isPinned = 1 WHERE id = :id")
+    suspend fun activatePinStatus(id: Long)
+
+    // 고정 상태 비활성화
+    @Query("UPDATE tasks SET isPinned = 0 WHERE id = :id")
+    suspend fun cancelPinStatus(id: Long)
+
 }

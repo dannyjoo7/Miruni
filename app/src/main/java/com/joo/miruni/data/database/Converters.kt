@@ -17,17 +17,6 @@ class Converters {
         return dateString?.let { LocalDate.parse(it) }
     }
 
-    // LocalTime 변환기
-    @TypeConverter
-    fun fromLocalTime(time: LocalTime?): String? {
-        return time?.toString()
-    }
-
-    @TypeConverter
-    fun toLocalTime(timeString: String?): LocalTime? {
-        return timeString?.let { LocalTime.parse(it) }
-    }
-
     // LocalDateTime 변환기
     @TypeConverter
     fun fromLocalDateTime(dateTime: LocalDateTime?): String? {

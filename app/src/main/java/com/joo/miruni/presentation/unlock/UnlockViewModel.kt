@@ -5,13 +5,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joo.miruni.domain.usecase.GetScheduleItemsUseCase
-import com.joo.miruni.domain.usecase.GetTodoItemsForAlarmUseCase
-import com.joo.miruni.domain.usecase.SettingObserveCompletedItemsVisibilityUseCase
+import com.joo.miruni.domain.usecase.task.schedule.GetScheduleItemsUseCase
+import com.joo.miruni.domain.usecase.task.todo.GetTodoItemsForAlarmUseCase
+import com.joo.miruni.domain.usecase.setting.SettingObserveCompletedItemsVisibilityUseCase
 import com.joo.miruni.presentation.home.Schedule
 import com.joo.miruni.presentation.home.ThingsTodo
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -61,9 +60,6 @@ class UnlockViewModel @Inject constructor(
     // scheduleList 페이징을 위한 마지막 데이터의 startDate
     private var lastStartDate: LocalDate? = null
 
-    // getThings 코루틴
-    private var getTodoItemsJob: Job? = null
-
     init {
         loadTodoItemsForAlarm()
         loadInitialScheduleData()
@@ -78,8 +74,7 @@ class UnlockViewModel @Inject constructor(
 
     // 할 일 load 메소드
     private fun loadTodoItemsForAlarm() {
-        getTodoItemsJob?.cancel()
-        getTodoItemsJob = viewModelScope.launch {
+        viewModelScope.launch {
             _isTodoListLoading.value = true
             runCatching {
                 getTodoItemsForAlarmUseCase.invoke(
@@ -106,35 +101,6 @@ class UnlockViewModel @Inject constructor(
             }.onFailure { exception ->
                 exception.printStackTrace()
                 _isTodoListLoading.value = false
-            }
-        }
-    }
-
-    /*
-    * UI
-    * */
-
-    // 날짜 Text 포멧
-    fun formatSelectedDate(date: LocalDate): String {
-        val today = LocalDate.now()
-
-        return when {
-            else -> {
-                if (date.year == today.year) {
-                    date.format(DateTimeFormatter.ofPattern("M월 d일"))
-                } else {
-                    date.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
-                }
-            }
-        }
-    }
-
-    // 시간 업데이트
-    private fun startUpdatingTime() {
-        viewModelScope.launch {
-            while (true) {
-                _curDateTime.postValue(LocalDateTime.now())
-                delay(1000)
             }
         }
     }
@@ -181,6 +147,7 @@ class UnlockViewModel @Inject constructor(
                     }
                         .sortedWith(compareByDescending<Schedule> { it.isPinned }.thenBy { it.startDate })
                     lastStartDate = _scheduleItems.value?.lastOrNull()?.startDate
+
                     _isScheduleListLoading.value = false
                 }
 
@@ -259,6 +226,36 @@ class UnlockViewModel @Inject constructor(
             }
         }
     }
+
+    /*
+    * UI
+    * */
+
+    // 날짜 Text 포멧
+    fun formatSelectedDate(date: LocalDate): String {
+        val today = LocalDate.now()
+
+        return when {
+            else -> {
+                if (date.year == today.year) {
+                    date.format(DateTimeFormatter.ofPattern("M월 d일"))
+                } else {
+                    date.format(DateTimeFormatter.ofPattern("M월 d일, yyyy"))
+                }
+            }
+        }
+    }
+
+    // 시간 업데이트
+    private fun startUpdatingTime() {
+        viewModelScope.launch {
+            while (true) {
+                _curDateTime.postValue(LocalDateTime.now())
+                delay(1000)
+            }
+        }
+    }
+
 }
 
 

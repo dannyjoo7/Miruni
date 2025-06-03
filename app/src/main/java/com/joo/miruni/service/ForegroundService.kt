@@ -23,6 +23,7 @@ import javax.inject.Inject
 class ForegroundService : Service() {
 
     companion object {
+        private val TAG = "ForegroundService"
         private const val CHANNEL_ID = "combined_channel"
         private const val CHANNEL_NAME = "Foreground Channel"
         private const val SERVICE_ID = 1
@@ -55,6 +56,41 @@ class ForegroundService : Service() {
         startForeground(SERVICE_ID, notification)
     }
 
+    // 메인 로직
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        /*
+        * 리마인더 서비스
+        * */
+        intent?.let {
+            val id = it.getLongExtra("TODO_ID", -1)
+            val title = it.getStringExtra("TODO_TITLE") ?: "리마인더"
+            val reminderType = it.getSerializableExtra("REMINDER_TYPE") as? ReminderType
+            val reminderTime = it.getLongExtra("REMINDER_TIME", -1)
+            val deadLineTime = it.getLongExtra("DEADLINE_TIME", -1)
+
+            if (id.toInt() != -1) {
+                sendReminder(id, title, reminderType)
+                // 다음 알람 예약
+                scheduleNextAlarm(id, title, deadLineTime, reminderType, reminderTime)
+            }
+        }
+
+
+        /*
+        * Unlock 서비스
+        * */
+        registerReceiver(unlockReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_USER_PRESENT)
+        })
+
+        return START_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(unlockReceiver)
+    }
+
     // 채널 생성
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
@@ -68,39 +104,7 @@ class ForegroundService : Service() {
         manager.createNotificationChannel(channel)
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        /*
-        * 리마인더 서비스
-        * */
-        intent?.let {
-            val id = it.getLongExtra("TODO_ID", -1)
-            val title = it.getStringExtra("TODO_TITLE") ?: "리마인더"
-            val reminderType = it.getSerializableExtra("REMINDER_TYPE") as? ReminderType
-            val reminderTime = it.getLongExtra("REMINDER_TIME", -1)
 
-            if (id.toInt() != -1) {
-                sendReminder(id, title, reminderType)
-                // 다음 알람 예약
-                scheduleNextAlarm(id, reminderType, title, reminderTime)
-            }
-        }
-
-
-        /*
-        * Unlock 서비스
-        * */
-        val intentFilter = IntentFilter().apply {
-            addAction(Intent.ACTION_USER_PRESENT)
-        }
-        registerReceiver(unlockReceiver, intentFilter)
-
-        return START_STICKY
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(unlockReceiver)
-    }
 
     private fun sendReminder(id: Long, title: String, reminderType: ReminderType?) {
         val message = when (reminderType) {
@@ -140,8 +144,9 @@ class ForegroundService : Service() {
 
     private fun scheduleNextAlarm(
         id: Long,
-        reminderType: ReminderType?,
         title: String,
+        deadLineTime: Long,
+        reminderType: ReminderType?,
         reminderTime: Long,
     ) {
         // 다음 알람 결정
@@ -153,21 +158,27 @@ class ForegroundService : Service() {
             else -> null
         }
 
-        val nextAlarmTime = calculateAlarmTime(nextReminderType, reminderTime)
+        val nextAlarmTime = calculateNextAlarmTime(nextReminderType, deadLineTime)
 
         if (nextReminderType != null && nextAlarmTime != null) {
-            reminderManagerUtil.setNextAlarm(nextAlarmTime, id, title, nextReminderType)
+            reminderManagerUtil.setNextAlarm(
+                id,
+                title,
+                deadLineTime,
+                nextAlarmTime,
+                nextReminderType
+            )
         } else {
             reminderManagerUtil.cancelAlarmsForTodoItem(id)
         }
     }
 
-    private fun calculateAlarmTime(reminderType: ReminderType?, reminderTime: Long): Long? {
+    private fun calculateNextAlarmTime(reminderType: ReminderType?, deadLineTime: Long): Long? {
         return when (reminderType) {
-            ReminderType.ONE_HOUR_BEFORE -> reminderTime + 3600000
-            ReminderType.TEN_MINUTES_BEFORE -> reminderTime + 600000
-            ReminderType.FIVE_MINUTES_BEFORE -> reminderTime + 300000
-            ReminderType.NOW -> reminderTime + 300000
+            ReminderType.ONE_HOUR_BEFORE -> deadLineTime - 3600000
+            ReminderType.TEN_MINUTES_BEFORE -> deadLineTime - 600000
+            ReminderType.FIVE_MINUTES_BEFORE -> deadLineTime - 300000
+            ReminderType.NOW -> deadLineTime
             else -> null
         }
     }
